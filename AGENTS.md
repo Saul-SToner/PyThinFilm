@@ -27,14 +27,6 @@ s 偏振
 thinfilm_core.py
 ```
 
-其他文件主要是早期探索或辅助分析：
-
-```text
-comsol_only_analysis.py
-theta_scan_fit_from_comsol.py
-Untitled-1.py
-```
-
 ## 当前推荐主线
 
 推荐配置：
