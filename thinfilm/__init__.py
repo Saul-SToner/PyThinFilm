@@ -11,11 +11,12 @@ Module layout:
 """
 
 from .api import fit_two_angle, fit_current_main_case
-from .sweep import fit_n1b_theta_sweep, summarize_n1b_theta_sweep
+from .sweep import fit_n1b_theta_sweep, score_n1b_theta_sweep, summarize_n1b_theta_sweep
 
 __all__ = [
     "fit_two_angle",
     "fit_current_main_case",
     "fit_n1b_theta_sweep",
+    "score_n1b_theta_sweep",
     "summarize_n1b_theta_sweep",
 ]
