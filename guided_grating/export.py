@@ -10,6 +10,38 @@ from thinfilm.paths import output_file
 
 from .spectra import summarize_guided_grating_spectrum
 
+MAIN_RED = "#c94f2d"
+TARGET_GREEN = "#0f766e"
+TRANS_BLUE = "#1d4ed8"
+ABS_GOLD = "#b7791f"
+GRID_COLOR = "#d7dde5"
+TEXT_DARK = "#223046"
+PANEL_BG = "#f7f8fb"
+
+
+def _analysis_lines(summary: Dict[str, Any], target_wavelength_nm: float | None) -> list[str]:
+    lines = [
+        f"Peak = {summary['peak_wavelength_nm']:.3f} nm",
+        f"Rpeak = {summary['peak_reflectance']:.6f}",
+        f"FWHM = {summary['fwhm_nm']:.3f} nm",
+    ]
+    if target_wavelength_nm is not None:
+        delta = float(summary["peak_wavelength_nm"]) - float(target_wavelength_nm)
+        lines.append(f"Target = {float(target_wavelength_nm):.3f} nm")
+        lines.append(f"Delta = {delta:+.3f} nm")
+    return lines
+
+
+def _style_axis(ax: plt.Axes) -> None:
+    ax.set_facecolor(PANEL_BG)
+    ax.grid(True, alpha=0.35, color=GRID_COLOR, linewidth=0.8)
+    for spine in ax.spines.values():
+        spine.set_color("#c9d2dc")
+    ax.tick_params(colors=TEXT_DARK)
+    ax.xaxis.label.set_color(TEXT_DARK)
+    ax.yaxis.label.set_color(TEXT_DARK)
+    ax.title.set_color(TEXT_DARK)
+
 
 def export_guided_grating_result(
     result: Dict[str, Any],
@@ -18,6 +50,7 @@ def export_guided_grating_result(
     save_csv: bool = True,
     save_json: bool = True,
     save_txt: bool = True,
+    target_wavelength_nm: float | None = None,
 ) -> Dict[str, str]:
     saved: Dict[str, str] = {}
     sample_id = str(result.get("sample_id") or "guided_grating_case")
@@ -73,17 +106,29 @@ def export_guided_grating_result(
     if save_plot:
         png_path = output_file(f"{stem}_RTA.png")
         fig, ax = plt.subplots(figsize=(8, 5))
-        ax.plot(wl, r_vals, label="R", linewidth=2.2, color="#cc3f0c")
-        ax.plot(wl, t_vals, label="T", linewidth=2.0, color="#1f77b4")
-        ax.plot(wl, a_vals, label="A", linewidth=2.0, color="#2ca02c")
-        ax.axvline(summary["peak_wavelength_nm"], linestyle="--", linewidth=1.2, color="#555555", alpha=0.8)
-        ax.set_title(f"Guided Grating Demo | {sample_id}")
+        _style_axis(ax)
+        ax.plot(wl, r_vals, label="R", linewidth=2.4, color=MAIN_RED)
+        ax.plot(wl, t_vals, label="T", linewidth=2.0, color=TRANS_BLUE)
+        ax.plot(wl, a_vals, label="A", linewidth=2.0, color=ABS_GOLD)
+        ax.axvline(summary["peak_wavelength_nm"], linestyle="--", linewidth=1.3, color="#555555", alpha=0.85, label="Peak")
+        if target_wavelength_nm is not None:
+            ax.axvline(float(target_wavelength_nm), linestyle=":", linewidth=1.5, color=TARGET_GREEN, alpha=0.95, label="Target")
+        ax.set_title(f"Guided Grating Spectrum | {sample_id}", fontweight="semibold")
         ax.set_xlabel("Wavelength (nm)")
         ax.set_ylabel("Power")
         ax.set_xlim(float(wl[0]), float(wl[-1]))
         ax.set_ylim(0.0, 1.02)
-        ax.grid(True, alpha=0.25)
-        ax.legend()
+        ax.legend(loc="lower left", frameon=True, facecolor="white", edgecolor="#c9d2dc")
+        ax.text(
+            0.985,
+            0.97,
+            "\n".join(_analysis_lines(summary, target_wavelength_nm)),
+            transform=ax.transAxes,
+            ha="right",
+            va="top",
+            fontsize=9,
+            bbox={"boxstyle": "round,pad=0.35", "facecolor": "white", "alpha": 0.85, "edgecolor": "#cccccc"},
+        )
         fig.tight_layout()
         fig.savefig(png_path, dpi=180)
         plt.close(fig)
@@ -91,20 +136,52 @@ def export_guided_grating_result(
 
         main_png = output_file(f"{stem}_main.png")
         fig2, ax2 = plt.subplots(figsize=(8, 5))
-        ax2.plot(wl, r_vals, linewidth=2.4, color="#cc3f0c")
-        ax2.axvline(summary["peak_wavelength_nm"], linestyle="--", linewidth=1.2, color="#555555", alpha=0.8)
+        _style_axis(ax2)
+        ax2.plot(wl, r_vals, linewidth=2.8, color=MAIN_RED)
+        ax2.fill_between(wl, r_vals, color=MAIN_RED, alpha=0.10)
+        ax2.axvline(summary["peak_wavelength_nm"], linestyle="--", linewidth=1.3, color="#555555", alpha=0.85)
+        if target_wavelength_nm is not None:
+            ax2.axvline(float(target_wavelength_nm), linestyle=":", linewidth=1.5, color=TARGET_GREEN, alpha=0.95)
+        if summary["fwhm_nm"] > 0.0:
+            half_width = 0.5 * float(summary["fwhm_nm"])
+            peak_wl = float(summary["peak_wavelength_nm"])
+            ax2.axvspan(
+                peak_wl - half_width,
+                peak_wl + half_width,
+                color="#94a3b8",
+                alpha=0.12,
+                linewidth=0,
+            )
         ymin = max(0.0, summary["min_reflectance"] - 0.05)
         ymax = min(1.02, summary["peak_reflectance"] + 0.05)
         if ymax - ymin < 0.08:
             mid = 0.5 * (ymax + ymin)
             ymin = max(0.0, mid - 0.04)
             ymax = min(1.02, mid + 0.04)
-        ax2.set_title("Guided Grating Reflectance")
+        ax2.scatter(
+            [summary["peak_wavelength_nm"]],
+            [summary["peak_reflectance"]],
+            color=MAIN_RED,
+            edgecolor="white",
+            linewidth=1.0,
+            s=42,
+            zorder=5,
+        )
+        ax2.set_title("Guided Grating Reflectance", fontweight="semibold")
         ax2.set_xlabel("Wavelength (nm)")
         ax2.set_ylabel("R")
         ax2.set_xlim(float(wl[0]), float(wl[-1]))
         ax2.set_ylim(ymin, ymax)
-        ax2.grid(True, alpha=0.25)
+        ax2.text(
+            0.985,
+            0.97,
+            "\n".join(_analysis_lines(summary, target_wavelength_nm)),
+            transform=ax2.transAxes,
+            ha="right",
+            va="top",
+            fontsize=9,
+            bbox={"boxstyle": "round,pad=0.35", "facecolor": "white", "alpha": 0.85, "edgecolor": "#cccccc"},
+        )
         fig2.tight_layout()
         fig2.savefig(main_png, dpi=180)
         plt.close(fig2)
@@ -116,6 +193,7 @@ def export_guided_grating_result(
 def export_guided_grating_sweep_summary(
     bundle_summary: Dict[str, Any],
     prefix: str = "guided_grating_sweep",
+    save_plot: bool = True,
     save_csv: bool = True,
     save_json: bool = True,
     save_txt: bool = True,
@@ -125,7 +203,8 @@ def export_guided_grating_sweep_summary(
     period_rows = list(bundle_summary.get("period_summaries", []))
     best = bundle_summary.get("best_candidate", {})
     sweep_name = str(bundle_summary.get("sweep_name", "period"))
-    sweep_col = f"{sweep_name}_nm"
+    sweep_display_unit = str(bundle_summary.get("sweep_display_unit", "nm"))
+    sweep_col = f"{sweep_name}_{sweep_display_unit}"
 
     if save_csv:
         csv_path = output_file(f"{stem}_period_summary.csv")
@@ -181,5 +260,52 @@ def export_guided_grating_sweep_summary(
         with open(txt_path, "w", encoding="utf-8") as f:
             f.write("\n".join(lines) + "\n")
         saved["txt"] = str(txt_path)
+
+    if save_plot and period_rows:
+        analysis_png = output_file(f"{stem}_error_analysis.png")
+        x_vals = np.asarray([float(row["period_nm"]) for row in period_rows], dtype=float)
+        peak_vals = np.asarray([float(row["peak_wavelength_nm"]) for row in period_rows], dtype=float)
+        error_vals = np.asarray([float(row["target_error_nm"]) for row in period_rows], dtype=float)
+        fwhm_vals = np.asarray([float(row["fwhm_nm"]) for row in period_rows], dtype=float)
+        rpeak_vals = np.asarray([float(row["peak_reflectance"]) for row in period_rows], dtype=float)
+        best_x = float(best.get("period_nm", x_vals[0]))
+
+        fig, axes = plt.subplots(2, 2, figsize=(10, 7))
+        ax1, ax2, ax3, ax4 = axes.ravel()
+
+        for ax in (ax1, ax2, ax3, ax4):
+            _style_axis(ax)
+            ax.axvline(best_x, linestyle=":", color="#64748b", linewidth=1.2, alpha=0.75)
+
+        ax1.plot(x_vals, peak_vals, marker="o", linewidth=2.2, color=MAIN_RED)
+        ax1.scatter([best_x], [float(best.get("peak_wavelength_nm", peak_vals[0]))], color=MAIN_RED, edgecolor="white", s=50, zorder=5)
+        ax1.axhline(float(bundle_summary["target_wavelength_nm"]), linestyle=":", color=TARGET_GREEN, linewidth=1.4)
+        ax1.set_title("Peak Wavelength")
+        ax1.set_xlabel(sweep_col)
+        ax1.set_ylabel("nm")
+
+        ax2.plot(x_vals, error_vals, marker="o", linewidth=2.2, color=TRANS_BLUE)
+        ax2.scatter([best_x], [float(best.get("target_error_nm", error_vals[0]))], color=TRANS_BLUE, edgecolor="white", s=50, zorder=5)
+        ax2.set_title("Target Error")
+        ax2.set_xlabel(sweep_col)
+        ax2.set_ylabel("nm")
+
+        ax3.plot(x_vals, fwhm_vals, marker="o", linewidth=2.2, color="#8c564b")
+        ax3.scatter([best_x], [float(best.get("fwhm_nm", fwhm_vals[0]))], color="#8c564b", edgecolor="white", s=50, zorder=5)
+        ax3.set_title("FWHM")
+        ax3.set_xlabel(sweep_col)
+        ax3.set_ylabel("nm")
+
+        ax4.plot(x_vals, rpeak_vals, marker="o", linewidth=2.2, color="#9467bd")
+        ax4.scatter([best_x], [float(best.get("peak_reflectance", rpeak_vals[0]))], color="#9467bd", edgecolor="white", s=50, zorder=5)
+        ax4.set_title("Peak Reflectance")
+        ax4.set_xlabel(sweep_col)
+        ax4.set_ylabel("Rpeak")
+
+        fig.suptitle("Guided Grating Sweep Error Analysis", fontsize=12, fontweight="semibold", color=TEXT_DARK)
+        fig.tight_layout()
+        fig.savefig(analysis_png, dpi=180)
+        plt.close(fig)
+        saved["analysis_png"] = str(analysis_png)
 
     return saved

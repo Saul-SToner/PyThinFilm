@@ -96,6 +96,17 @@ def _clean_header_name(text: str) -> str:
     return s
 
 
+def _normalize_sweep_name(name: str) -> str:
+    return str(name).strip().lower().replace(" ", "_")
+
+
+def _sweep_scale_and_unit(sweep_name: str) -> tuple[float, str]:
+    normalized = _normalize_sweep_name(sweep_name)
+    if normalized in {"ff", "fill", "fill_factor", "duty_cycle"}:
+        return 1.0, "value"
+    return 1e9, "nm"
+
+
 def load_comsol_two_param_sweep(
     csv_path: Path | str,
     sweep_name: str | None = None,
@@ -123,11 +134,12 @@ def load_comsol_two_param_sweep(
     detected_sweep_name = _clean_header_name(header[1]) or "sweep_param"
     active_sweep_name = str(sweep_name or detected_sweep_name)
     active_label = active_sweep_name.replace(" ", "_")
+    value_scale, display_unit = _sweep_scale_and_unit(active_sweep_name)
 
     groups: Dict[str, Dict[str, Any]] = defaultdict(
         lambda: {
             "param_value_raw": 0.0,
-            "param_value_nm": 0.0,
+            "param_value_display": 0.0,
             "wavelength_nm": [],
             "R": [],
             "T": [],
@@ -138,10 +150,10 @@ def load_comsol_two_param_sweep(
 
     for row in data_rows:
         param_value_raw = float(row[1])
-        param_value_nm = param_value_raw * 1e9
-        key = _period_key(param_value_nm)
+        param_value_display = param_value_raw * value_scale
+        key = _period_key(param_value_display)
         groups[key]["param_value_raw"] = param_value_raw
-        groups[key]["param_value_nm"] = param_value_nm
+        groups[key]["param_value_display"] = param_value_display
         groups[key]["wavelength_nm"].append(float(row[0]) * 1e9)
         groups[key]["R"].append(_leading_float(row[7]))
         groups[key]["T"].append(_leading_float(row[8]))
@@ -149,20 +161,21 @@ def load_comsol_two_param_sweep(
         groups[key]["sum"].append(_leading_float(row[11]))
 
     result_groups: Dict[str, Dict[str, Any]] = {}
-    for key, series in sorted(groups.items(), key=lambda item: item[1]["param_value_nm"]):
-        param_value_nm = float(series["param_value_nm"])
-        param_label = f"{param_value_nm:.6f}".rstrip("0").rstrip(".")
+    for key, series in sorted(groups.items(), key=lambda item: item[1]["param_value_display"]):
+        param_value_display = float(series["param_value_display"])
+        param_label = f"{param_value_display:.6f}".rstrip("0").rstrip(".")
         result_groups[key] = {
-            "sample_id": f"{path.stem}_{active_label}_{param_label}nm",
+            "sample_id": f"{path.stem}_{active_label}_{param_label}{display_unit}",
             "model_type": "comsol_two_param_sweep_member",
             "is_placeholder": False,
             "backend": "comsol_csv_sweep",
             "warning": "",
             "source_csv": str(path),
             "spec": {
-                "sample_id": f"{path.stem}_{active_label}_{param_label}nm",
+                "sample_id": f"{path.stem}_{active_label}_{param_label}{display_unit}",
                 active_sweep_name: param_value_raw,
-                f"{active_sweep_name}_nm": param_value_nm,
+                f"{active_sweep_name}_{display_unit}": param_value_display,
+                "sweep_display_unit": display_unit,
                 "source_csv": str(path),
                 "notes": "Split from COMSOL wavelength + parameter sweep table.",
             },
@@ -183,14 +196,7 @@ def load_comsol_two_param_sweep(
         "header": header,
         "sweep_name": active_sweep_name,
         "sweep_display_name": detected_sweep_name,
+        "sweep_display_unit": display_unit,
         "sweep_groups": result_groups,
     }
 
-
-def load_comsol_lambda_period_sweep(csv_path: Path | str) -> Dict[str, Any]:
-    """Backward-compatible wrapper for period sweeps."""
-
-    bundle = load_comsol_two_param_sweep(csv_path, sweep_name="period")
-    bundle["model_type"] = "comsol_lambda_period_sweep_bundle"
-    bundle["period_groups"] = bundle["sweep_groups"]
-    return bundle

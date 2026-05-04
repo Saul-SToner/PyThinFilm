@@ -39,18 +39,20 @@ def summarize_lambda_period_sweep(
     target_wavelength_nm: float = 1550.0,
 ) -> Dict[str, Any]:
     period_summaries: List[Dict[str, Any]] = []
-    groups = bundle.get("sweep_groups") or bundle.get("period_groups", {})
+    groups = bundle.get("sweep_groups", {})
     sweep_name = str(bundle.get("sweep_name") or "period")
-    sweep_name_nm = f"{sweep_name}_nm"
+    sweep_display_unit = str(bundle.get("sweep_display_unit") or "nm")
+    sweep_value_key = f"{sweep_name}_{sweep_display_unit}"
 
     for period_key, result in groups.items():
         spec = result.get("spec", {})
-        period_nm = float(spec.get(sweep_name_nm, float(period_key)))
+        period_nm = float(spec.get(sweep_value_key, float(period_key)))
         summary = summarize_guided_grating_spectrum(result)
         row = {
             "period_key": str(period_key),
             "period_nm": period_nm,
             "sweep_name": sweep_name,
+            "sweep_display_unit": sweep_display_unit,
             **summary,
             "target_error_nm": abs(
                 float(summary["peak_wavelength_nm"]) - float(target_wavelength_nm)
@@ -73,6 +75,7 @@ def summarize_lambda_period_sweep(
         "backend": bundle.get("backend"),
         "has_duplicate_block": bool(bundle.get("has_duplicate_block", False)),
         "sweep_name": sweep_name,
+        "sweep_display_unit": sweep_display_unit,
         "target_wavelength_nm": float(target_wavelength_nm),
         "num_periods": len(period_summaries),
         "best_candidate": best,

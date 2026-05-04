@@ -23,6 +23,14 @@ import numpy as np
 
 from .paths import OUTPUT_DIR, output_file
 
+MAIN_RED = "#c94f2d"
+TARGET_GREEN = "#0f766e"
+TRANS_BLUE = "#1d4ed8"
+ABS_GOLD = "#b7791f"
+GRID_COLOR = "#d7dde5"
+TEXT_DARK = "#223046"
+PANEL_BG = "#f7f8fb"
+
 
 @dataclass(frozen=True)
 class LayerSpec:
@@ -1250,6 +1258,41 @@ def _main_curve_kind_for_case(result: Dict[str, Any]) -> str:
     return "R"
 
 
+def _style_teaching_axis(ax: plt.Axes) -> None:
+    ax.set_facecolor(PANEL_BG)
+    ax.grid(True, alpha=0.35, color=GRID_COLOR, linewidth=0.8)
+    for spine in ax.spines.values():
+        spine.set_color("#c9d2dc")
+    ax.tick_params(colors=TEXT_DARK)
+    ax.xaxis.label.set_color(TEXT_DARK)
+    ax.yaxis.label.set_color(TEXT_DARK)
+    ax.title.set_color(TEXT_DARK)
+
+
+def _case_analysis_lines(result: Dict[str, Any]) -> list[str]:
+    summary = result["summary"]
+    lambda0_nm = float(result["lambda0_nm"])
+    key = str(result.get("case_id") or result.get("design_type") or "").strip().lower()
+    lines = [
+        f"lambda0 = {lambda0_nm:.1f} nm",
+        f"R@lambda0 = {float(summary['R_at_lambda0']):.4f}",
+        f"T@lambda0 = {float(summary['T_at_lambda0']):.4f}",
+    ]
+    if "fp_" in key:
+        peak_wl = float(summary["T_max_wavelength_nm"])
+        lines.append(f"Tmax = {float(summary['T_max']):.4f}")
+        lines.append(f"Delta peak = {peak_wl - lambda0_nm:+.2f} nm")
+    elif "beamsplitter" in key:
+        split_err = float(summary["R_at_lambda0"]) - 0.5
+        lines.append(f"A@lambda0 = {float(summary['A_at_lambda0']):.4f}")
+        lines.append(f"Split err = {split_err:+.4f}")
+    else:
+        valley_wl = float(summary["R_min_wavelength_nm"])
+        lines.append(f"Rmin = {float(summary['R_min']):.4f}")
+        lines.append(f"Delta valley = {valley_wl - lambda0_nm:+.2f} nm")
+    return lines
+
+
 def _default_wavelength_grid_for_design(
     design_type: str,
     lambda0_nm: float,
@@ -1342,22 +1385,32 @@ def export_report_case_outputs(
     if save_plot:
         png_path = output_file(f"{stem}_RTA.png")
         fig, ax = plt.subplots(figsize=(8, 5))
-        ax.plot(wavelength_nm, r_vals, label="R", linewidth=2.0, color="#cc3f0c")
-        ax.plot(wavelength_nm, t_vals, label="T", linewidth=2.0, color="#1f77b4")
-        ax.plot(wavelength_nm, a_vals, label="A", linewidth=2.0, color="#2ca02c")
-        ax.axvline(float(result["lambda0_nm"]), linestyle="--", linewidth=1.2, color="#555555", alpha=0.8)
+        _style_teaching_axis(ax)
+        ax.plot(wavelength_nm, r_vals, label="R", linewidth=2.3, color=MAIN_RED)
+        ax.plot(wavelength_nm, t_vals, label="T", linewidth=2.0, color=TRANS_BLUE)
+        ax.plot(wavelength_nm, a_vals, label="A", linewidth=2.0, color=ABS_GOLD)
+        ax.axvline(float(result["lambda0_nm"]), linestyle=":", linewidth=1.4, color=TARGET_GREEN, alpha=0.9, label="lambda0")
         title_label = (
             result.get("title_en")
             or result.get("title_cn")
             or result.get("design_type", "case")
         )
-        ax.set_title(f"{title_label} | theta={float(result['theta_deg']):g} deg | pol={result['pol']}")
+        ax.set_title(f"{title_label} | theta={float(result['theta_deg']):g} deg | pol={result['pol']}", fontweight="semibold")
         ax.set_xlabel("Wavelength (nm)")
         ax.set_ylabel("Power")
         ax.set_xlim(float(np.min(wavelength_nm)), float(np.max(wavelength_nm)))
         ax.set_ylim(0.0, max(1.02, float(np.max([np.max(r_vals), np.max(t_vals), np.max(a_vals)])) * 1.05))
-        ax.grid(True, alpha=0.25)
-        ax.legend()
+        ax.legend(loc="lower left", frameon=True, facecolor="white", edgecolor="#c9d2dc")
+        ax.text(
+            0.985,
+            0.97,
+            "\n".join(_case_analysis_lines(result)),
+            transform=ax.transAxes,
+            ha="right",
+            va="top",
+            fontsize=9,
+            bbox={"boxstyle": "round,pad=0.35", "facecolor": "white", "alpha": 0.85, "edgecolor": "#cccccc"},
+        )
         fig.tight_layout()
         fig.savefig(png_path, dpi=180)
         plt.close(fig)
@@ -1382,16 +1435,20 @@ def export_report_case_outputs(
 
         main_png_path = output_file(f"{stem}_main.png")
         fig2, ax2 = plt.subplots(figsize=(8, 5))
-        ax2.plot(wavelength_nm, main_vals, linewidth=2.4, color=main_color, label=main_kind)
-        ax2.axvline(float(result["lambda0_nm"]), linestyle="--", linewidth=1.2, color="#555555", alpha=0.8)
+        _style_teaching_axis(ax2)
+        ax2.plot(wavelength_nm, main_vals, linewidth=2.7, color=main_color, label=main_kind)
+        ax2.fill_between(wavelength_nm, main_vals, color=main_color, alpha=0.10)
+        ax2.axvline(float(result["lambda0_nm"]), linestyle=":", linewidth=1.4, color=TARGET_GREEN, alpha=0.9)
         ax2.scatter(
             [float(wavelength_nm[valley_idx]), float(wavelength_nm[peak_idx])],
             [float(main_vals[valley_idx]), float(main_vals[peak_idx])],
             color=main_color,
-            s=28,
+            edgecolor="white",
+            linewidth=1.0,
+            s=36,
             zorder=3,
         )
-        ax2.set_title(f"{title_label} | {main_label}")
+        ax2.set_title(f"{title_label} | {main_label}", fontweight="semibold")
         ax2.set_xlabel("Wavelength (nm)")
         ax2.set_ylabel(main_kind)
         xlim = _main_plot_xlim_for_case(result)
@@ -1400,12 +1457,65 @@ def export_report_case_outputs(
         else:
             ax2.set_xlim(*xlim)
         ax2.set_ylim(y0, y1)
-        ax2.grid(True, alpha=0.25)
-        ax2.legend()
+        ax2.text(
+            0.985,
+            0.97,
+            "\n".join(_case_analysis_lines(result)),
+            transform=ax2.transAxes,
+            ha="right",
+            va="top",
+            fontsize=9,
+            bbox={"boxstyle": "round,pad=0.35", "facecolor": "white", "alpha": 0.85, "edgecolor": "#cccccc"},
+        )
         fig2.tight_layout()
         fig2.savefig(main_png_path, dpi=180)
         plt.close(fig2)
         saved["main_png"] = str(main_png_path)
+
+        analysis_png_path = output_file(f"{stem}_analysis.png")
+        summary = result["summary"]
+        metric_labels = ["R@lambda0", "T@lambda0", "A@lambda0"]
+        metric_values = [
+            float(summary["R_at_lambda0"]),
+            float(summary["T_at_lambda0"]),
+            float(summary["A_at_lambda0"]),
+        ]
+        fig3, (ax3, ax4) = plt.subplots(1, 2, figsize=(10, 4.8))
+        _style_teaching_axis(ax3)
+        _style_teaching_axis(ax4)
+        ax3.bar(metric_labels, metric_values, color=[MAIN_RED, TRANS_BLUE, ABS_GOLD], width=0.58)
+        ax3.set_ylim(0.0, 1.02)
+        ax3.set_title("Center-Wavelength Metrics", fontweight="semibold")
+        ax3.set_ylabel("Value")
+
+        key = str(result.get("case_id") or result.get("design_type") or "").strip().lower()
+        if "fp_" in key:
+            labels2 = ["lambda0", "Tmax wl", "Delta"]
+            peak_wl = float(summary["T_max_wavelength_nm"])
+            values2 = [float(result["lambda0_nm"]), peak_wl, peak_wl - float(result["lambda0_nm"])]
+            colors2 = [TARGET_GREEN, TRANS_BLUE, "#8c564b"]
+            ax4.bar(labels2, values2, color=colors2, width=0.58)
+            ax4.set_title("Peak Alignment", fontweight="semibold")
+            ax4.set_ylabel("nm")
+        else:
+            labels2 = ["lambda0", "Rmin wl", "Delta"]
+            valley_wl = float(summary["R_min_wavelength_nm"])
+            values2 = [float(result["lambda0_nm"]), valley_wl, valley_wl - float(result["lambda0_nm"])]
+            colors2 = [TARGET_GREEN, MAIN_RED, "#8c564b"]
+            if "high_reflector" in key or "beamsplitter" in key:
+                labels2 = ["lambda0", "Rmax wl", "Delta"]
+                peak_wl = float(summary["R_max_wavelength_nm"])
+                values2 = [float(result["lambda0_nm"]), peak_wl, peak_wl - float(result["lambda0_nm"])]
+                colors2 = [TARGET_GREEN, MAIN_RED, "#8c564b"]
+            ax4.bar(labels2, values2, color=colors2, width=0.58)
+            ax4.set_title("Spectral Alignment", fontweight="semibold")
+            ax4.set_ylabel("nm")
+
+        fig3.suptitle(f"{title_label} | Analysis", fontsize=12, fontweight="semibold", color=TEXT_DARK)
+        fig3.tight_layout()
+        fig3.savefig(analysis_png_path, dpi=180)
+        plt.close(fig3)
+        saved["analysis_png"] = str(analysis_png_path)
 
     return saved
 
@@ -1457,19 +1567,32 @@ def _export_comparison_plot(
 ) -> Dict[str, str]:
     csv_path = output_file(f"{filename_stem}.csv")
     png_path = output_file(f"{filename_stem}.png")
+    analysis_png_path = output_file(f"{filename_stem}_analysis.png")
     _export_comparison_csv(csv_path, wavelength_nm, series)
 
     fig, ax = plt.subplots(figsize=(8, 5))
-    palette = ["#cc3f0c", "#1f77b4", "#2ca02c", "#9467bd", "#8c564b", "#17becf"]
+    _style_teaching_axis(ax)
+    palette = [MAIN_RED, TRANS_BLUE, "#2f855a", "#9467bd", "#8c564b", "#17becf"]
     y_all: List[np.ndarray] = []
+    center_values: List[float] = []
+    peak_positions: List[float] = []
+    widths: List[float] = []
+    labels: List[str] = []
     for idx, (label, values) in enumerate(series.items()):
         color = palette[idx % len(palette)]
         vals = np.asarray(values, dtype=float)
         y_all.append(vals)
-        ax.plot(wavelength_nm, vals, linewidth=2.2, label=label, color=color)
+        labels.append(label)
+        ax.plot(wavelength_nm, vals, linewidth=2.3, label=label, color=color)
+        center_values.append(float(np.interp(float(lambda0_nm or wavelength_nm[len(wavelength_nm) // 2]), wavelength_nm, vals)))
+        peak_idx = int(np.argmax(vals))
+        peak_positions.append(float(wavelength_nm[peak_idx]))
+        half_level = 0.5 * float(np.max(vals))
+        above = np.where(vals >= half_level)[0]
+        widths.append(float(wavelength_nm[above[-1]] - wavelength_nm[above[0]]) if len(above) >= 2 else 0.0)
     if lambda0_nm is not None:
-        ax.axvline(float(lambda0_nm), linestyle="--", linewidth=1.2, color="#555555", alpha=0.8)
-    ax.set_title(title)
+        ax.axvline(float(lambda0_nm), linestyle=":", linewidth=1.4, color=TARGET_GREEN, alpha=0.9)
+    ax.set_title(title, fontweight="semibold")
     ax.set_xlabel("Wavelength (nm)")
     ax.set_ylabel(ylabel)
     if xlim is None:
@@ -1482,12 +1605,42 @@ def _export_comparison_plot(
     span = max(y_max - y_min, 1e-6)
     pad = max(0.015, 0.08 * span)
     ax.set_ylim(max(0.0, y_min - pad), min(1.02, y_max + pad))
-    ax.grid(True, alpha=0.25)
-    ax.legend()
+    ax.legend(loc="lower left", frameon=True, facecolor="white", edgecolor="#c9d2dc")
     fig.tight_layout()
     fig.savefig(png_path, dpi=180)
     plt.close(fig)
-    return {"csv": str(csv_path), "png": str(png_path)}
+
+    fig2, axes = plt.subplots(1, 3, figsize=(12, 4.2))
+    for axis in axes:
+        _style_teaching_axis(axis)
+
+    x = np.arange(len(labels))
+    colors = [palette[i % len(palette)] for i in range(len(labels))]
+
+    axes[0].bar(x, center_values, color=colors, width=0.62)
+    axes[0].set_xticks(x, labels, rotation=20)
+    axes[0].set_ylim(0.0, 1.02)
+    axes[0].set_title(f"{ylabel}@lambda0", fontweight="semibold")
+    axes[0].set_ylabel(ylabel)
+
+    axes[1].bar(x, peak_positions, color=colors, width=0.62)
+    if lambda0_nm is not None:
+        axes[1].axhline(float(lambda0_nm), linestyle=":", linewidth=1.3, color=TARGET_GREEN)
+    axes[1].set_xticks(x, labels, rotation=20)
+    axes[1].set_title("Peak Position", fontweight="semibold")
+    axes[1].set_ylabel("nm")
+
+    axes[2].bar(x, widths, color=colors, width=0.62)
+    axes[2].set_xticks(x, labels, rotation=20)
+    axes[2].set_title("Approx. FWHM", fontweight="semibold")
+    axes[2].set_ylabel("nm")
+
+    fig2.suptitle(f"{title} | Analysis", fontsize=12, fontweight="semibold", color=TEXT_DARK)
+    fig2.tight_layout()
+    fig2.savefig(analysis_png_path, dpi=180)
+    plt.close(fig2)
+
+    return {"csv": str(csv_path), "png": str(png_path), "analysis_png": str(analysis_png_path)}
 
 
 def export_report_comparison_figures(

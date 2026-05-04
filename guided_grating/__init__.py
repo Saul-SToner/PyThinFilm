@@ -4,11 +4,10 @@ This package is intentionally kept separate from ``thinfilm/`` so the
 existing teaching main branch and inversion pipeline stay stable.
 """
 
-from .comsol_io import load_comsol_grating_csv, load_comsol_lambda_period_sweep
+from .comsol_io import load_comsol_grating_csv, load_comsol_two_param_sweep
 from .examples import (
     build_minimal_demo_spec,
     run_comsol_csv_demo,
-    run_comsol_lambda_period_sweep_demo,
     run_comsol_two_param_sweep_demo,
     run_minimal_demo,
 )
@@ -22,9 +21,8 @@ __all__ = [
     "GratingSweepConfig",
     "build_minimal_demo_spec",
     "load_comsol_grating_csv",
-    "load_comsol_lambda_period_sweep",
+    "load_comsol_two_param_sweep",
     "run_comsol_csv_demo",
-    "run_comsol_lambda_period_sweep_demo",
     "run_comsol_two_param_sweep_demo",
     "run_minimal_demo",
     "simulate_guided_grating_placeholder",
