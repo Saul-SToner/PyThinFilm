@@ -58,6 +58,16 @@ from .sweep import (
     screen_d_n1b_sweep_quality,
     summarize_n1b_theta_sweep,
 )
+from .uncertainty import (
+    export_inversion_uncertainty_analysis,
+    run_inversion_uncertainty_analysis,
+)
+from .validation import (
+    compare_teaching_case_to_reference,
+    export_teaching_validation_result,
+    export_teaching_validation_suite_summary,
+    run_teaching_validation_suite,
+)
 
 __all__ = [
     "export_teaching_case_outputs",
@@ -103,4 +113,10 @@ __all__ = [
     "score_n1b_theta_sweep",
     "screen_d_n1b_sweep_quality",
     "summarize_n1b_theta_sweep",
+    "compare_teaching_case_to_reference",
+    "run_teaching_validation_suite",
+    "export_teaching_validation_result",
+    "export_teaching_validation_suite_summary",
+    "run_inversion_uncertainty_analysis",
+    "export_inversion_uncertainty_analysis",
 ]

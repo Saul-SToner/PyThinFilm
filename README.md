@@ -44,6 +44,8 @@ thinfilm/api.py
 thinfilm/education.py
 thinfilm/sweep.py
 thinfilm/joint.py
+thinfilm/validation.py
+thinfilm/uncertainty.py
 thinfilm/paths.py
 ```
 
@@ -407,6 +409,26 @@ COMSOL 曲线
 3. COMSOL 网格与求解器收敛误差
 4. 采样步长与光谱分辨率误差
 5. 曲线读取、归一化与噪声引入误差
+
+### 6.5 当前已新增的后端工具
+
+现在仓库里已经新增两类后端工具：
+
+1. `thinfilm/validation.py`  
+   用于生成“理论曲线 vs COMSOL/实验曲线”的对比结果、误差指标和分析图。
+2. `thinfilm/uncertainty.py`  
+   用于生成厚度反演对角度偏差、噪声和分辨率变化的敏感性分析。
+
+可直接从包入口导入：
+
+```python
+from thinfilm import (
+    compare_teaching_case_to_reference,
+    export_teaching_validation_result,
+    run_inversion_uncertainty_analysis,
+    export_inversion_uncertainty_analysis,
+)
+```
 
 ## 7. 输出目录
 
