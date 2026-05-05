@@ -1,71 +1,49 @@
-# thinfilm 函数包结构
+# thinfilm 包说明
 
-这个目录把 `thinfilm_core.py` 中的功能按用途拆成不同模块。
+当前 `thinfilm/` 已收缩为三部分：
 
-目前采用兼容拆分方式：
+1. 教学主树正向仿真  
+2. 通用 CSV / COMSOL 光谱读取  
+3. 理论与 COMSOL / 实验对照验证
 
-```text
-thinfilm_core.py 仍然是底层兼容引擎
-thinfilm/*.py 提供更清晰的模块化调用入口
-```
-
-后续可以逐步把实现从 `thinfilm_core.py` 迁移进这些模块。
-
-## 模块说明
+## 当前主要模块
 
 ```text
-paths.py        数据目录和输出目录
-io.py           CSV / COMSOL 表格读取
-optics.py       薄膜反射率前向模型
-fitting.py      厚度反演、目标函数、搜索器
-diagnostics.py  误差分析、热图、批处理
-reports.py      文本、JSON、CSV 输出
-api.py          APP 可直接调用的高级接口
-sweep.py        COMSOL 参数扫描表分析
+api.py         教学主树高层接口
+education.py   平面多层膜正向仿真与导出
+io.py          通用光谱 CSV 读取
+validation.py  理论-参考曲线对照与误差分析
+paths.py       输出路径工具
 ```
 
 ## 常用调用
 
-主线拟合：
+教学案例仿真：
 
 ```python
-from thinfilm import fit_current_main_case
+from thinfilm import export_teaching_case_outputs
 
-result = fit_current_main_case(save_plots=False)
-print(result["d_fit_corrected_nm"])
+files = export_teaching_case_outputs("single_ar")
+print(files)
 ```
 
-自定义双角拟合：
+理论与 COMSOL 对照：
 
 ```python
 from pathlib import Path
-from thinfilm import fit_two_angle
+from thinfilm import compare_teaching_case_to_reference, export_teaching_validation_result
 
-result = fit_two_angle(
-    csv_angle1=Path("archive/inversion_examples/deg.s/60nm_10deg_s.csv"),
-    csv_angle2=Path("archive/inversion_examples/deg.s/60nm_80deg_s.csv"),
-    theta1_deg=10.0,
-    theta2_deg=80.0,
-    pol="s",
+result = compare_teaching_case_to_reference(
+    "single_ar",
+    Path(r"C:\path\to\AR_case.csv"),
+    y_selector="R (1)",
+    quantity="R",
+    reference_label="COMSOL",
 )
+files = export_teaching_validation_result(result)
 ```
 
-分析 COMSOL 参数扫描表：
+## 说明
 
-```python
-from thinfilm import summarize_n1b_theta_sweep
-
-summary = summarize_n1b_theta_sweep()
-```
-
-## 给 APP 队友的建议
-
-APP 优先调用：
-
-```text
-thinfilm.api.fit_two_angle
-```
-
-不要直接改 `thinfilm_core.py` 顶部全局变量。
-
-`thinfilm_core.py` 目前保留给脚本运行和兼容旧流程使用。
+- 反演主线代码与样本已从当前包结构中移出，不再作为仓库内主工作流保留。
+- 若 PowerShell 中中文显示乱码，通常是终端编码问题，不代表文件损坏。

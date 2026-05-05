@@ -10,6 +10,9 @@ from thinfilm.paths import output_file
 
 from .spectra import summarize_guided_grating_spectrum
 
+plt.rcParams["font.sans-serif"] = ["Microsoft YaHei", "SimHei", "Noto Sans CJK SC", "Arial Unicode MS", "DejaVu Sans"]
+plt.rcParams["axes.unicode_minus"] = False
+
 MAIN_RED = "#c94f2d"
 TARGET_GREEN = "#0f766e"
 TRANS_BLUE = "#1d4ed8"
@@ -21,14 +24,14 @@ PANEL_BG = "#f7f8fb"
 
 def _analysis_lines(summary: Dict[str, Any], target_wavelength_nm: float | None) -> list[str]:
     lines = [
-        f"Peak = {summary['peak_wavelength_nm']:.3f} nm",
-        f"Rpeak = {summary['peak_reflectance']:.6f}",
-        f"FWHM = {summary['fwhm_nm']:.3f} nm",
+        f"峰位 = {summary['peak_wavelength_nm']:.3f} nm",
+        f"峰值反射率 = {summary['peak_reflectance']:.6f}",
+        f"半高全宽 = {summary['fwhm_nm']:.3f} nm",
     ]
     if target_wavelength_nm is not None:
         delta = float(summary["peak_wavelength_nm"]) - float(target_wavelength_nm)
-        lines.append(f"Target = {float(target_wavelength_nm):.3f} nm")
-        lines.append(f"Delta = {delta:+.3f} nm")
+        lines.append(f"目标波长 = {float(target_wavelength_nm):.3f} nm")
+        lines.append(f"偏差 = {delta:+.3f} nm")
     return lines
 
 
@@ -110,12 +113,12 @@ def export_guided_grating_result(
         ax.plot(wl, r_vals, label="R", linewidth=2.4, color=MAIN_RED)
         ax.plot(wl, t_vals, label="T", linewidth=2.0, color=TRANS_BLUE)
         ax.plot(wl, a_vals, label="A", linewidth=2.0, color=ABS_GOLD)
-        ax.axvline(summary["peak_wavelength_nm"], linestyle="--", linewidth=1.3, color="#555555", alpha=0.85, label="Peak")
+        ax.axvline(summary["peak_wavelength_nm"], linestyle="--", linewidth=1.3, color="#555555", alpha=0.85, label="峰位")
         if target_wavelength_nm is not None:
-            ax.axvline(float(target_wavelength_nm), linestyle=":", linewidth=1.5, color=TARGET_GREEN, alpha=0.95, label="Target")
-        ax.set_title(f"Guided Grating Spectrum | {sample_id}", fontweight="semibold")
-        ax.set_xlabel("Wavelength (nm)")
-        ax.set_ylabel("Power")
+            ax.axvline(float(target_wavelength_nm), linestyle=":", linewidth=1.5, color=TARGET_GREEN, alpha=0.95, label="目标波长")
+        ax.set_title(f"光栅波导谱线 | {sample_id}", fontweight="semibold")
+        ax.set_xlabel("波长 (nm)")
+        ax.set_ylabel("功率")
         ax.set_xlim(float(wl[0]), float(wl[-1]))
         ax.set_ylim(0.0, 1.02)
         ax.legend(loc="lower left", frameon=True, facecolor="white", edgecolor="#c9d2dc")
@@ -167,8 +170,8 @@ def export_guided_grating_result(
             s=42,
             zorder=5,
         )
-        ax2.set_title("Guided Grating Reflectance", fontweight="semibold")
-        ax2.set_xlabel("Wavelength (nm)")
+        ax2.set_title("光栅波导反射率", fontweight="semibold")
+        ax2.set_xlabel("波长 (nm)")
         ax2.set_ylabel("R")
         ax2.set_xlim(float(wl[0]), float(wl[-1]))
         ax2.set_ylim(ymin, ymax)
@@ -280,29 +283,29 @@ def export_guided_grating_sweep_summary(
         ax1.plot(x_vals, peak_vals, marker="o", linewidth=2.2, color=MAIN_RED)
         ax1.scatter([best_x], [float(best.get("peak_wavelength_nm", peak_vals[0]))], color=MAIN_RED, edgecolor="white", s=50, zorder=5)
         ax1.axhline(float(bundle_summary["target_wavelength_nm"]), linestyle=":", color=TARGET_GREEN, linewidth=1.4)
-        ax1.set_title("Peak Wavelength")
+        ax1.set_title("峰位波长")
         ax1.set_xlabel(sweep_col)
         ax1.set_ylabel("nm")
 
         ax2.plot(x_vals, error_vals, marker="o", linewidth=2.2, color=TRANS_BLUE)
         ax2.scatter([best_x], [float(best.get("target_error_nm", error_vals[0]))], color=TRANS_BLUE, edgecolor="white", s=50, zorder=5)
-        ax2.set_title("Target Error")
+        ax2.set_title("目标误差")
         ax2.set_xlabel(sweep_col)
         ax2.set_ylabel("nm")
 
         ax3.plot(x_vals, fwhm_vals, marker="o", linewidth=2.2, color="#8c564b")
         ax3.scatter([best_x], [float(best.get("fwhm_nm", fwhm_vals[0]))], color="#8c564b", edgecolor="white", s=50, zorder=5)
-        ax3.set_title("FWHM")
+        ax3.set_title("半高全宽")
         ax3.set_xlabel(sweep_col)
         ax3.set_ylabel("nm")
 
         ax4.plot(x_vals, rpeak_vals, marker="o", linewidth=2.2, color="#9467bd")
         ax4.scatter([best_x], [float(best.get("peak_reflectance", rpeak_vals[0]))], color="#9467bd", edgecolor="white", s=50, zorder=5)
-        ax4.set_title("Peak Reflectance")
+        ax4.set_title("峰值反射率")
         ax4.set_xlabel(sweep_col)
-        ax4.set_ylabel("Rpeak")
+        ax4.set_ylabel("峰值R")
 
-        fig.suptitle("Guided Grating Sweep Error Analysis", fontsize=12, fontweight="semibold", color=TEXT_DARK)
+        fig.suptitle("光栅波导扫描误差分析", fontsize=12, fontweight="semibold", color=TEXT_DARK)
         fig.tight_layout()
         fig.savefig(analysis_png, dpi=180)
         plt.close(fig)

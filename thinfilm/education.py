@@ -23,6 +23,9 @@ import numpy as np
 
 from .paths import OUTPUT_DIR, output_file
 
+plt.rcParams["font.sans-serif"] = ["Microsoft YaHei", "SimHei", "Noto Sans CJK SC", "Arial Unicode MS", "DejaVu Sans"]
+plt.rcParams["axes.unicode_minus"] = False
+
 MAIN_RED = "#c94f2d"
 TARGET_GREEN = "#0f766e"
 TRANS_BLUE = "#1d4ed8"
@@ -91,10 +94,10 @@ REPORT_CHAPTER2_CASES: Dict[str, Dict[str, Any]] = {
             "pol": "p",
             "lambda0_nm": 550.0,
             "n_incident": 1.0,
-            "n_substrate": 1.52,
-            "n_low": 1.38,
-            "n_high_2": 2.15,
-            "periods": 3,
+            "n_substrate": 1.5215,
+            "n_low": 1.45,
+            "n_high_2": 2.10,
+            "periods": 6,
         },
     },
     "fp_single_halfwave": {
@@ -679,30 +682,27 @@ def build_fp_single_halfwave_layers(
 ) -> List[LayerSpec]:
     periods = int(periods)
     spacer_key = str(spacer_kind).strip().upper()
-    left_mirror = [LayerSpec("H", n_high, quarter_wave_thickness_nm(lambda0_nm, n_high))]
-    for _ in range(periods):
-        left_mirror.append(LayerSpec("L", n_low, quarter_wave_thickness_nm(lambda0_nm, n_low)))
-        left_mirror.append(LayerSpec("H", n_high, quarter_wave_thickness_nm(lambda0_nm, n_high)))
-
-    if spacer_key == "L":
-        spacer = [LayerSpec("2L", n_low, half_wave_thickness_nm(lambda0_nm, n_low))]
-        right_mirror: List[LayerSpec] = []
-        for _ in range(periods):
-            right_mirror.append(LayerSpec("H", n_high, quarter_wave_thickness_nm(lambda0_nm, n_high)))
-            right_mirror.append(LayerSpec("L", n_low, quarter_wave_thickness_nm(lambda0_nm, n_low)))
-        right_mirror.append(LayerSpec("H", n_high, quarter_wave_thickness_nm(lambda0_nm, n_high)))
-    elif spacer_key == "H":
-        left_mirror = []
-        for _ in range(periods):
-            left_mirror.append(LayerSpec("H", n_high, quarter_wave_thickness_nm(lambda0_nm, n_high)))
-            left_mirror.append(LayerSpec("L", n_low, quarter_wave_thickness_nm(lambda0_nm, n_low)))
-        spacer = [LayerSpec("2H", n_high, half_wave_thickness_nm(lambda0_nm, n_high))]
-        right_mirror = []
-        for _ in range(periods):
-            right_mirror.append(LayerSpec("L", n_low, quarter_wave_thickness_nm(lambda0_nm, n_low)))
-            right_mirror.append(LayerSpec("H", n_high, quarter_wave_thickness_nm(lambda0_nm, n_high)))
-    else:
+    if spacer_key not in {"L", "H"}:
         raise ValueError("spacer_kind must be 'L' or 'H'.")
+
+    cavity_index = n_low if spacer_key == "L" else n_high
+    cavity_name = "C" if spacer_key == "L" else "C_H"
+    d_h = quarter_wave_thickness_nm(lambda0_nm, n_high)
+    d_l = quarter_wave_thickness_nm(lambda0_nm, n_low)
+
+    # Symmetric single-half-wave F-P cavity:
+    # Air / (H L)^N / C / (L H)^N / Air
+    left_mirror: List[LayerSpec] = []
+    for _ in range(periods):
+        left_mirror.append(LayerSpec("H", n_high, d_h))
+        left_mirror.append(LayerSpec("L", n_low, d_l))
+
+    spacer = [LayerSpec(cavity_name, cavity_index, half_wave_thickness_nm(lambda0_nm, cavity_index))]
+
+    right_mirror: List[LayerSpec] = []
+    for _ in range(periods):
+        right_mirror.append(LayerSpec("L", n_low, d_l))
+        right_mirror.append(LayerSpec("H", n_high, d_h))
 
     return left_mirror + spacer + right_mirror
 
@@ -1274,22 +1274,22 @@ def _case_analysis_lines(result: Dict[str, Any]) -> list[str]:
     lambda0_nm = float(result["lambda0_nm"])
     key = str(result.get("case_id") or result.get("design_type") or "").strip().lower()
     lines = [
-        f"lambda0 = {lambda0_nm:.1f} nm",
-        f"R@lambda0 = {float(summary['R_at_lambda0']):.4f}",
-        f"T@lambda0 = {float(summary['T_at_lambda0']):.4f}",
+        f"中心波长 = {lambda0_nm:.1f} nm",
+        f"R@中心 = {float(summary['R_at_lambda0']):.4f}",
+        f"T@中心 = {float(summary['T_at_lambda0']):.4f}",
     ]
     if "fp_" in key:
         peak_wl = float(summary["T_max_wavelength_nm"])
-        lines.append(f"Tmax = {float(summary['T_max']):.4f}")
-        lines.append(f"Delta peak = {peak_wl - lambda0_nm:+.2f} nm")
+        lines.append(f"透射峰值 = {float(summary['T_max']):.4f}")
+        lines.append(f"峰位偏差 = {peak_wl - lambda0_nm:+.2f} nm")
     elif "beamsplitter" in key:
         split_err = float(summary["R_at_lambda0"]) - 0.5
-        lines.append(f"A@lambda0 = {float(summary['A_at_lambda0']):.4f}")
-        lines.append(f"Split err = {split_err:+.4f}")
+        lines.append(f"A@中心 = {float(summary['A_at_lambda0']):.4f}")
+        lines.append(f"分束偏差 = {split_err:+.4f}")
     else:
         valley_wl = float(summary["R_min_wavelength_nm"])
-        lines.append(f"Rmin = {float(summary['R_min']):.4f}")
-        lines.append(f"Delta valley = {valley_wl - lambda0_nm:+.2f} nm")
+        lines.append(f"最小反射率 = {float(summary['R_min']):.4f}")
+        lines.append(f"谷位偏差 = {valley_wl - lambda0_nm:+.2f} nm")
     return lines
 
 
@@ -1391,13 +1391,13 @@ def export_report_case_outputs(
         ax.plot(wavelength_nm, a_vals, label="A", linewidth=2.0, color=ABS_GOLD)
         ax.axvline(float(result["lambda0_nm"]), linestyle=":", linewidth=1.4, color=TARGET_GREEN, alpha=0.9, label="lambda0")
         title_label = (
-            result.get("title_en")
-            or result.get("title_cn")
+            result.get("title_cn")
+            or result.get("title_en")
             or result.get("design_type", "case")
         )
-        ax.set_title(f"{title_label} | theta={float(result['theta_deg']):g} deg | pol={result['pol']}", fontweight="semibold")
-        ax.set_xlabel("Wavelength (nm)")
-        ax.set_ylabel("Power")
+        ax.set_title(f"{title_label} | 入射角={float(result['theta_deg']):g}° | 偏振={result['pol']}", fontweight="semibold")
+        ax.set_xlabel("波长 (nm)")
+        ax.set_ylabel("功率")
         ax.set_xlim(float(np.min(wavelength_nm)), float(np.max(wavelength_nm)))
         ax.set_ylim(0.0, max(1.02, float(np.max([np.max(r_vals), np.max(t_vals), np.max(a_vals)])) * 1.05))
         ax.legend(loc="lower left", frameon=True, facecolor="white", edgecolor="#c9d2dc")
@@ -1419,7 +1419,7 @@ def export_report_case_outputs(
         main_kind = _main_curve_kind_for_case(result)
         main_vals = {"R": r_vals, "T": t_vals, "A": a_vals}[main_kind]
         main_color = {"R": "#cc3f0c", "T": "#1f77b4", "A": "#2ca02c"}[main_kind]
-        main_label = {"R": "Reflectance", "T": "Transmittance", "A": "Absorptance"}[main_kind]
+        main_label = {"R": "反射率", "T": "透射率", "A": "吸收率"}[main_kind]
         peak_idx = int(np.argmax(main_vals))
         valley_idx = int(np.argmin(main_vals))
         ymin = float(np.min(main_vals))
@@ -1449,7 +1449,7 @@ def export_report_case_outputs(
             zorder=3,
         )
         ax2.set_title(f"{title_label} | {main_label}", fontweight="semibold")
-        ax2.set_xlabel("Wavelength (nm)")
+        ax2.set_xlabel("波长 (nm)")
         ax2.set_ylabel(main_kind)
         xlim = _main_plot_xlim_for_case(result)
         if xlim is None:
@@ -1474,7 +1474,7 @@ def export_report_case_outputs(
 
         analysis_png_path = output_file(f"{stem}_analysis.png")
         summary = result["summary"]
-        metric_labels = ["R@lambda0", "T@lambda0", "A@lambda0"]
+        metric_labels = ["R@中心", "T@中心", "A@中心"]
         metric_values = [
             float(summary["R_at_lambda0"]),
             float(summary["T_at_lambda0"]),
@@ -1485,33 +1485,33 @@ def export_report_case_outputs(
         _style_teaching_axis(ax4)
         ax3.bar(metric_labels, metric_values, color=[MAIN_RED, TRANS_BLUE, ABS_GOLD], width=0.58)
         ax3.set_ylim(0.0, 1.02)
-        ax3.set_title("Center-Wavelength Metrics", fontweight="semibold")
-        ax3.set_ylabel("Value")
+        ax3.set_title("中心波长指标", fontweight="semibold")
+        ax3.set_ylabel("数值")
 
         key = str(result.get("case_id") or result.get("design_type") or "").strip().lower()
         if "fp_" in key:
-            labels2 = ["lambda0", "Tmax wl", "Delta"]
+            labels2 = ["中心波长", "透射峰位置", "偏差"]
             peak_wl = float(summary["T_max_wavelength_nm"])
             values2 = [float(result["lambda0_nm"]), peak_wl, peak_wl - float(result["lambda0_nm"])]
             colors2 = [TARGET_GREEN, TRANS_BLUE, "#8c564b"]
             ax4.bar(labels2, values2, color=colors2, width=0.58)
-            ax4.set_title("Peak Alignment", fontweight="semibold")
+            ax4.set_title("峰位对齐", fontweight="semibold")
             ax4.set_ylabel("nm")
         else:
-            labels2 = ["lambda0", "Rmin wl", "Delta"]
+            labels2 = ["中心波长", "反射谷位置", "偏差"]
             valley_wl = float(summary["R_min_wavelength_nm"])
             values2 = [float(result["lambda0_nm"]), valley_wl, valley_wl - float(result["lambda0_nm"])]
             colors2 = [TARGET_GREEN, MAIN_RED, "#8c564b"]
             if "high_reflector" in key or "beamsplitter" in key:
-                labels2 = ["lambda0", "Rmax wl", "Delta"]
+                labels2 = ["中心波长", "反射峰位置", "偏差"]
                 peak_wl = float(summary["R_max_wavelength_nm"])
                 values2 = [float(result["lambda0_nm"]), peak_wl, peak_wl - float(result["lambda0_nm"])]
                 colors2 = [TARGET_GREEN, MAIN_RED, "#8c564b"]
             ax4.bar(labels2, values2, color=colors2, width=0.58)
-            ax4.set_title("Spectral Alignment", fontweight="semibold")
+            ax4.set_title("谱线对齐", fontweight="semibold")
             ax4.set_ylabel("nm")
 
-        fig3.suptitle(f"{title_label} | Analysis", fontsize=12, fontweight="semibold", color=TEXT_DARK)
+        fig3.suptitle(f"{title_label} | 分析图", fontsize=12, fontweight="semibold", color=TEXT_DARK)
         fig3.tight_layout()
         fig3.savefig(analysis_png_path, dpi=180)
         plt.close(fig3)
@@ -1593,7 +1593,7 @@ def _export_comparison_plot(
     if lambda0_nm is not None:
         ax.axvline(float(lambda0_nm), linestyle=":", linewidth=1.4, color=TARGET_GREEN, alpha=0.9)
     ax.set_title(title, fontweight="semibold")
-    ax.set_xlabel("Wavelength (nm)")
+    ax.set_xlabel("波长 (nm)")
     ax.set_ylabel(ylabel)
     if xlim is None:
         ax.set_xlim(float(np.min(wavelength_nm)), float(np.max(wavelength_nm)))
@@ -1620,22 +1620,22 @@ def _export_comparison_plot(
     axes[0].bar(x, center_values, color=colors, width=0.62)
     axes[0].set_xticks(x, labels, rotation=20)
     axes[0].set_ylim(0.0, 1.02)
-    axes[0].set_title(f"{ylabel}@lambda0", fontweight="semibold")
+    axes[0].set_title(f"{ylabel}@中心波长", fontweight="semibold")
     axes[0].set_ylabel(ylabel)
 
     axes[1].bar(x, peak_positions, color=colors, width=0.62)
     if lambda0_nm is not None:
         axes[1].axhline(float(lambda0_nm), linestyle=":", linewidth=1.3, color=TARGET_GREEN)
     axes[1].set_xticks(x, labels, rotation=20)
-    axes[1].set_title("Peak Position", fontweight="semibold")
+    axes[1].set_title("峰位位置", fontweight="semibold")
     axes[1].set_ylabel("nm")
 
     axes[2].bar(x, widths, color=colors, width=0.62)
     axes[2].set_xticks(x, labels, rotation=20)
-    axes[2].set_title("Approx. FWHM", fontweight="semibold")
+    axes[2].set_title("近似半高全宽", fontweight="semibold")
     axes[2].set_ylabel("nm")
 
-    fig2.suptitle(f"{title} | Analysis", fontsize=12, fontweight="semibold", color=TEXT_DARK)
+    fig2.suptitle(f"{title} | 分析图", fontsize=12, fontweight="semibold", color=TEXT_DARK)
     fig2.tight_layout()
     fig2.savefig(analysis_png_path, dpi=180)
     plt.close(fig2)
@@ -1651,22 +1651,22 @@ def export_report_comparison_figures(
 
     # High-reflection coating: different periods.
     high_results = {
-        f"period={periods}": simulate_report_design(
+        f"周期={periods}": simulate_report_design(
             "high_reflector",
             lambda0_nm=550.0,
             theta_deg=0.0,
             pol="p",
-            n_low=1.38,
-            n_high_2=2.15,
-            n_substrate=1.52,
+            n_low=1.45,
+            n_high_2=2.10,
+            n_substrate=1.5215,
             periods=periods,
         )
-        for periods in (3, 4, 5)
+        for periods in (5, 6, 7)
     }
     wl = next(iter(high_results.values()))["wavelength_nm"]
     exported["high_reflector_periods"] = _export_comparison_plot(
         filename_stem=f"{prefix}_high_reflector_periods",
-        title="High-Reflection Coating | Different Periods",
+        title="高反膜 | 不同周期数",
         ylabel="R",
         wavelength_nm=wl,
         series={label: result["R"] for label, result in high_results.items()},
@@ -1675,14 +1675,14 @@ def export_report_comparison_figures(
 
     # Single-half-wave FP: different periods.
     fp_single_results = {
-        f"period={periods}": simulate_report_design(
+        f"周期={periods}": simulate_report_design(
             "fp_single_halfwave",
             lambda0_nm=550.0,
             theta_deg=0.0,
             pol="p",
-            n_low=1.38,
-            n_high_2=2.15,
-            n_substrate=1.52,
+            n_low=1.45,
+            n_high_2=2.10,
+            n_substrate=1.0,
             periods=periods,
         )
         for periods in (3, 4, 5)
@@ -1690,7 +1690,7 @@ def export_report_comparison_figures(
     wl = next(iter(fp_single_results.values()))["wavelength_nm"]
     exported["fp_single_periods"] = _export_comparison_plot(
         filename_stem=f"{prefix}_fp_single_periods",
-        title="Single-Half-Wave F-P | Different Periods",
+        title="单半波 F-P | 不同周期数",
         ylabel="T",
         wavelength_nm=wl,
         series={label: result["T"] for label, result in fp_single_results.items()},
@@ -1700,7 +1700,7 @@ def export_report_comparison_figures(
 
     # Double-half-wave FP: different angles.
     fp_double_angle_results = {
-        f"theta={int(theta)} deg": simulate_report_design(
+        f"入射角={int(theta)}°": simulate_report_design(
             "fp_double_halfwave",
             lambda0_nm=550.0,
             theta_deg=theta,
@@ -1715,7 +1715,7 @@ def export_report_comparison_figures(
     wl = next(iter(fp_double_angle_results.values()))["wavelength_nm"]
     exported["fp_double_angles"] = _export_comparison_plot(
         filename_stem=f"{prefix}_fp_double_angles",
-        title="Double-Half-Wave F-P | Different Angles",
+        title="双半波 F-P | 不同入射角",
         ylabel="T",
         wavelength_nm=wl,
         series={label: result["T"] for label, result in fp_double_angle_results.items()},
@@ -1725,7 +1725,7 @@ def export_report_comparison_figures(
 
     # Neutral beam splitter: different central wavelengths.
     beamsplitter_results = {
-        f"lambda0={int(lambda0)} nm": simulate_report_design(
+        f"中心波长={int(lambda0)}nm": simulate_report_design(
             "neutral_beamsplitter",
             lambda0_nm=lambda0,
             theta_deg=0.0,
@@ -1739,7 +1739,7 @@ def export_report_comparison_figures(
     wl = next(iter(beamsplitter_results.values()))["wavelength_nm"]
     exported["beamsplitter_lambda0"] = _export_comparison_plot(
         filename_stem=f"{prefix}_beamsplitter_lambda0",
-        title="Neutral Beam Splitter | Different Center Wavelengths",
+        title="中性分束膜 | 不同中心波长",
         ylabel="R",
         wavelength_nm=wl,
         series={label: result["R"] for label, result in beamsplitter_results.items()},

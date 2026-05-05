@@ -11,6 +11,9 @@ from .education import simulate_report_case
 from .io import load_spectrum_csv
 from .paths import output_file
 
+plt.rcParams["font.sans-serif"] = ["Microsoft YaHei", "SimHei", "Noto Sans CJK SC", "Arial Unicode MS", "DejaVu Sans"]
+plt.rcParams["axes.unicode_minus"] = False
+
 MAIN_RED = "#c94f2d"
 REF_BLUE = "#1d4ed8"
 ERR_GOLD = "#b7791f"
@@ -194,6 +197,90 @@ def run_teaching_validation_suite(
     return results
 
 
+def build_standard_teaching_validation_cases(
+    single_ar_csv: Path | str,
+    fp_single_csv: Path | str,
+    high_reflector_csv: Path | str,
+    *,
+    reference_label: str = "COMSOL",
+) -> List[Dict[str, Any]]:
+    """Build the standard three-case validation bundle.
+
+    The bundle covers:
+    1. single-layer anti-reflection coating
+    2. single-half-wave F-P filter with the clarified HL^4-C-LH^4 structure
+    3. high reflector with the clarified Air/(HL)^6H/Glass structure
+    """
+
+    return [
+        {
+            "case_id": "single_ar",
+            "reference_csv": str(Path(single_ar_csv)),
+            "y_selector": "R (1)",
+            "quantity": "R",
+            "reference_label": reference_label,
+            "overrides": {
+                "theta_deg": 0.0,
+                "pol": "p",
+                "lambda0_nm": 550.0,
+                "n_incident": 1.0,
+                "n_substrate": 1.52,
+                "n_low": 1.38,
+            },
+        },
+        {
+            "case_id": "fp_single_halfwave",
+            "reference_csv": str(Path(fp_single_csv)),
+            "y_selector": "T (1)",
+            "quantity": "T",
+            "reference_label": reference_label,
+            "overrides": {
+                "theta_deg": 0.0,
+                "pol": "p",
+                "lambda0_nm": 550.0,
+                "n_incident": 1.0,
+                "n_substrate": 1.0,
+                "n_low": 1.45,
+                "n_high_2": 2.10,
+                "periods": 4,
+            },
+        },
+        {
+            "case_id": "high_reflector",
+            "reference_csv": str(Path(high_reflector_csv)),
+            "y_selector": "R (1)",
+            "quantity": "R",
+            "reference_label": reference_label,
+            "overrides": {
+                "theta_deg": 0.0,
+                "pol": "p",
+                "lambda0_nm": 550.0,
+                "n_incident": 1.0,
+                "n_substrate": 1.5215,
+                "n_low": 1.45,
+                "n_high_2": 2.10,
+                "periods": 6,
+            },
+        },
+    ]
+
+
+def run_standard_teaching_validation_suite(
+    single_ar_csv: Path | str,
+    fp_single_csv: Path | str,
+    high_reflector_csv: Path | str,
+    *,
+    reference_label: str = "COMSOL",
+) -> List[Dict[str, Any]]:
+    cases = build_standard_teaching_validation_cases(
+        single_ar_csv=single_ar_csv,
+        fp_single_csv=fp_single_csv,
+        high_reflector_csv=high_reflector_csv,
+        reference_label=reference_label,
+    )
+    return run_teaching_validation_suite(cases)
+
+
 def export_teaching_validation_result(
     result: Dict[str, Any],
     *,
@@ -263,11 +350,11 @@ def export_teaching_validation_result(
         _style_axis(ax0)
         _style_axis(ax1)
 
-        ax0.plot(wl, theory, color=MAIN_RED, linewidth=2.4, label="Theory")
+        ax0.plot(wl, theory, color=MAIN_RED, linewidth=2.4, label="理论曲线")
         ax0.plot(wl, reference, color=REF_BLUE, linewidth=2.0, alpha=0.92, label=result["reference_label"])
         ax0.axvline(float(result["lambda0_nm"]), color=TARGET_GREEN, linestyle=":", linewidth=1.4, alpha=0.9)
         ax0.set_ylabel(result["quantity"])
-        ax0.set_title(f"{display_title} | Theory vs {result['reference_label']}", fontweight="semibold")
+        ax0.set_title(f"{display_title} | 理论与{result['reference_label']}对照", fontweight="semibold")
         ax0.legend(loc="best", frameon=True, facecolor="white", edgecolor="#c9d2dc")
         ax0.text(
             0.985,
@@ -276,9 +363,9 @@ def export_teaching_validation_result(
                 [
                     f"MAE = {summary['mae']:.4e}",
                     f"RMSE = {summary['rmse']:.4e}",
-                    f"Max = {summary['max_abs_error']:.4e}",
-                    f"Bias = {summary['mean_bias']:+.4e}",
-                    f"Delta@lambda0 = {summary['lambda0_error']:+.4e}",
+                    f"最大误差 = {summary['max_abs_error']:.4e}",
+                    f"平均偏差 = {summary['mean_bias']:+.4e}",
+                    f"中心点误差 = {summary['lambda0_error']:+.4e}",
                 ]
             ),
             transform=ax0.transAxes,
@@ -291,8 +378,8 @@ def export_teaching_validation_result(
         ax1.plot(wl, error, color=ERR_GOLD, linewidth=2.0)
         ax1.axhline(0.0, color="#666666", linewidth=1.0, alpha=0.85)
         ax1.axvline(float(result["lambda0_nm"]), color=TARGET_GREEN, linestyle=":", linewidth=1.4, alpha=0.9)
-        ax1.set_xlabel("Wavelength (nm)")
-        ax1.set_ylabel("Error")
+        ax1.set_xlabel("波长 (nm)")
+        ax1.set_ylabel("误差")
 
         fig.tight_layout()
         fig.savefig(png_path, dpi=180)
@@ -307,26 +394,26 @@ def export_teaching_validation_result(
         labels = ["MAE", "RMSE", "MaxErr"]
         vals = [summary["mae"], summary["rmse"], summary["max_abs_error"]]
         axes2[0].bar(labels, vals, color=[MAIN_RED, REF_BLUE, ERR_GOLD], alpha=0.92)
-        axes2[0].set_title("Error Metrics")
+        axes2[0].set_title("误差指标")
 
         axes2[1].bar(
-            ["Theory@lambda0", "Reference@lambda0"],
+            ["理论值@lambda0", "参考值@lambda0"],
             [summary["theory_at_lambda0"], summary["reference_at_lambda0"]],
             color=[MAIN_RED, REF_BLUE],
             alpha=0.92,
         )
-        axes2[1].set_title("Value at lambda0")
+        axes2[1].set_title("中心波长处取值")
 
         axes2[2].bar(
-            ["Bias", "Delta@lambda0"],
+            ["平均偏差", "中心点误差"],
             [summary["mean_bias"], summary["lambda0_error"]],
             color=[ERR_GOLD, TARGET_GREEN],
             alpha=0.92,
         )
         axes2[2].axhline(0.0, color="#666666", linewidth=1.0, alpha=0.85)
-        axes2[2].set_title("Signed Errors")
+        axes2[2].set_title("带符号误差")
 
-        fig2.suptitle(f"{display_title} | Validation Analysis", fontweight="semibold", color=TEXT_DARK)
+        fig2.suptitle(f"{display_title} | 验证分析", fontweight="semibold", color=TEXT_DARK)
         fig2.tight_layout()
         fig2.savefig(analysis_png, dpi=180)
         plt.close(fig2)
@@ -379,4 +466,100 @@ def export_teaching_validation_suite_summary(
     with open(json_path, "w", encoding="utf-8") as f:
         json.dump(payload, f, ensure_ascii=False, indent=2)
     saved["json"] = str(json_path)
+
+    png_path = output_file(f"{filename_prefix}_overview.png")
+    labels = [str(item["title_en"] or item["case_id"]) for item in rows]
+    maes = [float(item["summary"]["mae"]) for item in rows]
+    rmses = [float(item["summary"]["rmse"]) for item in rows]
+    maxes = [float(item["summary"]["max_abs_error"]) for item in rows]
+    x = np.arange(len(labels), dtype=float)
+
+    fig, axes = plt.subplots(1, 2, figsize=(12.0, 4.4))
+    for ax in axes:
+        _style_axis(ax)
+
+    width = 0.24
+    axes[0].bar(x - width, maes, width=width, color=MAIN_RED, label="平均绝对误差", alpha=0.92)
+    axes[0].bar(x, rmses, width=width, color=REF_BLUE, label="均方根误差", alpha=0.92)
+    axes[0].bar(x + width, maxes, width=width, color=ERR_GOLD, label="最大误差", alpha=0.92)
+    axes[0].set_xticks(x)
+    axes[0].set_xticklabels(labels, rotation=12, ha="right")
+    axes[0].set_ylabel("误差")
+    axes[0].set_title("验证误差指标", fontweight="semibold")
+    axes[0].legend(loc="best", frameon=True, facecolor="white", edgecolor="#c9d2dc")
+
+    lambda0_errors = [float(item["summary"]["lambda0_error"]) for item in rows]
+    biases = [float(item["summary"]["mean_bias"]) for item in rows]
+    axes[1].bar(x - 0.15, biases, width=0.3, color=ERR_GOLD, label="平均偏差", alpha=0.92)
+    axes[1].bar(x + 0.15, lambda0_errors, width=0.3, color=TARGET_GREEN, label="中心点误差", alpha=0.92)
+    axes[1].axhline(0.0, color="#666666", linewidth=1.0, alpha=0.85)
+    axes[1].set_xticks(x)
+    axes[1].set_xticklabels(labels, rotation=12, ha="right")
+    axes[1].set_ylabel("带符号误差")
+    axes[1].set_title("偏差与中心波长误差", fontweight="semibold")
+    axes[1].legend(loc="best", frameon=True, facecolor="white", edgecolor="#c9d2dc")
+
+    fig.suptitle("教学验证总览", fontsize=12, fontweight="semibold", color=TEXT_DARK)
+    fig.tight_layout()
+    fig.savefig(png_path, dpi=180)
+    plt.close(fig)
+    saved["overview_png"] = str(png_path)
     return saved
+
+
+def export_standard_teaching_validation_bundle(
+    single_ar_csv: Path | str,
+    fp_single_csv: Path | str,
+    high_reflector_csv: Path | str,
+    *,
+    prefix: str = "teaching_validation_standard",
+    reference_label: str = "COMSOL",
+    save_plot: bool = True,
+    save_csv: bool = True,
+    save_json: bool = True,
+    save_txt: bool = True,
+) -> Dict[str, Any]:
+    results = run_standard_teaching_validation_suite(
+        single_ar_csv=single_ar_csv,
+        fp_single_csv=fp_single_csv,
+        high_reflector_csv=high_reflector_csv,
+        reference_label=reference_label,
+    )
+
+    exported_cases: Dict[str, Dict[str, str]] = {}
+    for item in results:
+        exported_cases[str(item["case_id"])] = export_teaching_validation_result(
+            item,
+            prefix=prefix,
+            save_plot=save_plot,
+            save_csv=save_csv,
+            save_json=save_json,
+            save_txt=save_txt,
+        )
+
+    suite_files = export_teaching_validation_suite_summary(
+        results,
+        filename_prefix=f"{prefix}_suite",
+    )
+
+    manifest_path = output_file(f"{prefix}_manifest.json")
+    manifest = {
+        "reference_label": reference_label,
+        "cases": {
+            str(item["case_id"]): {
+                "summary": item["summary"],
+                "files": exported_cases[str(item["case_id"])],
+            }
+            for item in results
+        },
+        "suite_files": suite_files,
+    }
+    with open(manifest_path, "w", encoding="utf-8") as f:
+        json.dump(manifest, f, ensure_ascii=False, indent=2)
+
+    return {
+        "results": results,
+        "case_files": exported_cases,
+        "suite_files": suite_files,
+        "manifest": str(manifest_path),
+    }

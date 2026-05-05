@@ -4,18 +4,7 @@ from pathlib import Path
 
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
-ARCHIVE_DIR = PROJECT_DIR / "archive"
-INVERSION_DATA_DIR = ARCHIVE_DIR / "inversion_examples"
-DATA_DIR = INVERSION_DATA_DIR
 OUTPUT_DIR = Path(r"C:\Users\L2791\thinfilm_outputs")
-
-DEG_S_DIR = DATA_DIR / "deg.s"
-DEG_P_DIR = DATA_DIR / "deg.p"
-DEG_AVG_DIR = DATA_DIR / "deg.avg"
-
-
-def data_file(*parts: str) -> Path:
-    return DATA_DIR.joinpath(*parts)
 
 
 def output_file(name: str) -> Path:
