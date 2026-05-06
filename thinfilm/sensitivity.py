@@ -10,7 +10,7 @@ import numpy as np
 from .education import LayerSpec, multilayer_rt_spectrum, simulate_report_case
 from .io import load_spectrum_csv
 from .paths import output_file
-from .validation import build_standard_teaching_validation_cases
+from .validation import build_standard_teaching_validation_cases, export_standard_teaching_validation_bundle
 
 plt.rcParams["font.sans-serif"] = ["Microsoft YaHei", "SimHei", "Noto Sans CJK SC", "Arial Unicode MS", "DejaVu Sans"]
 plt.rcParams["axes.unicode_minus"] = False
@@ -48,6 +48,13 @@ STABILITY_PROFILES: Dict[str, Dict[str, float]] = {
         "noise_lambda0_error_std_limit_nm": 2.0,
         "noise_feature_shift_std_limit_nm": 2.0,
     },
+}
+
+SELECTOR_CN = {
+    "all": "全层",
+    "high": "高折层",
+    "low": "低折层",
+    "cavity": "腔层",
 }
 
 
@@ -864,7 +871,8 @@ def export_thickness_sensitivity_analysis(
     prefix: str = "teaching_thickness",
 ) -> Dict[str, str]:
     saved: Dict[str, str] = {}
-    stem = f"{prefix}_{result['case_id']}"
+    selector = str(result.get("selector", "all"))
+    stem = f"{prefix}_{result['case_id']}_{selector}"
     rows = list(result["rows"])
 
     csv_path = output_file(f"{stem}_summary.csv")
@@ -939,7 +947,13 @@ def export_thickness_sensitivity_analysis(
     axes[1, 1].set_xlabel("厚度相对误差 (%)")
     axes[1, 1].set_ylabel("变化")
 
-    fig.suptitle(f"{result['title_cn']} | 厚度误差分析", fontsize=12, fontweight="semibold", color=TEXT_DARK)
+    selector_cn = {
+        "all": "全层",
+        "high": "高折层",
+        "low": "低折层",
+        "cavity": "腔层",
+    }.get(selector, selector)
+    fig.suptitle(f"{result['title_cn']} | {selector_cn}厚度误差分析", fontsize=12, fontweight="semibold", color=TEXT_DARK)
     fig.tight_layout()
     png_path = output_file(f"{stem}_analysis.png")
     fig.savefig(png_path, dpi=180)
@@ -1136,10 +1150,834 @@ def export_standard_system_error_bundle(
     }
 
 
+def export_layerwise_thickness_error_bundle(
+    *,
+    prefix: str = "teaching_layerwise_thickness",
+    thickness_scale_values: Sequence[float] = (0.98, 0.99, 0.995, 1.0, 1.005, 1.01, 1.02),
+) -> Dict[str, Any]:
+    case_configs = {
+        "single_ar": {
+            "overrides": {
+                "theta_deg": 0.0,
+                "pol": "p",
+                "lambda0_nm": 550.0,
+                "n_incident": 1.0,
+                "n_substrate": 1.52,
+                "n_low": 1.38,
+            },
+            "selectors": ["low"],
+        },
+        "fp_single_halfwave": {
+            "overrides": {
+                "theta_deg": 0.0,
+                "pol": "p",
+                "lambda0_nm": 550.0,
+                "n_incident": 1.0,
+                "n_substrate": 1.0,
+                "n_low": 1.45,
+                "n_high_2": 2.10,
+                "periods": 4,
+            },
+            "selectors": ["high", "low", "cavity"],
+        },
+        "high_reflector": {
+            "overrides": {
+                "theta_deg": 0.0,
+                "pol": "p",
+                "lambda0_nm": 550.0,
+                "n_incident": 1.0,
+                "n_substrate": 1.5215,
+                "n_low": 1.45,
+                "n_high_2": 2.10,
+                "periods": 6,
+            },
+            "selectors": ["high", "low"],
+        },
+    }
+
+    results: Dict[str, Dict[str, Dict[str, Any]]] = {}
+    files: Dict[str, Dict[str, Dict[str, str]]] = {}
+    for case_id, config in case_configs.items():
+        results[case_id] = {}
+        files[case_id] = {}
+        for selector in config["selectors"]:
+            result = analyze_theoretical_thickness_sensitivity(
+                case_id,
+                scale_values=thickness_scale_values,
+                selector=selector,
+                **dict(config["overrides"]),
+            )
+            results[case_id][selector] = result
+            files[case_id][selector] = export_thickness_sensitivity_analysis(
+                result,
+                prefix=prefix,
+            )
+
+    manifest_path = output_file(f"{prefix}_manifest.json")
+    manifest = {
+        "thickness_scale_values": [float(x) for x in thickness_scale_values],
+        "results": {
+            case_id: {
+                selector: {
+                    "result": results[case_id][selector],
+                    "files": files[case_id][selector],
+                }
+                for selector in results[case_id]
+            }
+            for case_id in results
+        },
+    }
+    with open(manifest_path, "w", encoding="utf-8") as f:
+        json.dump(manifest, f, ensure_ascii=False, indent=2)
+
+    return {
+        "results": results,
+        "files": files,
+        "manifest": str(manifest_path),
+    }
+
+
+def summarize_layerwise_thickness_sensitivity(
+    bundle: Dict[str, Any],
+) -> Dict[str, Any]:
+    selector_cn = {
+        "all": "全层",
+        "high": "高折层",
+        "low": "低折层",
+        "cavity": "腔层",
+    }
+    rows: List[Dict[str, Any]] = []
+    results = dict(bundle.get("results", {}))
+    for case_id, selector_map in results.items():
+        for selector, result in selector_map.items():
+            rows_data = list(result.get("rows", []))
+            worst = max(rows_data, key=lambda row: abs(float(row["relative_error_percent"]))) if rows_data else None
+            title_cn = str(result.get("title_cn") or case_id)
+            rows.append(
+                {
+                    "case_id": case_id,
+                    "title_cn": title_cn,
+                    "selector": selector,
+                    "selector_cn": selector_cn.get(selector, selector),
+                    "worst_test_percent": None if worst is None else float(worst["relative_error_percent"]),
+                    "mae_at_worst": None if worst is None else float(worst["mae"]),
+                    "lambda0_shift_at_worst": None if worst is None else float(worst["lambda0_shift"]),
+                    "feature_shift_nm_at_worst": None if worst is None else float(worst["feature_shift_nm"]),
+                }
+            )
+    return {
+        "summary_type": "layerwise_thickness",
+        "rows": rows,
+    }
+
+
+def export_layerwise_thickness_summary(
+    summary: Dict[str, Any],
+    *,
+    prefix: str = "teaching_layerwise_thickness",
+) -> Dict[str, str]:
+    saved: Dict[str, str] = {}
+    rows = list(summary.get("rows", []))
+
+    csv_path = output_file(f"{prefix}_summary.csv")
+    with open(csv_path, "w", encoding="utf-8-sig") as f:
+        f.write(
+            "case_id,title_cn,selector,selector_cn,worst_test_percent,mae_at_worst,lambda0_shift_at_worst,feature_shift_nm_at_worst\n"
+        )
+        for row in rows:
+            f.write(
+                ",".join(
+                    [
+                        str(row["case_id"]),
+                        str(row["title_cn"]),
+                        str(row["selector"]),
+                        str(row["selector_cn"]),
+                        "" if row["worst_test_percent"] is None else f"{float(row['worst_test_percent']):.12g}",
+                        "" if row["mae_at_worst"] is None else f"{float(row['mae_at_worst']):.12g}",
+                        "" if row["lambda0_shift_at_worst"] is None else f"{float(row['lambda0_shift_at_worst']):.12g}",
+                        "" if row["feature_shift_nm_at_worst"] is None else f"{float(row['feature_shift_nm_at_worst']):.12g}",
+                    ]
+                )
+                + "\n"
+            )
+    saved["csv"] = str(csv_path)
+
+    json_path = output_file(f"{prefix}_summary.json")
+    with open(json_path, "w", encoding="utf-8") as f:
+        json.dump(summary, f, ensure_ascii=False, indent=2)
+    saved["json"] = str(json_path)
+
+    labels = [f"{row['title_cn']}-{row['selector_cn']}" for row in rows]
+    feature_shift = np.asarray([
+        0.0 if row["feature_shift_nm_at_worst"] is None else abs(float(row["feature_shift_nm_at_worst"]))
+        for row in rows
+    ], dtype=float)
+    mae_vals = np.asarray([
+        0.0 if row["mae_at_worst"] is None else float(row["mae_at_worst"])
+        for row in rows
+    ], dtype=float)
+    x = np.arange(len(labels), dtype=float)
+
+    fig, axes = plt.subplots(1, 2, figsize=(12.5, 4.6))
+    for ax in axes:
+        _style_axis(ax)
+
+    axes[0].bar(x, mae_vals, color=MAIN_RED, width=0.56)
+    axes[0].set_xticks(x)
+    axes[0].set_xticklabels(labels, rotation=20, ha="right")
+    axes[0].set_title("分层厚度误差下的 MAE", fontweight="semibold")
+    axes[0].set_ylabel("MAE")
+
+    axes[1].bar(x, feature_shift, color=ERR_GOLD, width=0.56)
+    axes[1].set_xticks(x)
+    axes[1].set_xticklabels(labels, rotation=20, ha="right")
+    axes[1].set_title("分层厚度误差下的特征偏移", fontweight="semibold")
+    axes[1].set_ylabel("nm")
+
+    fig.suptitle("分层厚度误差敏感性总览", fontsize=12, fontweight="semibold", color=TEXT_DARK)
+    fig.tight_layout()
+    png_path = output_file(f"{prefix}_overview.png")
+    fig.savefig(png_path, dpi=180)
+    plt.close(fig)
+    saved["overview_png"] = str(png_path)
+    return saved
+
+
+def export_refined_layer_tolerance_bundle(
+    *,
+    prefix: str = "teaching_refined_layer_tolerance",
+    thickness_scale_values: Sequence[float] = (0.99, 0.9925, 0.995, 0.9975, 1.0, 1.0025, 1.005, 1.0075, 1.01),
+) -> Dict[str, Any]:
+    case_configs = {
+        "single_ar": {
+            "overrides": {
+                "theta_deg": 0.0,
+                "pol": "p",
+                "lambda0_nm": 550.0,
+                "n_incident": 1.0,
+                "n_substrate": 1.52,
+                "n_low": 1.38,
+            },
+            "selector": "low",
+        },
+        "fp_single_halfwave": {
+            "overrides": {
+                "theta_deg": 0.0,
+                "pol": "p",
+                "lambda0_nm": 550.0,
+                "n_incident": 1.0,
+                "n_substrate": 1.0,
+                "n_low": 1.45,
+                "n_high_2": 2.10,
+                "periods": 4,
+            },
+            "selector": "low",
+        },
+        "high_reflector": {
+            "overrides": {
+                "theta_deg": 0.0,
+                "pol": "p",
+                "lambda0_nm": 550.0,
+                "n_incident": 1.0,
+                "n_substrate": 1.5215,
+                "n_low": 1.45,
+                "n_high_2": 2.10,
+                "periods": 6,
+            },
+            "selector": "high",
+        },
+    }
+
+    results: Dict[str, Dict[str, Any]] = {}
+    files: Dict[str, Dict[str, str]] = {}
+    for case_id, config in case_configs.items():
+        result = analyze_theoretical_thickness_sensitivity(
+            case_id,
+            scale_values=thickness_scale_values,
+            selector=str(config["selector"]),
+            **dict(config["overrides"]),
+        )
+        results[case_id] = result
+        files[case_id] = export_thickness_sensitivity_analysis(
+            result,
+            prefix=prefix,
+        )
+
+    manifest_path = output_file(f"{prefix}_manifest.json")
+    manifest = {
+        "thickness_scale_values": [float(x) for x in thickness_scale_values],
+        "results": {
+            case_id: {
+                "result": results[case_id],
+                "files": files[case_id],
+            }
+            for case_id in results
+        },
+    }
+    with open(manifest_path, "w", encoding="utf-8") as f:
+        json.dump(manifest, f, ensure_ascii=False, indent=2)
+
+    return {
+        "results": results,
+        "files": files,
+        "manifest": str(manifest_path),
+    }
+
+
+def summarize_refined_layer_tolerance(
+    bundle: Dict[str, Any],
+    *,
+    mae_limit: float = 1e-2,
+    lambda0_value_shift_limit: float = 1e-2,
+    feature_shift_limit_nm: float = 1.0,
+) -> Dict[str, Any]:
+    rows: List[Dict[str, Any]] = []
+    results = dict(bundle.get("results", {}))
+    for case_id, result in results.items():
+        case_rows = list(result.get("rows", []))
+        passed_rows = [
+            row
+            for row in case_rows
+            if float(row["mae"]) <= float(mae_limit)
+            and abs(float(row["lambda0_shift"])) <= float(lambda0_value_shift_limit)
+            and abs(float(row["feature_shift_nm"])) <= float(feature_shift_limit_nm)
+        ]
+        title_cn = str(result.get("title_cn") or case_id)
+        selector = str(result.get("selector", "all"))
+        selector_cn = SELECTOR_CN.get(selector, selector)
+
+        if passed_rows:
+            min_scale_row = min(passed_rows, key=lambda row: float(row["scale"]))
+            max_scale_row = max(passed_rows, key=lambda row: float(row["scale"]))
+            best_row = min(
+                passed_rows,
+                key=lambda row: (
+                    abs(float(row["feature_shift_nm"])),
+                    float(row["mae"]),
+                    abs(float(row["lambda0_shift"])),
+                ),
+            )
+            recommended_min_percent = float(min_scale_row["relative_error_percent"])
+            recommended_max_percent = float(max_scale_row["relative_error_percent"])
+            recommended_min_scale = float(min_scale_row["scale"])
+            recommended_max_scale = float(max_scale_row["scale"])
+        else:
+            best_row = min(
+                case_rows,
+                key=lambda row: (
+                    abs(float(row["feature_shift_nm"])),
+                    float(row["mae"]),
+                    abs(float(row["lambda0_shift"])),
+                ),
+            ) if case_rows else None
+            recommended_min_percent = None
+            recommended_max_percent = None
+            recommended_min_scale = None
+            recommended_max_scale = None
+
+        rows.append(
+            {
+                "case_id": case_id,
+                "title_cn": title_cn,
+                "selector": selector,
+                "selector_cn": selector_cn,
+                "passed_count": len(passed_rows),
+                "recommended_min_percent": recommended_min_percent,
+                "recommended_max_percent": recommended_max_percent,
+                "recommended_min_scale": recommended_min_scale,
+                "recommended_max_scale": recommended_max_scale,
+                "best_test_percent": None if best_row is None else float(best_row["relative_error_percent"]),
+                "best_test_scale": None if best_row is None else float(best_row["scale"]),
+                "best_test_mae": None if best_row is None else float(best_row["mae"]),
+                "best_test_lambda0_shift": None if best_row is None else float(best_row["lambda0_shift"]),
+                "best_test_feature_shift_nm": None if best_row is None else float(best_row["feature_shift_nm"]),
+            }
+        )
+
+    return {
+        "summary_type": "refined_layer_tolerance",
+        "criteria": {
+            "mae_limit": float(mae_limit),
+            "lambda0_value_shift_limit": float(lambda0_value_shift_limit),
+            "feature_shift_limit_nm": float(feature_shift_limit_nm),
+        },
+        "rows": rows,
+    }
+
+
+def export_refined_layer_tolerance_summary(
+    summary: Dict[str, Any],
+    *,
+    prefix: str = "teaching_refined_layer_tolerance",
+) -> Dict[str, str]:
+    saved: Dict[str, str] = {}
+    rows = list(summary.get("rows", []))
+
+    csv_path = output_file(f"{prefix}_summary.csv")
+    with open(csv_path, "w", encoding="utf-8-sig") as f:
+        f.write(
+            "case_id,title_cn,selector,selector_cn,passed_count,"
+            "recommended_min_percent,recommended_max_percent,recommended_min_scale,recommended_max_scale,"
+            "best_test_percent,best_test_scale,best_test_mae,best_test_lambda0_shift,best_test_feature_shift_nm\n"
+        )
+        for row in rows:
+            f.write(
+                ",".join(
+                    [
+                        str(row["case_id"]),
+                        str(row["title_cn"]),
+                        str(row["selector"]),
+                        str(row["selector_cn"]),
+                        str(int(row["passed_count"])),
+                        "" if row["recommended_min_percent"] is None else f"{float(row['recommended_min_percent']):.12g}",
+                        "" if row["recommended_max_percent"] is None else f"{float(row['recommended_max_percent']):.12g}",
+                        "" if row["recommended_min_scale"] is None else f"{float(row['recommended_min_scale']):.12g}",
+                        "" if row["recommended_max_scale"] is None else f"{float(row['recommended_max_scale']):.12g}",
+                        "" if row["best_test_percent"] is None else f"{float(row['best_test_percent']):.12g}",
+                        "" if row["best_test_scale"] is None else f"{float(row['best_test_scale']):.12g}",
+                        "" if row["best_test_mae"] is None else f"{float(row['best_test_mae']):.12g}",
+                        "" if row["best_test_lambda0_shift"] is None else f"{float(row['best_test_lambda0_shift']):.12g}",
+                        "" if row["best_test_feature_shift_nm"] is None else f"{float(row['best_test_feature_shift_nm']):.12g}",
+                    ]
+                )
+                + "\n"
+            )
+    saved["csv"] = str(csv_path)
+
+    json_path = output_file(f"{prefix}_summary.json")
+    with open(json_path, "w", encoding="utf-8") as f:
+        json.dump(summary, f, ensure_ascii=False, indent=2)
+    saved["json"] = str(json_path)
+
+    txt_path = output_file(f"{prefix}_summary.txt")
+    with open(txt_path, "w", encoding="utf-8") as f:
+        criteria = dict(summary.get("criteria", {}))
+        f.write("精细分层厚度容差总结\n")
+        f.write("=" * 72 + "\n")
+        f.write(
+            f"判据: MAE <= {criteria.get('mae_limit')} | "
+            f"中心点幅值偏差 <= {criteria.get('lambda0_value_shift_limit')} | "
+            f"特征位置偏移 <= {criteria.get('feature_shift_limit_nm')} nm\n\n"
+        )
+        for row in rows:
+            f.write(f"{row['title_cn']} | {row['selector_cn']}\n")
+            if row["passed_count"] > 0:
+                f.write(
+                    f"  推荐容差区间: {float(row['recommended_min_percent']):+.3f}% ~ "
+                    f"{float(row['recommended_max_percent']):+.3f}%\n"
+                )
+            else:
+                f.write("  推荐容差区间: 当前测试点内未找到满足判据的区间\n")
+            f.write(
+                f"  最佳测试点: {float(row['best_test_percent']):+.3f}% | "
+                f"MAE={float(row['best_test_mae']):.6g} | "
+                f"中心点幅值偏差={float(row['best_test_lambda0_shift']):+.6g} | "
+                f"特征位置偏移={float(row['best_test_feature_shift_nm']):+.3f} nm\n\n"
+            )
+    saved["txt"] = str(txt_path)
+
+    labels = [f"{row['title_cn']}-{row['selector_cn']}" for row in rows]
+    y = np.arange(len(labels), dtype=float)
+    centers = np.asarray([
+        0.0 if row["recommended_min_percent"] is None or row["recommended_max_percent"] is None
+        else (float(row["recommended_min_percent"]) + float(row["recommended_max_percent"])) / 2.0
+        for row in rows
+    ], dtype=float)
+    lower_err = np.asarray([
+        0.0 if row["recommended_min_percent"] is None or row["recommended_max_percent"] is None
+        else centers[i] - float(row["recommended_min_percent"])
+        for i, row in enumerate(rows)
+    ], dtype=float)
+    upper_err = np.asarray([
+        0.0 if row["recommended_min_percent"] is None or row["recommended_max_percent"] is None
+        else float(row["recommended_max_percent"]) - centers[i]
+        for i, row in enumerate(rows)
+    ], dtype=float)
+    mae_vals = np.asarray([
+        0.0 if row["best_test_mae"] is None else float(row["best_test_mae"])
+        for row in rows
+    ], dtype=float)
+
+    fig, axes = plt.subplots(1, 2, figsize=(12.8, 4.8))
+    for ax in axes:
+        _style_axis(ax)
+
+    axes[0].errorbar(
+        centers,
+        y,
+        xerr=np.vstack([lower_err, upper_err]),
+        fmt="o",
+        color=TARGET_GREEN,
+        ecolor=TARGET_GREEN,
+        elinewidth=2.0,
+        capsize=4,
+    )
+    axes[0].axvline(0.0, color="#666666", linewidth=1.0, alpha=0.85)
+    axes[0].set_yticks(y)
+    axes[0].set_yticklabels(labels)
+    axes[0].set_xlabel("允许厚度相对误差 (%)")
+    axes[0].set_title("最敏感层允许容差区间", fontweight="semibold")
+
+    axes[1].barh(y, mae_vals, color=MAIN_RED, height=0.56)
+    axes[1].set_yticks(y)
+    axes[1].set_yticklabels(labels)
+    axes[1].set_xlabel("MAE")
+    axes[1].set_title("最佳测试点误差水平", fontweight="semibold")
+
+    fig.suptitle("精细分层厚度容差总览", fontsize=12, fontweight="semibold", color=TEXT_DARK)
+    fig.tight_layout()
+    png_path = output_file(f"{prefix}_overview.png")
+    fig.savefig(png_path, dpi=180)
+    plt.close(fig)
+    saved["overview_png"] = str(png_path)
+    return saved
+
+
+def export_standard_refined_angle_bundle(
+    *,
+    prefix: str = "teaching_refined_angle_standard",
+) -> Dict[str, Any]:
+    case_configs = {
+        "single_ar": {
+            "theta_values_deg": (0.0, 0.2, 0.5, 0.8, 1.0, 1.2, 1.5, 2.0),
+            "overrides": {
+                "theta_deg": 0.0,
+                "pol": "p",
+                "lambda0_nm": 550.0,
+                "n_incident": 1.0,
+                "n_substrate": 1.52,
+                "n_low": 1.38,
+            },
+        },
+        "fp_single_halfwave": {
+            "theta_values_deg": (0.0, 0.1, 0.2, 0.3, 0.5, 0.8, 1.0, 1.5),
+            "overrides": {
+                "theta_deg": 0.0,
+                "pol": "p",
+                "lambda0_nm": 550.0,
+                "n_incident": 1.0,
+                "n_substrate": 1.0,
+                "n_low": 1.45,
+                "n_high_2": 2.10,
+                "periods": 4,
+            },
+        },
+        "high_reflector": {
+            "theta_values_deg": (0.0, 0.2, 0.5, 0.8, 1.0, 1.2, 1.5, 2.0),
+            "overrides": {
+                "theta_deg": 0.0,
+                "pol": "p",
+                "lambda0_nm": 550.0,
+                "n_incident": 1.0,
+                "n_substrate": 1.5215,
+                "n_low": 1.45,
+                "n_high_2": 2.10,
+                "periods": 6,
+            },
+        },
+    }
+
+    results: Dict[str, Dict[str, Any]] = {}
+    files: Dict[str, Dict[str, str]] = {}
+    for case_id, config in case_configs.items():
+        result = analyze_theoretical_angle_sensitivity(
+            case_id,
+            theta_values_deg=config["theta_values_deg"],
+            **dict(config["overrides"]),
+        )
+        results[case_id] = result
+        files[case_id] = export_angle_sensitivity_analysis(
+            result,
+            prefix=prefix,
+        )
+
+    manifest_path = output_file(f"{prefix}_manifest.json")
+    manifest = {
+        "results": {
+            case_id: {
+                "theta_values_deg": [float(x) for x in case_configs[case_id]["theta_values_deg"]],
+                "result": results[case_id],
+                "files": files[case_id],
+            }
+            for case_id in results
+        },
+    }
+    with open(manifest_path, "w", encoding="utf-8") as f:
+        json.dump(manifest, f, ensure_ascii=False, indent=2)
+
+    return {
+        "results": results,
+        "files": files,
+        "manifest": str(manifest_path),
+    }
+
+
+def summarize_refined_angle_tolerance(
+    bundle: Dict[str, Any],
+    *,
+    mae_limit: float = 1e-2,
+    lambda0_value_shift_limit: float = 1e-2,
+    feature_shift_limit_nm: float = 1.0,
+) -> Dict[str, Any]:
+    rows: List[Dict[str, Any]] = []
+    results = dict(bundle.get("results", {}))
+    for case_id, result in results.items():
+        case_rows = list(result.get("rows", []))
+        passed_rows = [
+            row
+            for row in case_rows
+            if float(row["mae"]) <= float(mae_limit)
+            and abs(float(row["lambda0_shift"])) <= float(lambda0_value_shift_limit)
+            and abs(float(row["feature_shift_nm"])) <= float(feature_shift_limit_nm)
+        ]
+        title_cn = str(result.get("title_cn") or case_id)
+
+        if passed_rows:
+            max_row = max(passed_rows, key=lambda row: float(row["theta_deg"]))
+            best_row = min(
+                passed_rows,
+                key=lambda row: (
+                    abs(float(row["feature_shift_nm"])),
+                    float(row["mae"]),
+                    abs(float(row["lambda0_shift"])),
+                ),
+            )
+            recommended_max_theta_deg = float(max_row["theta_deg"])
+        else:
+            best_row = min(
+                case_rows,
+                key=lambda row: (
+                    abs(float(row["feature_shift_nm"])),
+                    float(row["mae"]),
+                    abs(float(row["lambda0_shift"])),
+                ),
+            ) if case_rows else None
+            recommended_max_theta_deg = None
+
+        rows.append(
+            {
+                "case_id": case_id,
+                "title_cn": title_cn,
+                "passed_count": len(passed_rows),
+                "recommended_max_theta_deg": recommended_max_theta_deg,
+                "best_test_theta_deg": None if best_row is None else float(best_row["theta_deg"]),
+                "best_test_mae": None if best_row is None else float(best_row["mae"]),
+                "best_test_lambda0_shift": None if best_row is None else float(best_row["lambda0_shift"]),
+                "best_test_feature_shift_nm": None if best_row is None else float(best_row["feature_shift_nm"]),
+            }
+        )
+
+    return {
+        "summary_type": "refined_angle_tolerance",
+        "criteria": {
+            "mae_limit": float(mae_limit),
+            "lambda0_value_shift_limit": float(lambda0_value_shift_limit),
+            "feature_shift_limit_nm": float(feature_shift_limit_nm),
+        },
+        "rows": rows,
+    }
+
+
+def export_refined_angle_tolerance_summary(
+    summary: Dict[str, Any],
+    *,
+    prefix: str = "teaching_refined_angle_tolerance",
+) -> Dict[str, str]:
+    saved: Dict[str, str] = {}
+    rows = list(summary.get("rows", []))
+
+    csv_path = output_file(f"{prefix}_summary.csv")
+    with open(csv_path, "w", encoding="utf-8-sig") as f:
+        f.write(
+            "case_id,title_cn,passed_count,recommended_max_theta_deg,"
+            "best_test_theta_deg,best_test_mae,best_test_lambda0_shift,best_test_feature_shift_nm\n"
+        )
+        for row in rows:
+            f.write(
+                ",".join(
+                    [
+                        str(row["case_id"]),
+                        str(row["title_cn"]),
+                        str(int(row["passed_count"])),
+                        "" if row["recommended_max_theta_deg"] is None else f"{float(row['recommended_max_theta_deg']):.12g}",
+                        "" if row["best_test_theta_deg"] is None else f"{float(row['best_test_theta_deg']):.12g}",
+                        "" if row["best_test_mae"] is None else f"{float(row['best_test_mae']):.12g}",
+                        "" if row["best_test_lambda0_shift"] is None else f"{float(row['best_test_lambda0_shift']):.12g}",
+                        "" if row["best_test_feature_shift_nm"] is None else f"{float(row['best_test_feature_shift_nm']):.12g}",
+                    ]
+                )
+                + "\n"
+            )
+    saved["csv"] = str(csv_path)
+
+    json_path = output_file(f"{prefix}_summary.json")
+    with open(json_path, "w", encoding="utf-8") as f:
+        json.dump(summary, f, ensure_ascii=False, indent=2)
+    saved["json"] = str(json_path)
+
+    txt_path = output_file(f"{prefix}_summary.txt")
+    with open(txt_path, "w", encoding="utf-8") as f:
+        criteria = dict(summary.get("criteria", {}))
+        f.write("精细角度误差容差总结\n")
+        f.write("=" * 72 + "\n")
+        f.write(
+            f"判据: MAE <= {criteria.get('mae_limit')} | "
+            f"中心点幅值偏差 <= {criteria.get('lambda0_value_shift_limit')} | "
+            f"特征位置偏移 <= {criteria.get('feature_shift_limit_nm')} nm\n\n"
+        )
+        for row in rows:
+            f.write(f"{row['title_cn']}\n")
+            if row["passed_count"] > 0:
+                f.write(f"  推荐最大入射角误差: ±{float(row['recommended_max_theta_deg']):.3f}°\n")
+            else:
+                f.write("  推荐最大入射角误差: 当前测试点内未找到满足判据的范围\n")
+            f.write(
+                f"  最佳测试点: {float(row['best_test_theta_deg']):.3f}° | "
+                f"MAE={float(row['best_test_mae']):.6g} | "
+                f"中心点幅值偏差={float(row['best_test_lambda0_shift']):+.6g} | "
+                f"特征位置偏移={float(row['best_test_feature_shift_nm']):+.3f} nm\n\n"
+            )
+    saved["txt"] = str(txt_path)
+
+    labels = [str(row["title_cn"]) for row in rows]
+    y = np.arange(len(labels), dtype=float)
+    angle_vals = np.asarray([
+        0.0 if row["recommended_max_theta_deg"] is None else float(row["recommended_max_theta_deg"])
+        for row in rows
+    ], dtype=float)
+    mae_vals = np.asarray([
+        0.0 if row["best_test_mae"] is None else float(row["best_test_mae"])
+        for row in rows
+    ], dtype=float)
+
+    fig, axes = plt.subplots(1, 2, figsize=(12.8, 4.8))
+    for ax in axes:
+        _style_axis(ax)
+
+    axes[0].barh(y, angle_vals, color=TARGET_GREEN, height=0.56)
+    axes[0].set_yticks(y)
+    axes[0].set_yticklabels(labels)
+    axes[0].set_xlabel("允许最大入射角误差 (°)")
+    axes[0].set_title("精细角度容差", fontweight="semibold")
+
+    axes[1].barh(y, mae_vals, color=MAIN_RED, height=0.56)
+    axes[1].set_yticks(y)
+    axes[1].set_yticklabels(labels)
+    axes[1].set_xlabel("MAE")
+    axes[1].set_title("最佳测试点误差水平", fontweight="semibold")
+
+    fig.suptitle("精细角度容差总览", fontsize=12, fontweight="semibold", color=TEXT_DARK)
+    fig.tight_layout()
+    png_path = output_file(f"{prefix}_overview.png")
+    fig.savefig(png_path, dpi=180)
+    plt.close(fig)
+    saved["overview_png"] = str(png_path)
+    return saved
+
+
+def export_standard_refined_tolerance_bundle(
+    *,
+    prefix: str = "teaching_refined_tolerance_standard",
+) -> Dict[str, Any]:
+    case_configs = {
+        "single_ar": {
+            "selector": "low",
+            "scale_values": (
+                0.994, 0.995, 0.996, 0.997, 0.998, 0.999,
+                1.0,
+                1.001, 1.002, 1.003, 1.004, 1.005, 1.006,
+            ),
+            "overrides": {
+                "theta_deg": 0.0,
+                "pol": "p",
+                "lambda0_nm": 550.0,
+                "n_incident": 1.0,
+                "n_substrate": 1.52,
+                "n_low": 1.38,
+            },
+        },
+        "fp_single_halfwave": {
+            "selector": "low",
+            "scale_values": (
+                0.9975, 0.9980, 0.9985, 0.9990, 0.9995,
+                1.0,
+                1.0005, 1.0010, 1.0015, 1.0020, 1.0025,
+            ),
+            "overrides": {
+                "theta_deg": 0.0,
+                "pol": "p",
+                "lambda0_nm": 550.0,
+                "n_incident": 1.0,
+                "n_substrate": 1.0,
+                "n_low": 1.45,
+                "n_high_2": 2.10,
+                "periods": 4,
+            },
+        },
+        "high_reflector": {
+            "selector": "high",
+            "scale_values": (
+                0.9925, 0.9930, 0.9935, 0.9940, 0.9945, 0.9950,
+                0.9975, 1.0, 1.0025,
+                1.0050, 1.0055, 1.0060, 1.0065, 1.0070, 1.0075,
+            ),
+            "overrides": {
+                "theta_deg": 0.0,
+                "pol": "p",
+                "lambda0_nm": 550.0,
+                "n_incident": 1.0,
+                "n_substrate": 1.5215,
+                "n_low": 1.45,
+                "n_high_2": 2.10,
+                "periods": 6,
+            },
+        },
+    }
+
+    results: Dict[str, Dict[str, Any]] = {}
+    files: Dict[str, Dict[str, str]] = {}
+    for case_id, config in case_configs.items():
+        result = analyze_theoretical_thickness_sensitivity(
+            case_id,
+            scale_values=config["scale_values"],
+            selector=str(config["selector"]),
+            **dict(config["overrides"]),
+        )
+        results[case_id] = result
+        files[case_id] = export_thickness_sensitivity_analysis(
+            result,
+            prefix=prefix,
+        )
+
+    manifest_path = output_file(f"{prefix}_manifest.json")
+    manifest = {
+        "results": {
+            case_id: {
+                "selector": case_configs[case_id]["selector"],
+                "scale_values": [float(x) for x in case_configs[case_id]["scale_values"]],
+                "result": results[case_id],
+                "files": files[case_id],
+            }
+            for case_id in results
+        },
+    }
+    with open(manifest_path, "w", encoding="utf-8") as f:
+        json.dump(manifest, f, ensure_ascii=False, indent=2)
+
+    return {
+        "results": results,
+        "files": files,
+        "manifest": str(manifest_path),
+    }
+
+
 def summarize_overall_performance_table(
     validation_bundle: Dict[str, Any],
     stability_summary: Dict[str, Any],
     system_error_bundle: Dict[str, Any],
+    layerwise_thickness_summary: Dict[str, Any] | None = None,
+    refined_tolerance_summary: Dict[str, Any] | None = None,
+    refined_angle_summary: Dict[str, Any] | None = None,
 ) -> Dict[str, Any]:
     validation_map = {
         str(item["case_id"]): item
@@ -1148,6 +1986,14 @@ def summarize_overall_performance_table(
     stability_map = dict(stability_summary.get("case_summaries", {}))
     angle_map = dict(system_error_bundle.get("angle_results", {}))
     thickness_map = dict(system_error_bundle.get("thickness_results", {}))
+    layerwise_rows = list((layerwise_thickness_summary or {}).get("rows", []))
+    refined_rows = list((refined_tolerance_summary or {}).get("rows", []))
+    refined_angle_rows = list((refined_angle_summary or {}).get("rows", []))
+    layerwise_map: Dict[str, List[Dict[str, Any]]] = {}
+    for row in layerwise_rows:
+        layerwise_map.setdefault(str(row["case_id"]), []).append(row)
+    refined_map = {str(row["case_id"]): row for row in refined_rows}
+    refined_angle_map = {str(row["case_id"]): row for row in refined_angle_rows}
     case_ids = sorted(set(validation_map) | set(stability_map) | set(angle_map) | set(thickness_map))
 
     performance_rows = summarize_performance_conclusions(validation_bundle, stability_summary)["rows"]
@@ -1166,6 +2012,13 @@ def summarize_overall_performance_table(
             thickness_rows,
             key=lambda row: abs(float(row["relative_error_percent"])),
         ) if thickness_rows else None
+        layerwise_candidates = layerwise_map.get(case_id, [])
+        most_sensitive_layer = max(
+            layerwise_candidates,
+            key=lambda row: abs(float(row["mae_at_worst"])) if row.get("mae_at_worst") is not None else -1.0,
+        ) if layerwise_candidates else None
+        refined_item = refined_map.get(case_id)
+        refined_angle_item = refined_angle_map.get(case_id)
 
         title_cn = str(
             validation_item.get("title_cn")
@@ -1191,6 +2044,14 @@ def summarize_overall_performance_table(
                 "thickness_max_test_percent": None if max_thickness_row is None else float(max_thickness_row["relative_error_percent"]),
                 "thickness_mae_at_max_test": None if max_thickness_row is None else float(max_thickness_row["mae"]),
                 "thickness_feature_shift_nm_at_max_test": None if max_thickness_row is None else float(max_thickness_row["feature_shift_nm"]),
+                "most_sensitive_layer_cn": None if most_sensitive_layer is None else str(most_sensitive_layer["selector_cn"]),
+                "most_sensitive_layer_mae": None if most_sensitive_layer is None else float(most_sensitive_layer["mae_at_worst"]),
+                "most_sensitive_layer_feature_shift_nm": None if most_sensitive_layer is None else float(most_sensitive_layer["feature_shift_nm_at_worst"]),
+                "refined_tolerance_min_percent": None if refined_item is None else refined_item.get("recommended_min_percent"),
+                "refined_tolerance_max_percent": None if refined_item is None else refined_item.get("recommended_max_percent"),
+                "refined_tolerance_best_mae": None if refined_item is None else refined_item.get("best_test_mae"),
+                "refined_angle_max_deg": None if refined_angle_item is None else refined_angle_item.get("recommended_max_theta_deg"),
+                "refined_angle_best_mae": None if refined_angle_item is None else refined_angle_item.get("best_test_mae"),
                 "status_cn": str(performance_map.get(case_id, {}).get("status_cn", "")),
             }
         )
@@ -1216,7 +2077,10 @@ def export_overall_performance_table(
             "case_id,title_cn,quantity,validation_mae,validation_rmse,validation_lambda0_error,"
             "max_stable_sampling_step_nm,max_stable_noise_sigma,"
             "angle_max_test_deg,angle_mae_at_max_test,angle_feature_shift_nm_at_max_test,"
-            "thickness_max_test_percent,thickness_mae_at_max_test,thickness_feature_shift_nm_at_max_test,status_cn\n"
+            "thickness_max_test_percent,thickness_mae_at_max_test,thickness_feature_shift_nm_at_max_test,"
+            "most_sensitive_layer_cn,most_sensitive_layer_mae,most_sensitive_layer_feature_shift_nm,"
+            "refined_tolerance_min_percent,refined_tolerance_max_percent,refined_tolerance_best_mae,"
+            "refined_angle_max_deg,refined_angle_best_mae,status_cn\n"
         )
         for row in rows:
             fields = [
@@ -1234,6 +2098,14 @@ def export_overall_performance_table(
                 "" if row["thickness_max_test_percent"] is None else f"{float(row['thickness_max_test_percent']):.12g}",
                 "" if row["thickness_mae_at_max_test"] is None else f"{float(row['thickness_mae_at_max_test']):.12g}",
                 "" if row["thickness_feature_shift_nm_at_max_test"] is None else f"{float(row['thickness_feature_shift_nm_at_max_test']):.12g}",
+                "" if row["most_sensitive_layer_cn"] is None else str(row["most_sensitive_layer_cn"]),
+                "" if row["most_sensitive_layer_mae"] is None else f"{float(row['most_sensitive_layer_mae']):.12g}",
+                "" if row["most_sensitive_layer_feature_shift_nm"] is None else f"{float(row['most_sensitive_layer_feature_shift_nm']):.12g}",
+                "" if row["refined_tolerance_min_percent"] is None else f"{float(row['refined_tolerance_min_percent']):.12g}",
+                "" if row["refined_tolerance_max_percent"] is None else f"{float(row['refined_tolerance_max_percent']):.12g}",
+                "" if row["refined_tolerance_best_mae"] is None else f"{float(row['refined_tolerance_best_mae']):.12g}",
+                "" if row["refined_angle_max_deg"] is None else f"{float(row['refined_angle_max_deg']):.12g}",
+                "" if row["refined_angle_best_mae"] is None else f"{float(row['refined_angle_best_mae']):.12g}",
                 str(row["status_cn"]),
             ]
             f.write(",".join(fields) + "\n")
@@ -1254,6 +2126,7 @@ def export_overall_performance_table(
         noise_text = "未通过" if row["max_stable_noise_sigma"] is None else f"{float(row['max_stable_noise_sigma']):.6g}"
         angle_text = "无" if row["angle_max_test_deg"] is None else f"{float(row['angle_max_test_deg']):.3f}°"
         thickness_text = "无" if row["thickness_max_test_percent"] is None else f"{float(row['thickness_max_test_percent']):+.3f}%"
+        layer_text = "无" if row["most_sensitive_layer_cn"] is None else str(row["most_sensitive_layer_cn"])
         lines.extend(
             [
                 f"{row['title_cn']} ({row['case_id']})",
@@ -1264,6 +2137,7 @@ def export_overall_performance_table(
                 f"  最大稳定噪声标准差 = {noise_text}",
                 f"  最大角度测试点 = {angle_text}",
                 f"  厚度最大测试点 = {thickness_text}",
+                f"  最敏感层 = {layer_text}",
                 f"  结论 = {row['status_cn']}",
                 "",
             ]
@@ -1279,7 +2153,7 @@ def export_overall_performance_table(
         for row in rows
     ], dtype=float)
     thickness_vals = np.asarray([
-        0.0 if row["thickness_feature_shift_nm_at_max_test"] is None else abs(float(row["thickness_feature_shift_nm_at_max_test"]))
+        0.0 if row["most_sensitive_layer_feature_shift_nm"] is None else abs(float(row["most_sensitive_layer_feature_shift_nm"]))
         for row in rows
     ], dtype=float)
     x = np.arange(len(labels), dtype=float)
@@ -1303,7 +2177,7 @@ def export_overall_performance_table(
     axes[2].bar(x, thickness_vals, color=ERR_GOLD, width=0.56)
     axes[2].set_xticks(x)
     axes[2].set_xticklabels(labels, rotation=12, ha="right")
-    axes[2].set_title("最大厚度测试下特征偏移", fontweight="semibold")
+    axes[2].set_title("最敏感层厚度误差下特征偏移", fontweight="semibold")
     axes[2].set_ylabel("nm")
 
     fig.suptitle("三类结构综合性能总览", fontsize=12, fontweight="semibold", color=TEXT_DARK)
@@ -1313,6 +2187,154 @@ def export_overall_performance_table(
     plt.close(fig)
     saved["overview_png"] = str(png_path)
     return saved
+
+
+def export_competition_ready_summary(
+    overall_summary: Dict[str, Any],
+    *,
+    prefix: str = "teaching_competition_ready",
+) -> Dict[str, str]:
+    saved: Dict[str, str] = {}
+    rows = list(overall_summary.get("rows", []))
+
+    json_path = output_file(f"{prefix}_summary.json")
+    with open(json_path, "w", encoding="utf-8") as f:
+        json.dump(overall_summary, f, ensure_ascii=False, indent=2)
+    saved["json"] = str(json_path)
+
+    txt_path = output_file(f"{prefix}_summary.txt")
+    with open(txt_path, "w", encoding="utf-8") as f:
+        f.write("教学薄膜平台验证与性能指标总结\n")
+        f.write("=" * 80 + "\n")
+        f.write("当前总结基于三类标准结构：单层减反膜、F-P 单半波滤光片、高反膜。\n")
+        f.write("已完成理论- COMSOL 对照、分辨率影响、噪声敏感性、角度误差、厚度误差以及最敏感层容差分析。\n\n")
+        for row in rows:
+            f.write(f"{row['title_cn']}\n")
+            f.write(f"  验证误差: MAE={float(row['validation_mae']):.6g}, RMSE={float(row['validation_rmse']):.6g}\n")
+            if row.get("max_stable_sampling_step_nm") is not None:
+                f.write(f"  稳定采样步长: 最大 {float(row['max_stable_sampling_step_nm']):.3g} nm\n")
+            if row.get("max_stable_noise_sigma") is not None:
+                f.write(f"  稳定噪声水平: 最大 sigma={float(row['max_stable_noise_sigma']):.3g}\n")
+            if row.get("refined_angle_max_deg") is not None:
+                f.write(f"  推荐最大入射角误差: ±{float(row['refined_angle_max_deg']):.3f}°\n")
+            if row.get("most_sensitive_layer_cn") is not None:
+                f.write(f"  最敏感层: {row['most_sensitive_layer_cn']}\n")
+            if row.get("refined_tolerance_min_percent") is not None and row.get("refined_tolerance_max_percent") is not None:
+                f.write(
+                    f"  最敏感层精细容差: {float(row['refined_tolerance_min_percent']):+.3f}% ~ "
+                    f"{float(row['refined_tolerance_max_percent']):+.3f}%\n"
+                )
+            f.write(f"  综合状态: {row['status_cn']}\n\n")
+    saved["txt"] = str(txt_path)
+    return saved
+
+
+def export_final_delivery_bundle(
+    *,
+    single_ar_csv: Path | str,
+    fp_single_csv: Path | str,
+    high_reflector_csv: Path | str,
+    prefix: str = "teaching_final_delivery",
+    reference_label: str = "COMSOL",
+) -> Dict[str, Any]:
+    validation = export_standard_teaching_validation_bundle(
+        single_ar_csv=single_ar_csv,
+        fp_single_csv=fp_single_csv,
+        high_reflector_csv=high_reflector_csv,
+        prefix=f"{prefix}_validation",
+        reference_label=reference_label,
+    )
+
+    sensitivity = export_standard_sensitivity_bundle(
+        single_ar_csv=single_ar_csv,
+        fp_single_csv=fp_single_csv,
+        high_reflector_csv=high_reflector_csv,
+        prefix=f"{prefix}_sensitivity",
+        reference_label=reference_label,
+    )
+    stability = summarize_sensitivity_stability(sensitivity, profile="competition_balanced")
+    stability_files = export_sensitivity_stability_summary(stability, prefix=f"{prefix}_stability")
+
+    system_error = export_standard_system_error_bundle(prefix=f"{prefix}_system_error")
+    layerwise = export_layerwise_thickness_error_bundle(prefix=f"{prefix}_layerwise")
+    layerwise_summary = summarize_layerwise_thickness_sensitivity(layerwise)
+    layerwise_files = export_layerwise_thickness_summary(layerwise_summary, prefix=f"{prefix}_layerwise")
+
+    refined_thickness = export_standard_refined_tolerance_bundle(prefix=f"{prefix}_refined_thickness")
+    refined_thickness_summary = summarize_refined_layer_tolerance(
+        refined_thickness,
+        mae_limit=2e-2,
+        lambda0_value_shift_limit=2e-2,
+        feature_shift_limit_nm=2.0,
+    )
+    refined_thickness_files = export_refined_layer_tolerance_summary(
+        refined_thickness_summary,
+        prefix=f"{prefix}_refined_thickness",
+    )
+
+    refined_angle = export_standard_refined_angle_bundle(prefix=f"{prefix}_refined_angle")
+    refined_angle_summary = summarize_refined_angle_tolerance(
+        refined_angle,
+        mae_limit=2e-2,
+        lambda0_value_shift_limit=2e-2,
+        feature_shift_limit_nm=2.0,
+    )
+    refined_angle_files = export_refined_angle_tolerance_summary(
+        refined_angle_summary,
+        prefix=f"{prefix}_refined_angle",
+    )
+
+    overall = summarize_overall_performance_table(
+        validation,
+        stability,
+        system_error,
+        layerwise_thickness_summary=layerwise_summary,
+        refined_tolerance_summary=refined_thickness_summary,
+        refined_angle_summary=refined_angle_summary,
+    )
+    overall_files = export_overall_performance_table(overall, prefix=f"{prefix}_overall")
+    competition_files = export_competition_ready_summary(overall, prefix=f"{prefix}_competition")
+
+    manifest = {
+        "reference_label": reference_label,
+        "inputs": {
+            "single_ar_csv": str(Path(single_ar_csv)),
+            "fp_single_csv": str(Path(fp_single_csv)),
+            "high_reflector_csv": str(Path(high_reflector_csv)),
+        },
+        "validation_manifest": validation["manifest"],
+        "stability_files": stability_files,
+        "layerwise_files": layerwise_files,
+        "refined_thickness_files": refined_thickness_files,
+        "refined_angle_files": refined_angle_files,
+        "overall_files": overall_files,
+        "competition_files": competition_files,
+    }
+    manifest_path = output_file(f"{prefix}_manifest.json")
+    with open(manifest_path, "w", encoding="utf-8") as f:
+        json.dump(manifest, f, ensure_ascii=False, indent=2)
+
+    index_path = output_file(f"{prefix}_index.txt")
+    with open(index_path, "w", encoding="utf-8") as f:
+        f.write("教学薄膜平台最终交付总包索引\n")
+        f.write("=" * 80 + "\n")
+        f.write(f"单层减反膜 CSV: {Path(single_ar_csv)}\n")
+        f.write(f"F-P 滤光片 CSV: {Path(fp_single_csv)}\n")
+        f.write(f"高反膜 CSV: {Path(high_reflector_csv)}\n\n")
+        f.write(f"验证总包: {validation['manifest']}\n")
+        f.write(f"稳定性总结: {stability_files['json']}\n")
+        f.write(f"分层厚度总结: {layerwise_files['json']}\n")
+        f.write(f"精细厚度容差: {refined_thickness_files['json']}\n")
+        f.write(f"精细角度容差: {refined_angle_files['json']}\n")
+        f.write(f"综合性能总表: {overall_files['json']}\n")
+        f.write(f"竞赛口径总结: {competition_files['txt']}\n")
+    return {
+        "manifest": str(manifest_path),
+        "index": str(index_path),
+        "overall_summary": overall,
+        "overall_files": overall_files,
+        "competition_files": competition_files,
+    }
 
 
 def summarize_sensitivity_stability(

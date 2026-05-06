@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import csv
 import json
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Sequence
@@ -7,7 +8,7 @@ from typing import Any, Dict, Iterable, List, Sequence
 import matplotlib.pyplot as plt
 import numpy as np
 
-from .education import simulate_report_case
+from .education import list_report_chapter2_cases, simulate_report_case
 from .io import load_spectrum_csv
 from .paths import output_file
 
@@ -21,6 +22,17 @@ TARGET_GREEN = "#0f766e"
 GRID_COLOR = "#d7dde5"
 TEXT_DARK = "#223046"
 PANEL_BG = "#f7f8fb"
+
+EXPANSION_VALIDATION_CASE_IDS: tuple[str, ...] = (
+    "quarter_wave_single_layer",
+    "half_wave_single_layer",
+    "quarter_wave_double_layer",
+    "quarter_wave_stack",
+    "bragg_reflector",
+    "fp_filter",
+    "narrowband_filter",
+    "rugate_filter",
+)
 
 
 def _style_axis(ax: plt.Axes) -> None:
@@ -263,6 +275,155 @@ def build_standard_teaching_validation_cases(
             },
         },
     ]
+
+
+def build_teaching_expansion_validation_templates(
+    *,
+    reference_label: str = "COMSOL",
+) -> List[Dict[str, Any]]:
+    """Build validation templates for the current teaching-case expansion set.
+
+    These templates are intentionally CSV-free. They define the recommended
+    comparison quantity, default column selector, and default parameter
+    overrides so that a future COMSOL or experimental spectrum can be plugged in
+    with minimal manual editing.
+    """
+
+    case_map = {
+        str(item["case_id"]): item
+        for item in list_report_chapter2_cases()
+        if str(item["case_id"]) in EXPANSION_VALIDATION_CASE_IDS
+    }
+
+    templates: List[Dict[str, Any]] = []
+    for case_id in EXPANSION_VALIDATION_CASE_IDS:
+        if case_id not in case_map:
+            continue
+        item = case_map[case_id]
+        quantity = _default_case_quantity(case_id)
+        y_selector = f"{quantity} (1)"
+        result = simulate_report_case(case_id)
+        templates.append(
+            {
+                "case_id": case_id,
+                "title_cn": str(item.get("title_cn", case_id)),
+                "title_en": str(item.get("title_en", case_id)),
+                "design_type": str(item.get("design_type", case_id)),
+                "reference_label": str(reference_label),
+                "reference_csv": "",
+                "recommended_quantity": quantity,
+                "recommended_y_selector": y_selector,
+                "default_overrides": dict(item.get("default_params", {})),
+                "lambda0_nm": float(result.get("lambda0_nm", 550.0)),
+                "theta_deg": float(result.get("theta_deg", 0.0)),
+                "notes_cn": (
+                    "建议后续提供同结构的 COMSOL 或实验谱线 CSV，并优先使用推荐列选择器直接接入验证流程。"
+                ),
+                "notes_en": (
+                    "Provide a matching COMSOL or experimental spectrum CSV later and plug it into the validation flow with the recommended column selector."
+                ),
+            }
+        )
+    return templates
+
+
+def build_teaching_expansion_validation_cases_from_mapping(
+    reference_mapping: Dict[str, Dict[str, Any]],
+    *,
+    reference_label: str = "COMSOL",
+) -> List[Dict[str, Any]]:
+    """Convert a filled reference mapping into runnable validation cases.
+
+    The input mapping should use `case_id` as key. Each value may contain:
+    - reference_csv (required)
+    - y_selector (optional; defaults to the template recommendation)
+    - quantity (optional; defaults to the template recommendation)
+    - reference_label (optional)
+    - overrides (optional; merged onto the template default overrides)
+    """
+
+    template_map = {
+        str(item["case_id"]): item
+        for item in build_teaching_expansion_validation_templates(reference_label=reference_label)
+    }
+    cases: List[Dict[str, Any]] = []
+    for case_id, cfg in reference_mapping.items():
+        if case_id not in template_map:
+            raise KeyError(f"Unknown expansion validation case_id: {case_id}")
+        reference_csv = str(cfg.get("reference_csv", "")).strip()
+        if not reference_csv:
+            raise ValueError(f"Missing reference_csv for expansion validation case: {case_id}")
+        template = template_map[case_id]
+        overrides = dict(template.get("default_overrides", {}))
+        overrides.update(dict(cfg.get("overrides", {})))
+        cases.append(
+            {
+                "case_id": case_id,
+                "reference_csv": reference_csv,
+                "y_selector": cfg.get("y_selector", template["recommended_y_selector"]),
+                "quantity": cfg.get("quantity", template["recommended_quantity"]),
+                "reference_label": str(cfg.get("reference_label", reference_label)),
+                "overrides": overrides,
+            }
+        )
+    return cases
+
+
+def load_teaching_expansion_validation_mapping(
+    template_file: Path | str,
+) -> Dict[str, Dict[str, Any]]:
+    """Load a filled expansion validation template from JSON or CSV."""
+
+    path = Path(template_file)
+    suffix = path.suffix.lower()
+    mapping: Dict[str, Dict[str, Any]] = {}
+
+    if suffix == ".json":
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        cases = payload.get("cases", payload)
+        if not isinstance(cases, list):
+            raise ValueError("JSON template must contain a top-level 'cases' list or be a list.")
+        for item in cases:
+            if not isinstance(item, dict):
+                continue
+            case_id = str(item.get("case_id", "")).strip()
+            if not case_id:
+                continue
+            entry: Dict[str, Any] = {}
+            for key in ("reference_csv", "recommended_y_selector", "recommended_quantity", "reference_label"):
+                if key in item:
+                    entry[key] = item[key]
+            if "default_overrides" in item:
+                entry["overrides"] = dict(item.get("default_overrides", {}))
+            mapping[case_id] = entry
+        return mapping
+
+    if suffix == ".csv":
+        with open(path, "r", encoding="utf-8-sig", newline="") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                case_id = str(row.get("case_id", "")).strip()
+                if not case_id:
+                    continue
+                entry: Dict[str, Any] = {
+                    "reference_csv": str(row.get("reference_csv", "")).strip(),
+                }
+                y_selector = str(row.get("recommended_y_selector", "")).strip()
+                if y_selector:
+                    entry["y_selector"] = y_selector
+                quantity = str(row.get("recommended_quantity", "")).strip()
+                if quantity:
+                    entry["quantity"] = quantity
+                reference_label = str(row.get("reference_label", "")).strip()
+                if reference_label:
+                    entry["reference_label"] = reference_label
+                overrides_raw = str(row.get("default_overrides_json", "")).strip()
+                if overrides_raw:
+                    entry["overrides"] = json.loads(overrides_raw)
+                mapping[case_id] = entry
+        return mapping
+
+    raise ValueError("template_file must be a .json or .csv file.")
 
 
 def run_standard_teaching_validation_suite(
@@ -563,3 +724,282 @@ def export_standard_teaching_validation_bundle(
         "suite_files": suite_files,
         "manifest": str(manifest_path),
     }
+
+
+def export_teaching_expansion_validation_template_bundle(
+    *,
+    prefix: str = "teaching_expansion_validation_templates",
+    reference_label: str = "COMSOL",
+) -> Dict[str, str]:
+    """Export a template bundle for future validation of expansion cases."""
+
+    rows = build_teaching_expansion_validation_templates(reference_label=reference_label)
+    saved: Dict[str, str] = {}
+
+    csv_path = output_file(f"{prefix}.csv")
+    with open(csv_path, "w", encoding="utf-8-sig") as f:
+        f.write(
+            "case_id,title_cn,title_en,design_type,recommended_quantity,recommended_y_selector,"
+            "lambda0_nm,theta_deg,reference_label,reference_csv,default_overrides_json,notes_cn\n"
+        )
+        for item in rows:
+            overrides_json = json.dumps(item["default_overrides"], ensure_ascii=False, separators=(",", ":"))
+            cells = [
+                str(item["case_id"]),
+                str(item["title_cn"]),
+                str(item["title_en"]),
+                str(item["design_type"]),
+                str(item["recommended_quantity"]),
+                str(item["recommended_y_selector"]),
+                f"{float(item['lambda0_nm']):.12g}",
+                f"{float(item['theta_deg']):.12g}",
+                str(item["reference_label"]),
+                str(item["reference_csv"]),
+                overrides_json.replace('"', '""'),
+                str(item["notes_cn"]),
+            ]
+            quoted = []
+            for cell in cells:
+                if any(ch in cell for ch in [",", "\"", "\n"]):
+                    quoted.append(f"\"{cell}\"")
+                else:
+                    quoted.append(cell)
+            f.write(",".join(quoted) + "\n")
+    saved["csv"] = str(csv_path)
+
+    json_path = output_file(f"{prefix}.json")
+    payload = {
+        "reference_label": reference_label,
+        "case_count": len(rows),
+        "cases": rows,
+    }
+    with open(json_path, "w", encoding="utf-8") as f:
+        json.dump(payload, f, ensure_ascii=False, indent=2)
+    saved["json"] = str(json_path)
+
+    txt_path = output_file(f"{prefix}.txt")
+    lines = [
+        "Teaching Expansion Validation Templates",
+        "=" * 80,
+        f"reference_label = {reference_label}",
+        f"case_count       = {len(rows)}",
+        "",
+    ]
+    for item in rows:
+        lines.extend(
+            [
+                f"case_id                = {item['case_id']}",
+                f"title_cn               = {item['title_cn']}",
+                f"title_en               = {item['title_en']}",
+                f"recommended_quantity   = {item['recommended_quantity']}",
+                f"recommended_y_selector = {item['recommended_y_selector']}",
+                f"lambda0_nm             = {float(item['lambda0_nm']):.6f}",
+                f"theta_deg              = {float(item['theta_deg']):.6f}",
+                f"reference_csv          = {item['reference_csv']}",
+                f"default_overrides      = {json.dumps(item['default_overrides'], ensure_ascii=False)}",
+                f"notes_cn               = {item['notes_cn']}",
+                "-" * 80,
+            ]
+        )
+    with open(txt_path, "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+    saved["txt"] = str(txt_path)
+
+    return saved
+
+
+def export_teaching_expansion_validation_bundle_from_mapping(
+    reference_mapping: Dict[str, Dict[str, Any]],
+    *,
+    prefix: str = "teaching_expansion_validation_bundle",
+    reference_label: str = "COMSOL",
+    save_plot: bool = True,
+    save_csv: bool = True,
+    save_json: bool = True,
+    save_txt: bool = True,
+) -> Dict[str, Any]:
+    """Run and export expansion-case validation results from a reference mapping."""
+
+    cases = build_teaching_expansion_validation_cases_from_mapping(
+        reference_mapping=reference_mapping,
+        reference_label=reference_label,
+    )
+    results = run_teaching_validation_suite(cases)
+
+    exported_cases: Dict[str, Dict[str, str]] = {}
+    for item in results:
+        exported_cases[str(item["case_id"])] = export_teaching_validation_result(
+            item,
+            prefix=prefix,
+            save_plot=save_plot,
+            save_csv=save_csv,
+            save_json=save_json,
+            save_txt=save_txt,
+        )
+
+    suite_files = export_teaching_validation_suite_summary(
+        results,
+        filename_prefix=f"{prefix}_suite",
+    )
+
+    manifest_path = output_file(f"{prefix}_manifest.json")
+    manifest = {
+        "reference_label": reference_label,
+        "cases": {
+            str(item["case_id"]): {
+                "summary": item["summary"],
+                "files": exported_cases[str(item["case_id"])],
+            }
+            for item in results
+        },
+        "suite_files": suite_files,
+    }
+    with open(manifest_path, "w", encoding="utf-8") as f:
+        json.dump(manifest, f, ensure_ascii=False, indent=2)
+
+    return {
+        "results": results,
+        "case_files": exported_cases,
+        "suite_files": suite_files,
+        "manifest": str(manifest_path),
+    }
+
+
+def export_teaching_expansion_validation_bundle_from_file(
+    template_file: Path | str,
+    *,
+    prefix: str = "teaching_expansion_validation_bundle",
+    reference_label: str = "COMSOL",
+    save_plot: bool = True,
+    save_csv: bool = True,
+    save_json: bool = True,
+    save_txt: bool = True,
+) -> Dict[str, Any]:
+    """Run and export expansion-case validation from a filled template file."""
+
+    mapping = load_teaching_expansion_validation_mapping(template_file)
+    return export_teaching_expansion_validation_bundle_from_mapping(
+        reference_mapping=mapping,
+        prefix=prefix,
+        reference_label=reference_label,
+        save_plot=save_plot,
+        save_csv=save_csv,
+        save_json=save_json,
+        save_txt=save_txt,
+    )
+
+
+def rank_candidate_teaching_cases_for_reference(
+    reference_csv: Path | str,
+    candidate_case_ids: Sequence[str],
+    *,
+    y_selector: int | str | None = None,
+    quantity: str | None = None,
+    reference_label: str = "COMSOL",
+) -> List[Dict[str, Any]]:
+    """Rank candidate teaching cases against one reference CSV by MAE."""
+
+    rows: List[Dict[str, Any]] = []
+    for case_id in candidate_case_ids:
+        result = compare_teaching_case_to_reference(
+            case_id=case_id,
+            reference_csv=reference_csv,
+            y_selector=y_selector,
+            quantity=quantity,
+            reference_label=reference_label,
+        )
+        rows.append(
+            {
+                "case_id": case_id,
+                "title_cn": result["title_cn"],
+                "title_en": result["title_en"],
+                "quantity": result["quantity"],
+                "mae": float(result["summary"]["mae"]),
+                "rmse": float(result["summary"]["rmse"]),
+                "max_abs_error": float(result["summary"]["max_abs_error"]),
+                "lambda0_error": float(result["summary"]["lambda0_error"]),
+                "theory_at_lambda0": float(result["summary"]["theory_at_lambda0"]),
+                "reference_at_lambda0": float(result["summary"]["reference_at_lambda0"]),
+            }
+        )
+    rows.sort(key=lambda item: item["mae"])
+    return rows
+
+
+def export_candidate_case_ranking(
+    reference_csv: Path | str,
+    candidate_case_ids: Sequence[str],
+    *,
+    prefix: str = "teaching_case_ranking",
+    y_selector: int | str | None = None,
+    quantity: str | None = None,
+    reference_label: str = "COMSOL",
+) -> Dict[str, str]:
+    """Export a ranked summary for likely matching teaching cases."""
+
+    rows = rank_candidate_teaching_cases_for_reference(
+        reference_csv=reference_csv,
+        candidate_case_ids=candidate_case_ids,
+        y_selector=y_selector,
+        quantity=quantity,
+        reference_label=reference_label,
+    )
+    saved: Dict[str, str] = {}
+
+    csv_path = output_file(f"{prefix}.csv")
+    with open(csv_path, "w", encoding="utf-8-sig") as f:
+        f.write(
+            "rank,case_id,title_cn,title_en,quantity,mae,rmse,max_abs_error,lambda0_error,theory_at_lambda0,reference_at_lambda0\n"
+        )
+        for idx, item in enumerate(rows, start=1):
+            f.write(
+                ",".join(
+                    [
+                        str(idx),
+                        str(item["case_id"]),
+                        str(item["title_cn"]),
+                        str(item["title_en"]),
+                        str(item["quantity"]),
+                        f"{float(item['mae']):.12g}",
+                        f"{float(item['rmse']):.12g}",
+                        f"{float(item['max_abs_error']):.12g}",
+                        f"{float(item['lambda0_error']):.12g}",
+                        f"{float(item['theory_at_lambda0']):.12g}",
+                        f"{float(item['reference_at_lambda0']):.12g}",
+                    ]
+                )
+                + "\n"
+            )
+    saved["csv"] = str(csv_path)
+
+    json_path = output_file(f"{prefix}.json")
+    with open(json_path, "w", encoding="utf-8") as f:
+        json.dump({"reference_csv": str(reference_csv), "rows": rows}, f, ensure_ascii=False, indent=2)
+    saved["json"] = str(json_path)
+
+    txt_path = output_file(f"{prefix}.txt")
+    lines = [
+        "Teaching Case Ranking",
+        "=" * 80,
+        f"reference_csv = {reference_csv}",
+        f"reference_label = {reference_label}",
+        "",
+    ]
+    for idx, item in enumerate(rows, start=1):
+        lines.extend(
+            [
+                f"rank                 = {idx}",
+                f"case_id              = {item['case_id']}",
+                f"title_cn             = {item['title_cn']}",
+                f"quantity             = {item['quantity']}",
+                f"mae                  = {item['mae']:.12e}",
+                f"rmse                 = {item['rmse']:.12e}",
+                f"max_abs_error        = {item['max_abs_error']:.12e}",
+                f"lambda0_error        = {item['lambda0_error']:+.12e}",
+                "-" * 80,
+            ]
+        )
+    with open(txt_path, "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+    saved["txt"] = str(txt_path)
+    return saved

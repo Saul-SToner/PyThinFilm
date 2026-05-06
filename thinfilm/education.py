@@ -43,6 +43,32 @@ class LayerSpec:
 
 
 REPORT_CHAPTER2_CASES: Dict[str, Dict[str, Any]] = {
+    "quarter_wave_single_layer": {
+        "title_cn": "1/4波长单层膜",
+        "title_en": "Quarter-Wave Single Layer",
+        "design_type": "quarter_wave_single_layer",
+        "default_params": {
+            "theta_deg": 0.0,
+            "pol": "p",
+            "lambda0_nm": 550.0,
+            "n_incident": 1.0,
+            "n_substrate": 1.5215,
+            "n_low": 1.3785,
+        },
+    },
+    "half_wave_single_layer": {
+        "title_cn": "1/2波长单层膜",
+        "title_en": "Half-Wave Single Layer",
+        "design_type": "half_wave_single_layer",
+        "default_params": {
+            "theta_deg": 0.0,
+            "pol": "p",
+            "lambda0_nm": 550.0,
+            "n_incident": 1.0,
+            "n_substrate": 1.52,
+            "n_low": 1.38,
+        },
+    },
     "single_ar": {
         "title_cn": "单层减反射膜",
         "title_en": "Single-Layer Anti-Reflection",
@@ -60,6 +86,20 @@ REPORT_CHAPTER2_CASES: Dict[str, Dict[str, Any]] = {
         "title_cn": "双层减反射膜",
         "title_en": "Double-Layer Anti-Reflection",
         "design_type": "double_ar",
+        "default_params": {
+            "theta_deg": 0.0,
+            "pol": "p",
+            "lambda0_nm": 550.0,
+            "n_incident": 1.0,
+            "n_substrate": 1.52,
+            "n_low": 1.38,
+            "n_high": 2.0,
+        },
+    },
+    "quarter_wave_double_layer": {
+        "title_cn": "1/4波长双层膜系",
+        "title_en": "Quarter-Wave Double Layer",
+        "design_type": "quarter_wave_double_layer",
         "default_params": {
             "theta_deg": 0.0,
             "pol": "p",
@@ -100,6 +140,36 @@ REPORT_CHAPTER2_CASES: Dict[str, Dict[str, Any]] = {
             "periods": 6,
         },
     },
+    "quarter_wave_stack": {
+        "title_cn": "1/4波长QW膜堆",
+        "title_en": "Quarter-Wave Stack",
+        "design_type": "quarter_wave_stack",
+        "default_params": {
+            "theta_deg": 0.0,
+            "pol": "p",
+            "lambda0_nm": 550.0,
+            "n_incident": 1.0,
+            "n_substrate": 1.5215,
+            "n_low": 1.45,
+            "n_high_2": 2.10,
+            "periods": 6,
+        },
+    },
+    "bragg_reflector": {
+        "title_cn": "布拉格反射镜",
+        "title_en": "Bragg Reflector",
+        "design_type": "bragg_reflector",
+        "default_params": {
+            "theta_deg": 0.0,
+            "pol": "p",
+            "lambda0_nm": 550.0,
+            "n_incident": 1.0,
+            "n_substrate": 1.5215,
+            "n_low": 1.45,
+            "n_high_2": 2.10,
+            "periods": 6,
+        },
+    },
     "fp_single_halfwave": {
         "title_cn": "单半波型 F-P 滤光片",
         "title_en": "Single-Half-Wave F-P Filter",
@@ -113,6 +183,22 @@ REPORT_CHAPTER2_CASES: Dict[str, Dict[str, Any]] = {
             "n_low": 1.38,
             "n_high_2": 2.15,
             "periods": 3,
+            "fp_spacer_kind": "L",
+        },
+    },
+    "fp_filter": {
+        "title_cn": "F-P滤光片",
+        "title_en": "Fabry-Perot Filter",
+        "design_type": "fp_filter",
+        "default_params": {
+            "theta_deg": 0.0,
+            "pol": "p",
+            "lambda0_nm": 550.0,
+            "n_incident": 1.0,
+            "n_substrate": 1.0,
+            "n_low": 1.45,
+            "n_high_2": 2.10,
+            "periods": 4,
             "fp_spacer_kind": "L",
         },
     },
@@ -130,6 +216,51 @@ REPORT_CHAPTER2_CASES: Dict[str, Dict[str, Any]] = {
             "n_high_2": 2.15,
             "periods": 2,
         },
+    },
+    "narrowband_filter": {
+        "summary_cn": "?????????????????????????????",
+        "summary_en": "A higher-level filtering case showing narrower transmission peaks and stronger selectivity.",
+        "title_cn": "?????",
+        "title_en": "Narrowband Filter",
+        "design_type": "narrowband_filter",
+        "default_params": {
+            "theta_deg": 0.0,
+            "pol": "p",
+            "lambda0_nm": 550.0,
+            "n_incident": 1.0,
+            "n_substrate": 1.0,
+            "n_low": 1.45,
+            "n_high_2": 2.10,
+            "periods": 5,
+            "fp_spacer_kind": "L",
+        },
+        "headline_cn": "?????",
+        "headline_en": "Narrowband Filter",
+        "card_tag_cn": "????",
+        "card_tag_en": "Advanced Filter",
+        "main_curve": "T",
+    },
+    "rugate_filter": {
+        "summary_cn": "采用连续折射率调制近似的皱褶滤光片，用于展示渐变周期结构的反射带形成。",
+        "summary_en": "A rugate filter approximated by continuous index modulation, showing stop-band formation in graded periodic structures.",
+        "title_cn": "皱褶滤光片",
+        "title_en": "Rugate Filter",
+        "design_type": "rugate_filter",
+        "default_params": {
+            "theta_deg": 0.0,
+            "pol": "p",
+            "lambda0_nm": 550.0,
+            "n_incident": 1.0,
+            "n_substrate": 1.52,
+            "n_low": 1.38,
+            "n_high_2": 2.10,
+            "periods": 8,
+        },
+        "headline_cn": "皱褶滤光片",
+        "headline_en": "Rugate Filter",
+        "card_tag_cn": "高级扩展",
+        "card_tag_en": "Advanced Extension",
+        "main_curve": "R",
     },
     "neutral_beamsplitter": {
         "title_cn": "中性分束膜",
@@ -149,6 +280,11 @@ REPORT_CHAPTER2_CASES: Dict[str, Dict[str, Any]] = {
 }
 
 REPORT_COMPARISON_FIGURES: Dict[str, Dict[str, Any]] = {
+    "quarter_wave_stack_periods": {
+        "title_cn": "QW膜堆不同周期数对比",
+        "title_en": "Quarter-Wave Stack | Different Periods",
+        "ylabel": "R",
+    },
     "high_reflector_periods": {
         "title_cn": "高反膜不同周期数对比",
         "title_en": "High-Reflection Coating | Different Periods",
@@ -157,6 +293,11 @@ REPORT_COMPARISON_FIGURES: Dict[str, Dict[str, Any]] = {
     "fp_single_periods": {
         "title_cn": "单半波 F-P 不同周期数对比",
         "title_en": "Single-Half-Wave F-P | Different Periods",
+        "ylabel": "T",
+    },
+    "narrowband_filter_periods": {
+        "title_cn": "????????????",
+        "title_en": "Narrowband Filter | Different Periods",
         "ylabel": "T",
     },
     "fp_double_angles": {
@@ -172,6 +313,19 @@ REPORT_COMPARISON_FIGURES: Dict[str, Dict[str, Any]] = {
 }
 
 REPORT_COMPARISON_UI_META: Dict[str, Dict[str, Any]] = {
+    "quarter_wave_stack_periods": {
+        "headline_cn": "QW膜堆周期对比",
+        "headline_en": "QW Stack Period Sweep",
+        "card_tag_cn": "参数对比",
+        "card_tag_en": "Parameter Sweep",
+        "summary_cn": "比较QW膜堆在不同周期数下的高反射带变化。",
+        "summary_en": "Compare the high-reflection band of quarter-wave stacks under different period counts.",
+        "series_count": 3,
+        "sweep_parameter": "periods",
+        "sweep_label_cn": "周期数",
+        "sweep_label_en": "Periods",
+        "related_case_ids": ["quarter_wave_stack", "bragg_reflector"],
+    },
     "high_reflector_periods": {
         "headline_cn": "高反膜周期对比",
         "headline_en": "Reflector Period Sweep",
@@ -197,6 +351,19 @@ REPORT_COMPARISON_UI_META: Dict[str, Dict[str, Any]] = {
         "sweep_label_cn": "周期数",
         "sweep_label_en": "Periods",
         "related_case_ids": ["fp_single_halfwave"],
+    },
+    "narrowband_filter_periods": {
+        "headline_cn": "?????????",
+        "headline_en": "Narrowband Filter Period Sweep",
+        "card_tag_cn": "????",
+        "card_tag_en": "Parameter Sweep",
+        "summary_cn": "???????????????????????????",
+        "summary_en": "Compare how period count changes the passband width and selectivity of the narrowband filter.",
+        "series_count": 3,
+        "sweep_parameter": "periods",
+        "sweep_label_cn": "???",
+        "sweep_label_en": "Periods",
+        "related_case_ids": ["narrowband_filter"],
     },
     "fp_double_angles": {
         "headline_cn": "双半波 F-P 角度对比",
@@ -227,8 +394,10 @@ REPORT_COMPARISON_UI_META: Dict[str, Dict[str, Any]] = {
 }
 
 REPORT_COMPARISON_DISPLAY_ORDER: List[str] = [
+    "quarter_wave_stack_periods",
     "high_reflector_periods",
     "fp_single_periods",
+    "narrowband_filter_periods",
     "fp_double_angles",
     "beamsplitter_lambda0",
 ]
@@ -238,7 +407,7 @@ REPORT_COMPARISON_GROUPS: List[Dict[str, Any]] = [
         "group_id": "stack_parameter_sweeps",
         "title_cn": "膜系参数扫描",
         "title_en": "Stack Parameter Sweeps",
-        "figure_ids": ["high_reflector_periods", "fp_single_periods", "beamsplitter_lambda0"],
+        "figure_ids": ["quarter_wave_stack_periods", "high_reflector_periods", "fp_single_periods", "narrowband_filter_periods", "beamsplitter_lambda0"],
     },
     {
         "group_id": "angle_sensitivity",
@@ -250,12 +419,28 @@ REPORT_COMPARISON_GROUPS: List[Dict[str, Any]] = [
 
 REPORT_MAIN_BRANCH_SECTIONS: List[Dict[str, Any]] = [
     {
+        "section_id": "uniform_layers",
+        "title_cn": "基础均匀膜层",
+        "title_en": "Uniform Layer Basics",
+        "summary_cn": "从1/4波长与1/2波长单层出发，逐步建立光学厚度与相位干涉的基础认识。",
+        "summary_en": "Start from quarter-wave and half-wave single layers to build intuition for optical thickness and phase interference.",
+        "case_ids": ["quarter_wave_single_layer", "half_wave_single_layer", "single_ar"],
+    },
+    {
         "section_id": "ar_coatings",
         "title_cn": "减反射膜",
         "title_en": "Anti-Reflection Coatings",
         "summary_cn": "从单层到三层，逐步展示减反膜带宽与匹配能力的提升。",
         "summary_en": "From single-layer to triple-layer designs, showing how AR bandwidth and matching improve.",
-        "case_ids": ["single_ar", "double_ar", "triple_ar"],
+        "case_ids": ["double_ar", "quarter_wave_double_layer", "triple_ar"],
+    },
+    {
+        "section_id": "periodic_stacks",
+        "title_cn": "QW膜堆与布拉格反射镜",
+        "title_en": "QW Stacks and Bragg Reflectors",
+        "summary_cn": "展示周期QW膜堆与布拉格高反射镜在反射带形成上的物理一致性。",
+        "summary_en": "Show the shared physics of periodic quarter-wave stacks and Bragg reflectors in forming high-reflection bands.",
+        "case_ids": ["quarter_wave_stack", "bragg_reflector", "high_reflector"],
     },
     {
         "section_id": "reflector_filters",
@@ -263,7 +448,7 @@ REPORT_MAIN_BRANCH_SECTIONS: List[Dict[str, Any]] = [
         "title_en": "Reflectors and F-P Filters",
         "summary_cn": "展示高反堆栈与 F-P 腔结构在反射和透射选择性上的差异。",
         "summary_en": "Show the contrast between reflector stacks and F-P cavities in reflectance and transmittance selectivity.",
-        "case_ids": ["high_reflector", "fp_single_halfwave", "fp_double_halfwave"],
+        "case_ids": ["quarter_wave_stack", "bragg_reflector", "high_reflector", "fp_single_halfwave", "fp_filter", "fp_double_halfwave", "narrowband_filter", "rugate_filter"],
     },
     {
         "section_id": "beam_splitter",
@@ -457,6 +642,24 @@ REPORT_CONTROL_GROUP_META: Dict[str, Dict[str, str]] = {
 }
 
 REPORT_CASE_UI_META: Dict[str, Dict[str, str]] = {
+    "quarter_wave_single_layer": {
+        "summary_cn": "用于展示单层1/4波长光学厚度的相消干涉条件。",
+        "summary_en": "Shows the destructive-interference condition of a single quarter-wave layer.",
+        "headline_cn": "1/4波长单层",
+        "headline_en": "Quarter-Wave Layer",
+        "card_tag_cn": "基础相位",
+        "card_tag_en": "Phase Basics",
+        "main_curve": "R",
+    },
+    "half_wave_single_layer": {
+        "summary_cn": "用于对比单层1/2波长与1/4波长在中心波长处的相位差异。",
+        "summary_en": "Contrasts half-wave and quarter-wave single-layer phase behavior at the design wavelength.",
+        "headline_cn": "1/2波长单层",
+        "headline_en": "Half-Wave Layer",
+        "card_tag_cn": "相位对比",
+        "card_tag_en": "Phase Contrast",
+        "main_curve": "R",
+    },
     "single_ar": {
         "summary_cn": "单层四分之一波厚减反膜，用于展示中心波长处反射率压低的基本原理。",
         "summary_en": "Single quarter-wave AR coating showing reflection suppression at the design wavelength.",
@@ -473,6 +676,15 @@ REPORT_CASE_UI_META: Dict[str, Dict[str, str]] = {
         "headline_en": "Double-Layer Broadband AR",
         "card_tag_cn": "宽带减反",
         "card_tag_en": "Broadband AR",
+        "main_curve": "R",
+    },
+    "quarter_wave_double_layer": {
+        "summary_cn": "展示1/4波长双层匹配结构及其相对于单层的带宽改善。",
+        "summary_en": "Shows a quarter-wave double-layer matching stack and its bandwidth gain over the single-layer case.",
+        "headline_cn": "1/4波长双层",
+        "headline_en": "Quarter-Wave Double Layer",
+        "card_tag_cn": "双层匹配",
+        "card_tag_en": "Double Match",
         "main_curve": "R",
     },
     "triple_ar": {
@@ -493,6 +705,33 @@ REPORT_CASE_UI_META: Dict[str, Dict[str, str]] = {
         "card_tag_en": "High Reflector",
         "main_curve": "R",
     },
+    "quarter_wave_stack": {
+        "summary_cn": "展示周期QW膜堆在中心波长附近形成高反射带的典型行为。",
+        "summary_en": "Shows the typical high-reflectance band of a periodic quarter-wave stack.",
+        "headline_cn": "QW膜堆",
+        "headline_en": "QW Stack",
+        "card_tag_cn": "周期堆栈",
+        "card_tag_en": "Periodic Stack",
+        "main_curve": "R",
+    },
+    "bragg_reflector": {
+        "summary_cn": "作为QW周期膜堆的典型特例，用于突出布拉格高反射机理。",
+        "summary_en": "A typical QW-stack special case highlighting Bragg high-reflection behavior.",
+        "headline_cn": "布拉格反射镜",
+        "headline_en": "Bragg Reflector",
+        "card_tag_cn": "高反特例",
+        "card_tag_en": "Bragg Case",
+        "main_curve": "R",
+    },
+    "fp_filter": {
+        "summary_cn": "????F-P???????????????????????????",
+        "summary_en": "A standard Fabry-Perot cavity case showing the cooperation between cavity resonance and mirror reflectance.",
+        "headline_cn": "?? F-P ???",
+        "headline_en": "Fabry-Perot Filter",
+        "card_tag_cn": "???",
+        "card_tag_en": "Cavity Filter",
+        "main_curve": "T",
+    },
     "fp_single_halfwave": {
         "summary_cn": "单半波型 F-P 滤光片，用于展示窄带透射峰与腔层共振。",
         "summary_en": "Single-half-wave F-P filter showing narrow transmission peaks from cavity resonance.",
@@ -511,6 +750,24 @@ REPORT_CASE_UI_META: Dict[str, Dict[str, str]] = {
         "card_tag_en": "Sharper Filter",
         "main_curve": "T",
     },
+    "narrowband_filter": {
+        "summary_cn": "?????????????????????????????",
+        "summary_en": "A higher-level filtering case showing narrower transmission peaks and stronger selectivity.",
+        "headline_cn": "?????",
+        "headline_en": "Narrowband Filter",
+        "card_tag_cn": "????",
+        "card_tag_en": "Advanced Filter",
+        "main_curve": "T",
+    },
+    "rugate_filter": {
+        "summary_cn": "???????????????????????????????????",
+        "summary_en": "A rugate filter approximated by continuous index modulation, showing stop-band formation in graded periodic structures.",
+        "headline_cn": "?????",
+        "headline_en": "Rugate Filter",
+        "card_tag_cn": "????",
+        "card_tag_en": "Advanced Extension",
+        "main_curve": "R",
+    },
     "neutral_beamsplitter": {
         "summary_cn": "中性分束膜，用于展示反射率与透射率接近均衡的分束设计。",
         "summary_en": "Neutral beam splitter showing a near-balanced reflection/transmission design.",
@@ -523,12 +780,20 @@ REPORT_CASE_UI_META: Dict[str, Dict[str, str]] = {
 }
 
 REPORT_CASE_DISPLAY_ORDER: List[str] = [
+    "quarter_wave_single_layer",
+    "half_wave_single_layer",
     "single_ar",
     "double_ar",
+    "quarter_wave_double_layer",
     "triple_ar",
+    "quarter_wave_stack",
+    "bragg_reflector",
     "high_reflector",
+    "fp_filter",
     "fp_single_halfwave",
     "fp_double_halfwave",
+    "narrowband_filter",
+    "rugate_filter",
     "neutral_beamsplitter",
 ]
 
@@ -638,6 +903,23 @@ def build_single_ar_layers(lambda0_nm: float, n_low: complex) -> List[LayerSpec]
     return [
         LayerSpec("L", n_low, quarter_wave_thickness_nm(lambda0_nm, n_low)),
     ]
+
+
+def build_uniform_single_layer_layers(
+    lambda0_nm: float,
+    n_layer: complex,
+    optical_kind: str = "quarter",
+) -> List[LayerSpec]:
+    kind = str(optical_kind).strip().lower()
+    if kind in {"quarter", "qw", "quarter_wave"}:
+        thickness_nm = quarter_wave_thickness_nm(lambda0_nm, n_layer)
+        name = "QW"
+    elif kind in {"half", "hw", "half_wave"}:
+        thickness_nm = half_wave_thickness_nm(lambda0_nm, n_layer)
+        name = "HW"
+    else:
+        raise ValueError("optical_kind must be 'quarter' or 'half'.")
+    return [LayerSpec(name, n_layer, thickness_nm)]
 
 
 def build_double_ar_layers(lambda0_nm: float, n_low: complex, n_high: complex) -> List[LayerSpec]:
@@ -758,6 +1040,29 @@ def build_neutral_beamsplitter_layers(
     return layers
 
 
+def build_rugate_filter_layers(
+    lambda0_nm: float,
+    n_low: complex,
+    n_high: complex,
+    periods: int,
+    slices_per_period: int = 24,
+) -> List[LayerSpec]:
+    periods = max(int(periods), 1)
+    slices_per_period = max(int(slices_per_period), 8)
+    n_avg = 0.5 * (n_low + n_high)
+    dn = 0.5 * (n_high - n_low)
+    spatial_period_nm = float(lambda0_nm) / (2.0 * max(abs(np.real(n_avg)), 1e-12))
+    dz_nm = spatial_period_nm / float(slices_per_period)
+
+    layers: List[LayerSpec] = []
+    total_slices = periods * slices_per_period
+    for idx in range(total_slices):
+        phase = 2.0 * np.pi * (idx + 0.5) / float(slices_per_period)
+        n_slice = n_avg + dn * np.cos(phase)
+        layers.append(LayerSpec(f"RG{idx + 1}", n_slice, dz_nm))
+    return layers
+
+
 def describe_layers(layers: Sequence[LayerSpec]) -> List[Dict[str, Any]]:
     return [
         {
@@ -805,18 +1110,24 @@ def simulate_report_design(
     nh2 = _to_complex_index(n_high_2, k_high_2)
 
     key = str(design_type).strip().lower()
-    if key in {"single_ar", "single_antireflection"}:
+    if key in {"quarter_wave_single_layer", "qw_single_layer"}:
+        layers = build_uniform_single_layer_layers(lambda0_nm, nl, optical_kind="quarter")
+    elif key in {"half_wave_single_layer", "hw_single_layer"}:
+        layers = build_uniform_single_layer_layers(lambda0_nm, nl, optical_kind="half")
+    elif key in {"single_ar", "single_antireflection"}:
         layers = build_single_ar_layers(lambda0_nm, nl)
-    elif key in {"double_ar", "double_antireflection"}:
+    elif key in {"double_ar", "double_antireflection", "quarter_wave_double_layer"}:
         layers = build_double_ar_layers(lambda0_nm, nl, nh)
     elif key in {"triple_ar", "triple_antireflection"}:
         layers = build_triple_ar_layers(lambda0_nm, nm, nh2, nl)
-    elif key in {"high_reflector", "high_reflection"}:
+    elif key in {"high_reflector", "high_reflection", "quarter_wave_stack", "bragg_reflector"}:
         layers = build_high_reflector_layers(lambda0_nm, nh2, nl, periods)
-    elif key in {"fp_single_halfwave", "fp_shw"}:
+    elif key in {"fp_single_halfwave", "fp_shw", "fp_filter", "narrowband_filter"}:
         layers = build_fp_single_halfwave_layers(lambda0_nm, nh2, nl, periods, spacer_kind=fp_spacer_kind)
     elif key in {"fp_double_halfwave", "fp_dhw"}:
         layers = build_fp_double_halfwave_layers(lambda0_nm, nh2, nl, periods)
+    elif key in {"rugate_filter", "rugate"}:
+        layers = build_rugate_filter_layers(lambda0_nm, nl, nh2, periods)
     elif key in {"neutral_beamsplitter", "beamsplitter"}:
         layers = build_neutral_beamsplitter_layers(
             lambda0_nm,
@@ -1253,7 +1564,7 @@ def _case_output_stem(result: Dict[str, Any], prefix: str = "teaching_case") -> 
 
 def _main_curve_kind_for_case(result: Dict[str, Any]) -> str:
     key = str(result.get("case_id") or result.get("design_type") or "").strip().lower()
-    if "fp_" in key:
+    if "fp_" in key or key in {"fp_filter", "narrowband_filter"}:
         return "T"
     return "R"
 
@@ -1278,7 +1589,7 @@ def _case_analysis_lines(result: Dict[str, Any]) -> list[str]:
         f"R@中心 = {float(summary['R_at_lambda0']):.4f}",
         f"T@中心 = {float(summary['T_at_lambda0']):.4f}",
     ]
-    if "fp_" in key:
+    if "fp_" in key or key in {"fp_filter", "narrowband_filter"}:
         peak_wl = float(summary["T_max_wavelength_nm"])
         lines.append(f"透射峰值 = {float(summary['T_max']):.4f}")
         lines.append(f"峰位偏差 = {peak_wl - lambda0_nm:+.2f} nm")
@@ -1298,7 +1609,7 @@ def _default_wavelength_grid_for_design(
     lambda0_nm: float,
 ) -> np.ndarray:
     key = str(design_type).strip().lower()
-    if "fp_" in key:
+    if "fp_" in key or key in {"fp_filter", "narrowband_filter"}:
         return np.arange(400.0, 750.0 + 1e-12, 1.0)
     if key in {"single_ar", "double_ar", "triple_ar", "neutral_beamsplitter"}:
         return np.arange(400.0, 750.0 + 1e-12, 2.0)
@@ -1308,7 +1619,7 @@ def _default_wavelength_grid_for_design(
 def _main_plot_xlim_for_case(result: Dict[str, Any]) -> tuple[float, float] | None:
     key = str(result.get("case_id") or result.get("design_type") or "").strip().lower()
     lambda0_nm = float(result["lambda0_nm"])
-    if "fp_" in key:
+    if "fp_" in key or key in {"fp_filter", "narrowband_filter"}:
         return (max(400.0, lambda0_nm - 70.0), min(750.0, lambda0_nm + 70.0))
     return None
 
@@ -1649,6 +1960,30 @@ def export_report_comparison_figures(
     """Export report-style multi-curve comparison figures."""
     exported: Dict[str, Dict[str, str]] = {}
 
+    # Quarter-wave stack: different periods.
+    qw_stack_results = {
+        f"周期={periods}": simulate_report_design(
+            "quarter_wave_stack",
+            lambda0_nm=550.0,
+            theta_deg=0.0,
+            pol="p",
+            n_low=1.45,
+            n_high_2=2.10,
+            n_substrate=1.5215,
+            periods=periods,
+        )
+        for periods in (4, 6, 8)
+    }
+    wl = next(iter(qw_stack_results.values()))["wavelength_nm"]
+    exported["quarter_wave_stack_periods"] = _export_comparison_plot(
+        filename_stem=f"{prefix}_quarter_wave_stack_periods",
+        title="QW膜堆 | 不同周期数",
+        ylabel="R",
+        wavelength_nm=wl,
+        series={label: result["R"] for label, result in qw_stack_results.items()},
+        lambda0_nm=550.0,
+    )
+
     # High-reflection coating: different periods.
     high_results = {
         f"周期={periods}": simulate_report_design(
@@ -1696,6 +2031,30 @@ def export_report_comparison_figures(
         series={label: result["T"] for label, result in fp_single_results.items()},
         lambda0_nm=550.0,
         xlim=(480.0, 620.0),
+    )
+
+    narrowband_results = {
+        f"周期={periods}": simulate_report_design(
+            "narrowband_filter",
+            lambda0_nm=550.0,
+            theta_deg=0.0,
+            pol="p",
+            n_low=1.45,
+            n_high_2=2.10,
+            n_substrate=1.0,
+            periods=periods,
+        )
+        for periods in (4, 5, 6)
+    }
+    wl = next(iter(narrowband_results.values()))["wavelength_nm"]
+    exported["narrowband_filter_periods"] = _export_comparison_plot(
+        filename_stem=f"{prefix}_narrowband_filter_periods",
+        title="窄带滤光片 | 不同周期数",
+        ylabel="T",
+        wavelength_nm=wl,
+        series={label: result["T"] for label, result in narrowband_results.items()},
+        lambda0_nm=550.0,
+        xlim=(500.0, 600.0),
     )
 
     # Double-half-wave FP: different angles.

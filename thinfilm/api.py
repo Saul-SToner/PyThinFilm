@@ -14,6 +14,20 @@ from .education import (
     simulate_report_chapter2_suite,
     simulate_report_design,
 )
+from .roadmap import (
+    export_teaching_case_expansion_bundle,
+    export_teaching_case_expansion_roadmap,
+    get_teaching_case_expansion_roadmap,
+    list_teaching_case_expansion_ids,
+)
+from .validation import (
+    build_teaching_expansion_validation_cases_from_mapping,
+    build_teaching_expansion_validation_templates,
+    export_teaching_expansion_validation_bundle_from_file,
+    export_teaching_expansion_validation_bundle_from_mapping,
+    export_teaching_expansion_validation_template_bundle,
+    load_teaching_expansion_validation_mapping,
+)
 
 
 def simulate_teaching_design(
@@ -86,3 +100,69 @@ def export_teaching_report_bundle(
 ) -> Dict[str, Any]:
     """Export the whole main teaching branch as a report-style bundle."""
     return export_report_main_branch_bundle(**kwargs)
+
+
+def get_teaching_expansion_roadmap() -> Dict[str, Any]:
+    """APP-facing roadmap for the next wave of teaching-case expansion."""
+    return get_teaching_case_expansion_roadmap()
+
+
+def export_teaching_expansion_roadmap(
+    **kwargs: Any,
+) -> Dict[str, str]:
+    """Export the structured roadmap for extending teaching cases."""
+    return export_teaching_case_expansion_roadmap(**kwargs)
+
+
+def list_teaching_expansion_case_ids() -> list[str]:
+    """List the current teaching-case expansion IDs in roadmap order."""
+    return list_teaching_case_expansion_ids()
+
+
+def export_teaching_expansion_bundle(
+    **kwargs: Any,
+) -> Dict[str, Any]:
+    """Export roadmap, case outputs, and comparison figures for the expansion set."""
+    return export_teaching_case_expansion_bundle(**kwargs)
+
+
+def list_teaching_expansion_validation_templates() -> list[dict[str, Any]]:
+    """List validation templates for expansion cases before CSV references are available."""
+    return build_teaching_expansion_validation_templates()
+
+
+def build_teaching_expansion_validation_cases(
+    reference_mapping: Dict[str, Dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Build runnable validation cases from a filled expansion reference mapping."""
+    return build_teaching_expansion_validation_cases_from_mapping(reference_mapping)
+
+
+def export_teaching_expansion_validation_templates(
+    **kwargs: Any,
+) -> Dict[str, str]:
+    """Export CSV/JSON/TXT templates for future expansion-case validation."""
+    return export_teaching_expansion_validation_template_bundle(**kwargs)
+
+
+def load_teaching_expansion_validation_template(
+    template_file: str,
+) -> Dict[str, Dict[str, Any]]:
+    """Load a filled expansion validation template file."""
+    return load_teaching_expansion_validation_mapping(template_file)
+
+
+def export_teaching_expansion_validation_bundle(
+    reference_mapping: Dict[str, Dict[str, Any]],
+    **kwargs: Any,
+) -> Dict[str, Any]:
+    """Run expansion-case validation from an in-memory mapping."""
+    return export_teaching_expansion_validation_bundle_from_mapping(reference_mapping, **kwargs)
+
+
+def export_teaching_expansion_validation_bundle_from_template(
+    template_file: str,
+    **kwargs: Any,
+) -> Dict[str, Any]:
+    """Run expansion-case validation directly from a filled JSON/CSV template file."""
+    return export_teaching_expansion_validation_bundle_from_file(template_file, **kwargs)

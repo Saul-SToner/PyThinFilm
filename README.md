@@ -71,6 +71,24 @@ guided_grating/examples.py
 
 底层方法为传输矩阵法 / 特征矩阵法，不依赖 COMSOL 即可快速生成 `R / T / A` 曲线。
 
+### 3.1.1 ??????
+
+????????????????????????
+
+1. `quarter_wave_single_layer`?1/4?????
+2. `half_wave_single_layer`?1/2?????
+3. `quarter_wave_double_layer`?1/4??????
+4. `quarter_wave_stack`?1/4?? QW ??
+5. `bragg_reflector`???????
+6. `fp_filter`??? F-P ???
+7. `narrowband_filter`??????
+8. `rugate_filter`??????
+
+??????????
+
+- `quarter_wave_stack_periods`
+- `narrowband_filter_periods`
+
 ### 3.2 命令行入口
 
 列出案例：
@@ -129,6 +147,65 @@ teaching_compare_*.csv
 teaching_compare_*.png
 teaching_compare_*_analysis.png
 teaching_main_branch_catalog.json
+```
+
+### 3.4 ????????
+
+### 3.4.1 ???????????
+
+??????
+
+```powershell
+C:/Users/L2791/AppData/Local/Programs/Python/Python313/python.exe .un_teaching_expansion_validation.py --template-out --prefix teaching_expansion_validation_cli
+```
+
+????? `reference_csv` ???????????
+
+```powershell
+C:/Users/L2791/AppData/Local/Programs/Python/Python313/python.exe .un_teaching_expansion_validation.py --template-file "C:\path	oilled_template.json" --prefix teaching_expansion_validation_run
+```
+
+???? `.json` ? `.csv` ?????
+
+
+??????????????? COMSOL ?????????????????????????????
+
+??????
+
+```python
+from thinfilm import (
+    build_teaching_expansion_validation_templates,
+    export_teaching_expansion_validation_template_bundle,
+)
+```
+
+???????????????
+
+- ????? `R / T`
+- ?? CSV ??????? `R (1)` ? `T (1)`
+- ?????????
+- ???? COMSOL / ??????????
+
+?????
+
+- `quarter_wave_single_layer`
+- `half_wave_single_layer`
+- `quarter_wave_double_layer`
+- `quarter_wave_stack`
+- `bragg_reflector`
+- `fp_filter`
+- `narrowband_filter`
+- `rugate_filter`
+
+????????
+
+```python
+from thinfilm import export_teaching_expansion_validation_template_bundle
+
+files = export_teaching_expansion_validation_template_bundle(
+    prefix="teaching_expansion_validation_templates_v1"
+)
+print(files)
 ```
 
 ## 4. 理论-参考曲线验证
@@ -265,4 +342,48 @@ pip install -r requirements.txt
 
 ```text
 .gitignore
+```
+
+## 9. 一键生成验证与性能总包
+
+如果已经准备好三类 COMSOL CSV：
+
+1. 单层减反膜
+2. F-P 滤光片
+3. 高反膜
+
+可以直接运行：
+
+```powershell
+C:/Users/L2791/AppData/Local/Programs/Python/Python313/python.exe .\run_teaching_metrics_bundle.py `
+  --single-ar-csv "C:\Users\L2791\OneDrive\Desktop\deg.p\AR_MgF2_BK7G18_550nm_theta0.csv" `
+  --fp-csv "C:\Users\L2791\OneDrive\Desktop\deg.p\FP_HL4_C_LH4_air_air_550nm_theta0_comsol.csv" `
+  --high-reflector-csv "C:\Users\L2791\OneDrive\Desktop\deg.p\highreflect.csv" `
+  --prefix teaching_pipeline_v1
+```
+
+该脚本会自动生成：
+
+- 理论 vs COMSOL 验证总包
+- 分辨率与噪声敏感性结果
+- 系统误差结果
+- 分层厚度敏感性结果
+- 精细厚度容差结果
+- 精细角度容差结果
+- 综合性能总表
+- 竞赛口径中文总结
+
+如果希望在 Python 中直接调用，也可以使用：
+
+```python
+from pathlib import Path
+from thinfilm import export_final_delivery_bundle
+
+result = export_final_delivery_bundle(
+    single_ar_csv=Path(r"C:\Users\L2791\OneDrive\Desktop\deg.p\AR_MgF2_BK7G18_550nm_theta0.csv"),
+    fp_single_csv=Path(r"C:\Users\L2791\OneDrive\Desktop\deg.p\FP_HL4_C_LH4_air_air_550nm_theta0_comsol.csv"),
+    high_reflector_csv=Path(r"C:\Users\L2791\OneDrive\Desktop\deg.p\highreflect.csv"),
+    prefix="teaching_final_delivery_v1",
+    reference_label="COMSOL",
+)
 ```
