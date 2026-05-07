@@ -92,8 +92,8 @@ REPORT_CHAPTER2_CASES: Dict[str, Dict[str, Any]] = {
             "lambda0_nm": 550.0,
             "n_incident": 1.0,
             "n_substrate": 1.52,
-            "n_low": 1.38,
-            "n_high": 2.0,
+            "n_low": 1.45,
+            "n_high": 2.10,
         },
     },
     "quarter_wave_double_layer": {
@@ -255,6 +255,7 @@ REPORT_CHAPTER2_CASES: Dict[str, Dict[str, Any]] = {
             "n_low": 1.38,
             "n_high_2": 2.10,
             "periods": 8,
+            "total_layers": 80,
         },
         "headline_cn": "皱褶滤光片",
         "headline_en": "Rugate Filter",
@@ -925,7 +926,7 @@ def build_uniform_single_layer_layers(
 def build_double_ar_layers(lambda0_nm: float, n_low: complex, n_high: complex) -> List[LayerSpec]:
     return [
         LayerSpec("L", n_low, quarter_wave_thickness_nm(lambda0_nm, n_low)),
-        LayerSpec("2H", n_high, half_wave_thickness_nm(lambda0_nm, n_high)),
+        LayerSpec("H", n_high, quarter_wave_thickness_nm(lambda0_nm, n_high)),
     ]
 
 
@@ -1075,6 +1076,128 @@ def describe_layers(layers: Sequence[LayerSpec]) -> List[Dict[str, Any]]:
     ]
 
 
+def export_rugate_comsol_layer_table(
+    *,
+    prefix: str = "rugate_80layer_comsol",
+    lambda0_nm: float = 550.0,
+    n_low: float = 1.38,
+    n_high: float = 2.10,
+    periods: int = 8,
+    total_layers: int = 80,
+) -> Dict[str, str]:
+    """Export a COMSOL-friendly layer table for a sliced rugate filter.
+
+    The current default matches the teaching-case rugate branch:
+    - 8 spatial periods
+    - 80 slices in total
+    - therefore 10 slices per spatial period
+    """
+
+    periods = max(int(periods), 1)
+    total_layers = max(int(total_layers), periods)
+    if total_layers % periods != 0:
+        raise ValueError("total_layers must be divisible by periods.")
+    slices_per_period = total_layers // periods
+
+    layers = build_rugate_filter_layers(
+        lambda0_nm=float(lambda0_nm),
+        n_low=complex(float(n_low), 0.0),
+        n_high=complex(float(n_high), 0.0),
+        periods=periods,
+        slices_per_period=slices_per_period,
+    )
+
+    csv_path = output_file(f"{prefix}_layers.csv")
+    json_path = output_file(f"{prefix}_layers.json")
+    txt_path = output_file(f"{prefix}_layers.txt")
+
+    rows: List[Dict[str, Any]] = []
+    y_start_nm = 0.0
+    for idx, layer in enumerate(layers, start=1):
+        thickness_nm = float(layer.thickness_nm)
+        y_end_nm = y_start_nm + thickness_nm
+        n_real = float(np.real(layer.n))
+        rows.append(
+            {
+                "layer_index": idx,
+                "layer_name": layer.name,
+                "n_real": n_real,
+                "n_imag": float(np.imag(layer.n)),
+                "eps_r": float(n_real ** 2),
+                "thickness_nm": thickness_nm,
+                "thickness_m": thickness_nm * 1e-9,
+                "y_start_nm": y_start_nm,
+                "y_end_nm": y_end_nm,
+            }
+        )
+        y_start_nm = y_end_nm
+
+    with open(csv_path, "w", encoding="utf-8-sig") as f:
+        f.write(
+            "layer_index,layer_name,n_real,n_imag,eps_r,thickness_nm,thickness_m,y_start_nm,y_end_nm\n"
+        )
+        for row in rows:
+            f.write(
+                ",".join(
+                    [
+                        str(row["layer_index"]),
+                        str(row["layer_name"]),
+                        f"{float(row['n_real']):.12g}",
+                        f"{float(row['n_imag']):.12g}",
+                        f"{float(row['eps_r']):.12g}",
+                        f"{float(row['thickness_nm']):.12g}",
+                        f"{float(row['thickness_m']):.12g}",
+                        f"{float(row['y_start_nm']):.12g}",
+                        f"{float(row['y_end_nm']):.12g}",
+                    ]
+                )
+                + "\n"
+            )
+
+    payload = {
+        "lambda0_nm": float(lambda0_nm),
+        "n_low": float(n_low),
+        "n_high": float(n_high),
+        "periods": periods,
+        "total_layers": total_layers,
+        "slices_per_period": slices_per_period,
+        "rows": rows,
+    }
+    with open(json_path, "w", encoding="utf-8") as f:
+        json.dump(payload, f, ensure_ascii=False, indent=2)
+
+    lines = [
+        "Rugate Filter 80-Layer COMSOL Table",
+        "=" * 80,
+        f"lambda0_nm        = {float(lambda0_nm):.6f}",
+        f"n_low             = {float(n_low):.6f}",
+        f"n_high            = {float(n_high):.6f}",
+        f"periods           = {periods}",
+        f"total_layers      = {total_layers}",
+        f"slices_per_period = {slices_per_period}",
+        "",
+        "建议在 COMSOL 中按以下方式使用：",
+        "1. 玻璃/空气之外的 rugate 区域拆成 80 个矩形层。",
+        "2. 每层厚度使用 thickness_m 列。",
+        "3. 每层折射率使用 n_real，或相对介电常数使用 eps_r。",
+        "4. 每层的起止位置可直接参考 y_start_nm / y_end_nm。",
+        "",
+    ]
+    for row in rows:
+        lines.append(
+            f"{int(row['layer_index']):02d} | {row['layer_name']} | n={row['n_real']:.6f} | "
+            f"d={row['thickness_nm']:.6f} nm | y=[{row['y_start_nm']:.6f}, {row['y_end_nm']:.6f}] nm"
+        )
+    with open(txt_path, "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+    return {
+        "csv": str(csv_path),
+        "json": str(json_path),
+        "txt": str(txt_path),
+    }
+
+
 def simulate_report_design(
     design_type: str,
     wavelengths_nm: Sequence[float] | None = None,
@@ -1094,6 +1217,8 @@ def simulate_report_design(
     k_high: float = 0.0,
     k_high_2: float = 0.0,
     periods: int = 3,
+    slices_per_period: int | None = None,
+    total_layers: int | None = None,
     fp_spacer_kind: str = "L",
     beamsplitter_front_halfwave_low: bool = False,
 ) -> Dict[str, Any]:
@@ -1127,7 +1252,21 @@ def simulate_report_design(
     elif key in {"fp_double_halfwave", "fp_dhw"}:
         layers = build_fp_double_halfwave_layers(lambda0_nm, nh2, nl, periods)
     elif key in {"rugate_filter", "rugate"}:
-        layers = build_rugate_filter_layers(lambda0_nm, nl, nh2, periods)
+        effective_slices_per_period = slices_per_period
+        if effective_slices_per_period is None and total_layers is not None:
+            total_layers = max(int(total_layers), int(periods))
+            if total_layers % max(int(periods), 1) != 0:
+                raise ValueError("For rugate_filter, total_layers must be divisible by periods.")
+            effective_slices_per_period = total_layers // max(int(periods), 1)
+        if effective_slices_per_period is None:
+            effective_slices_per_period = 24
+        layers = build_rugate_filter_layers(
+            lambda0_nm,
+            nl,
+            nh2,
+            periods,
+            slices_per_period=int(effective_slices_per_period),
+        )
     elif key in {"neutral_beamsplitter", "beamsplitter"}:
         layers = build_neutral_beamsplitter_layers(
             lambda0_nm,
