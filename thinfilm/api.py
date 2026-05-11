@@ -26,6 +26,8 @@ from .validation import (
     export_absorbing_surface_roughness_bundle,
     export_absorbing_surface_baseline_template,
     export_absorbing_surface_gain_bundle,
+    export_absorbing_surface_gain_trend_bundle,
+    export_absorbing_surface_topic_bundle,
     build_advanced_ar_validation_cases,
     build_teaching_expansion_validation_cases_from_mapping,
     build_teaching_expansion_validation_templates,
@@ -227,6 +229,32 @@ def export_absorbing_surface_gain_analysis(
     return export_absorbing_surface_gain_bundle(
         rough_csv=rough_csv,
         baseline_csv=baseline_csv,
+        **kwargs,
+    )
+
+
+def export_absorbing_surface_gain_trend(
+    roughness_files: Dict[float, str],
+    baseline_csv: str,
+    **kwargs: Any,
+) -> Dict[str, str]:
+    """Export roughness-factor gain trend against planar baseline."""
+    return export_absorbing_surface_gain_trend_bundle(
+        roughness_files=roughness_files,
+        baseline_csv=baseline_csv,
+        **kwargs,
+    )
+
+
+def export_absorbing_surface_topic(
+    baseline_csv: str,
+    best_rough_csv: str,
+    **kwargs: Any,
+) -> Dict[str, Any]:
+    """Export a final topic bundle for the rough absorbing surface branch."""
+    return export_absorbing_surface_topic_bundle(
+        baseline_csv=baseline_csv,
+        best_rough_csv=best_rough_csv,
         **kwargs,
     )
 

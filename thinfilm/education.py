@@ -95,6 +95,20 @@ REPORT_CHAPTER2_CASES: Dict[str, Dict[str, Any]] = {
             "n_low": 1.32,
         },
     },
+    "porous_double_ar": {
+        "title_cn": "多孔二氧化硅双层减反结构",
+        "title_en": "Porous Silica Double-Layer AR",
+        "design_type": "porous_double_ar",
+        "default_params": {
+            "theta_deg": 0.0,
+            "pol": "p",
+            "lambda0_nm": 550.0,
+            "n_incident": 1.0,
+            "n_substrate": 1.5215,
+            "n_porous": 1.18,
+            "n_high": 1.45,
+        },
+    },
     "moth_eye_effective_gradient": {
         "title_cn": "蛾眼结构（等效渐变层）",
         "title_en": "Moth-Eye Effective Gradient",
@@ -465,7 +479,7 @@ REPORT_MAIN_BRANCH_SECTIONS: List[Dict[str, Any]] = [
         "title_en": "Anti-Reflection Coatings",
         "summary_cn": "从单层到三层，逐步展示减反膜带宽与匹配能力的提升。",
         "summary_en": "From single-layer to triple-layer designs, showing how AR bandwidth and matching improve.",
-        "case_ids": ["porous_sio2_layer", "moth_eye_effective_gradient", "double_ar", "quarter_wave_double_layer", "triple_ar"],
+        "case_ids": ["porous_sio2_layer", "porous_double_ar", "moth_eye_effective_gradient", "double_ar", "quarter_wave_double_layer", "triple_ar"],
     },
     {
         "section_id": "periodic_stacks",
@@ -577,6 +591,20 @@ REPORT_PARAM_SCHEMA: Dict[str, Dict[str, Any]] = {
         "required": True,
         "help_cn": "低折层材料折射率。",
         "help_en": "Refractive index of the low-index layer.",
+    },
+    "n_porous": {
+        "label_cn": "多孔层折射率",
+        "label_en": "Porous Layer Index",
+        "type": "float",
+        "widget": "number",
+        "group": "materials",
+        "min": 1.05,
+        "max": 1.35,
+        "step": 0.01,
+        "recommended": 1.18,
+        "required": True,
+        "help_cn": "多孔二氧化硅等效低折射率层的折射率。",
+        "help_en": "Effective refractive index of the porous silica layer.",
     },
     "n_mid": {
         "label_cn": "中间折射率",
@@ -711,6 +739,15 @@ REPORT_CASE_UI_META: Dict[str, Dict[str, str]] = {
         "card_tag_en": "Porous Material",
         "main_curve": "R",
     },
+    "porous_double_ar": {
+        "summary_cn": "由多孔低折层与致密匹配层组成的双层减反结构，用于展示多孔材料在双层匹配中的低反优势。",
+        "summary_en": "A double-layer anti-reflection structure combining a porous low-index layer with a dense matching layer.",
+        "headline_cn": "多孔双层减反",
+        "headline_en": "Porous Double-Layer AR",
+        "card_tag_cn": "多孔双层",
+        "card_tag_en": "Porous Double",
+        "main_curve": "R",
+    },
     "moth_eye_effective_gradient": {
         "summary_cn": "采用离散等效渐变折射率层近似的蛾眼减反结构，用于展示渐变界面如何降低反射。",
         "summary_en": "A moth-eye anti-reflection structure approximated by discrete effective gradient-index layers.",
@@ -835,6 +872,7 @@ REPORT_CASE_DISPLAY_ORDER: List[str] = [
     "half_wave_single_layer",
     "single_ar",
     "porous_sio2_layer",
+    "porous_double_ar",
     "moth_eye_effective_gradient",
     "double_ar",
     "quarter_wave_double_layer",
@@ -978,6 +1016,13 @@ def build_uniform_single_layer_layers(
 def build_double_ar_layers(lambda0_nm: float, n_low: complex, n_high: complex) -> List[LayerSpec]:
     return [
         LayerSpec("L", n_low, quarter_wave_thickness_nm(lambda0_nm, n_low)),
+        LayerSpec("H", n_high, quarter_wave_thickness_nm(lambda0_nm, n_high)),
+    ]
+
+
+def build_porous_double_ar_layers(lambda0_nm: float, n_porous: complex, n_high: complex) -> List[LayerSpec]:
+    return [
+        LayerSpec("Porous", n_porous, quarter_wave_thickness_nm(lambda0_nm, n_porous)),
         LayerSpec("H", n_high, quarter_wave_thickness_nm(lambda0_nm, n_high)),
     ]
 
@@ -1295,6 +1340,7 @@ def simulate_report_design(
     n_incident: float = 1.0,
     n_substrate: float = 1.52,
     n_low: float = 1.38,
+    n_porous: float = 1.18,
     n_mid: float = 1.60,
     n_high: float = 2.00,
     n_high_2: float = 2.15,
@@ -1325,6 +1371,7 @@ def simulate_report_design(
     n0 = _to_complex_index(n_incident, k_incident)
     ns = _to_complex_index(n_substrate, k_substrate)
     nl = _to_complex_index(n_low, k_low)
+    nporous = _to_complex_index(n_porous, 0.0)
     nm = _to_complex_index(n_mid, k_mid)
     nh = _to_complex_index(n_high, k_high)
     nh2 = _to_complex_index(n_high_2, k_high_2)
@@ -1338,6 +1385,8 @@ def simulate_report_design(
         layers = build_uniform_single_layer_layers(lambda0_nm, nl, optical_kind="half")
     elif key in {"single_ar", "single_antireflection"}:
         layers = build_single_ar_layers(lambda0_nm, nl)
+    elif key in {"porous_double_ar", "porous_double_layer", "porous_double_antireflection"}:
+        layers = build_porous_double_ar_layers(lambda0_nm, nporous, nh)
     elif key in {"double_ar", "double_antireflection", "quarter_wave_double_layer"}:
         layers = build_double_ar_layers(lambda0_nm, nl, nh)
     elif key in {"triple_ar", "triple_antireflection"}:

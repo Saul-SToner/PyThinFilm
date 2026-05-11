@@ -33,6 +33,7 @@ EXPANSION_VALIDATION_CASE_IDS: tuple[str, ...] = (
     "quarter_wave_single_layer",
     "half_wave_single_layer",
     "porous_sio2_layer",
+    "porous_double_ar",
     "moth_eye_effective_gradient",
     "quarter_wave_double_layer",
     "quarter_wave_stack",
@@ -2384,4 +2385,285 @@ def export_absorbing_surface_gain_bundle(
     fig.savefig(png_path, dpi=180, bbox_inches="tight")
     plt.close(fig)
     saved["png"] = str(png_path)
+    return saved
+
+
+def summarize_absorbing_surface_gain_trend(
+    roughness_files: Dict[float, Path | str],
+    baseline_csv: Path | str,
+    *,
+    lambda0_nm: float = 550.0,
+) -> Dict[str, Any]:
+    """Summarize roughness-factor gain trend against a planar baseline."""
+
+    baseline = analyze_quasi_random_absorbing_surface(baseline_csv, lambda0_nm=lambda0_nm)
+    sb = baseline["summary"]
+
+    rows: List[Dict[str, Any]] = []
+    for factor, path in sorted(roughness_files.items(), key=lambda item: float(item[0])):
+        rough = analyze_quasi_random_absorbing_surface(path, lambda0_nm=lambda0_nm)
+        sr = rough["summary"]
+        rows.append(
+            {
+                "roughness_factor": float(factor),
+                "reference_csv": str(path),
+                "R_mean": float(sr["R_mean"]),
+                "T_mean": float(sr["T_mean"]),
+                "A_mean": float(sr["A_mean"]),
+                "R_at_lambda0": float(sr["R_at_lambda0"]),
+                "T_at_lambda0": float(sr["T_at_lambda0"]),
+                "A_at_lambda0": float(sr["A_at_lambda0"]),
+                "delta_R_mean": float(sr["R_mean"] - sb["R_mean"]),
+                "delta_T_mean": float(sr["T_mean"] - sb["T_mean"]),
+                "delta_A_mean": float(sr["A_mean"] - sb["A_mean"]),
+                "delta_R_at_lambda0": float(sr["R_at_lambda0"] - sb["R_at_lambda0"]),
+                "delta_T_at_lambda0": float(sr["T_at_lambda0"] - sb["T_at_lambda0"]),
+                "delta_A_at_lambda0": float(sr["A_at_lambda0"] - sb["A_at_lambda0"]),
+            }
+        )
+
+    if not rows:
+        raise ValueError("roughness_files 不能为空。")
+
+    best_by_delta_a550 = max(rows, key=lambda item: item["delta_A_at_lambda0"])
+    best_by_delta_amean = max(rows, key=lambda item: item["delta_A_mean"])
+    delta_a550 = np.array([row["delta_A_at_lambda0"] for row in rows], dtype=float)
+    delta_amean = np.array([row["delta_A_mean"] for row in rows], dtype=float)
+    monotonic_delta_a550 = bool(np.all(np.diff(delta_a550) >= -1e-12))
+    monotonic_delta_amean = bool(np.all(np.diff(delta_amean) >= -1e-12))
+
+    if monotonic_delta_a550 and monotonic_delta_amean:
+        interpretation_cn = "相对于平面基准，在当前可计算范围内，粗糙度增大持续提升吸收增益。"
+    else:
+        interpretation_cn = "相对于平面基准，吸收增益已出现非严格单调变化，建议结合更多粗糙度点定位最优区间。"
+
+    return {
+        "lambda0_nm": float(lambda0_nm),
+        "baseline_csv": str(baseline_csv),
+        "baseline_summary": sb,
+        "rows": rows,
+        "best_by_delta_a550": best_by_delta_a550,
+        "best_by_delta_amean": best_by_delta_amean,
+        "monotonic_delta_a550": monotonic_delta_a550,
+        "monotonic_delta_amean": monotonic_delta_amean,
+        "interpretation_cn": interpretation_cn,
+    }
+
+
+def export_absorbing_surface_gain_trend_bundle(
+    roughness_files: Dict[float, Path | str],
+    baseline_csv: Path | str,
+    *,
+    prefix: str = "rough_absorbing_surface_gain_trend",
+    lambda0_nm: float = 550.0,
+) -> Dict[str, str]:
+    """Export roughness-factor absorption gain trend against a planar baseline."""
+
+    summary = summarize_absorbing_surface_gain_trend(
+        roughness_files=roughness_files,
+        baseline_csv=baseline_csv,
+        lambda0_nm=lambda0_nm,
+    )
+    rows = summary["rows"]
+
+    saved: Dict[str, str] = {}
+    csv_path = output_file(f"{prefix}.csv")
+    with open(csv_path, "w", encoding="utf-8-sig") as f:
+        f.write(
+            "roughness_factor,A_mean,A_at_lambda0,delta_A_mean,delta_A_at_lambda0,"
+            "delta_R_mean,delta_T_mean,reference_csv\n"
+        )
+        for row in rows:
+            f.write(
+                ",".join(
+                    [
+                        f"{row['roughness_factor']:.12g}",
+                        f"{row['A_mean']:.12g}",
+                        f"{row['A_at_lambda0']:.12g}",
+                        f"{row['delta_A_mean']:.12g}",
+                        f"{row['delta_A_at_lambda0']:.12g}",
+                        f"{row['delta_R_mean']:.12g}",
+                        f"{row['delta_T_mean']:.12g}",
+                        str(row["reference_csv"]),
+                    ]
+                )
+                + "\n"
+            )
+    saved["csv"] = str(csv_path)
+
+    json_path = output_file(f"{prefix}.json")
+    with open(json_path, "w", encoding="utf-8") as f:
+        json.dump(summary, f, ensure_ascii=False, indent=2)
+    saved["json"] = str(json_path)
+
+    txt_path = output_file(f"{prefix}.txt")
+    lines = [
+        "粗糙吸收表面相对平面基准的增益趋势",
+        "=" * 80,
+        f"baseline_csv                 = {summary['baseline_csv']}",
+        f"lambda0_nm                   = {float(summary['lambda0_nm']):.6f}",
+        f"best_factor_by_delta_A@550   = {float(summary['best_by_delta_a550']['roughness_factor']):.6f}",
+        f"best_delta_A@550             = {float(summary['best_by_delta_a550']['delta_A_at_lambda0']):+.12e}",
+        f"best_factor_by_delta_A_mean  = {float(summary['best_by_delta_amean']['roughness_factor']):.6f}",
+        f"best_delta_A_mean            = {float(summary['best_by_delta_amean']['delta_A_mean']):+.12e}",
+        f"monotonic_delta_A@550        = {bool(summary['monotonic_delta_a550'])}",
+        f"monotonic_delta_A_mean       = {bool(summary['monotonic_delta_amean'])}",
+        "",
+        f"interpretation_cn            = {summary['interpretation_cn']}",
+    ]
+    with open(txt_path, "w", encoding="utf-8-sig") as f:
+        f.write("\n".join(lines) + "\n")
+    saved["txt"] = str(txt_path)
+
+    x = np.array([row["roughness_factor"] for row in rows], dtype=float)
+    delta_a_mean = np.array([row["delta_A_mean"] for row in rows], dtype=float)
+    delta_a550 = np.array([row["delta_A_at_lambda0"] for row in rows], dtype=float)
+    delta_r_mean = np.array([row["delta_R_mean"] for row in rows], dtype=float)
+    delta_t_mean = np.array([row["delta_T_mean"] for row in rows], dtype=float)
+
+    fig, axes = plt.subplots(1, 2, figsize=(11.5, 4.8), constrained_layout=True)
+    for ax in axes:
+        _style_axis(ax)
+
+    ax = axes[0]
+    ax.plot(x, delta_a_mean, color=TARGET_GREEN, marker="o", linewidth=2.4, label="Δ平均A")
+    ax.plot(x, delta_a550, color="#6b46c1", marker="o", linewidth=2.2, label="ΔA@550")
+    _set_axis_labels_cn(ax, title="粗糙度与吸收增益", xlabel="粗糙度倍率", ylabel="增益")
+    ax.legend(prop=_cn_font(), frameon=False, loc="best")
+
+    ax = axes[1]
+    ax.plot(x, delta_r_mean, color=MAIN_RED, marker="o", linewidth=2.2, label="Δ平均R")
+    ax.plot(x, delta_t_mean, color=REF_BLUE, marker="o", linewidth=2.2, label="Δ平均T")
+    ax.axhline(0.0, color="#7a8696", linewidth=1.0)
+    _set_axis_labels_cn(ax, title="粗糙度与反射/透射变化", xlabel="粗糙度倍率", ylabel="变化量")
+    ax.legend(prop=_cn_font(), frameon=False, loc="best")
+
+    png_path = output_file(f"{prefix}.png")
+    fig.savefig(png_path, dpi=180, bbox_inches="tight")
+    plt.close(fig)
+    saved["png"] = str(png_path)
+    return saved
+
+
+def export_absorbing_surface_topic_bundle(
+    *,
+    baseline_csv: Path | str,
+    best_rough_csv: Path | str,
+    best_rough_label: str = "粗糙表面最佳点",
+    roughness_files: Dict[float, Path | str] | None = None,
+    prefix: str = "rough_absorbing_surface_topic_v1",
+    lambda0_nm: float = 550.0,
+) -> Dict[str, Any]:
+    """Export a final topic bundle for the rough absorbing surface branch."""
+
+    saved: Dict[str, Any] = {}
+
+    baseline_files = export_quasi_random_absorbing_surface_bundle(
+        reference_csv=baseline_csv,
+        prefix=f"{prefix}_baseline",
+        lambda0_nm=lambda0_nm,
+    )
+    saved["baseline_files"] = baseline_files
+
+    best_files = export_quasi_random_absorbing_surface_bundle(
+        reference_csv=best_rough_csv,
+        prefix=f"{prefix}_best",
+        lambda0_nm=lambda0_nm,
+    )
+    saved["best_files"] = best_files
+
+    gain_files = export_absorbing_surface_gain_bundle(
+        rough_csv=best_rough_csv,
+        baseline_csv=baseline_csv,
+        prefix=f"{prefix}_gain",
+        lambda0_nm=lambda0_nm,
+        rough_label=best_rough_label,
+        baseline_label="平面基准",
+    )
+    saved["gain_files"] = gain_files
+
+    if roughness_files:
+        roughness_bundle = export_absorbing_surface_roughness_bundle(
+            roughness_files=roughness_files,
+            prefix=f"{prefix}_roughness",
+            lambda0_nm=lambda0_nm,
+        )
+        gain_trend_bundle = export_absorbing_surface_gain_trend_bundle(
+            roughness_files=roughness_files,
+            baseline_csv=baseline_csv,
+            prefix=f"{prefix}_gain_trend",
+            lambda0_nm=lambda0_nm,
+        )
+    else:
+        roughness_bundle = {}
+        gain_trend_bundle = {}
+    saved["roughness_bundle"] = roughness_bundle
+    saved["gain_trend_bundle"] = gain_trend_bundle
+
+    baseline_summary = analyze_quasi_random_absorbing_surface(baseline_csv, lambda0_nm=lambda0_nm)["summary"]
+    best_summary = analyze_quasi_random_absorbing_surface(best_rough_csv, lambda0_nm=lambda0_nm)["summary"]
+    delta_a_mean = float(best_summary["A_mean"] - baseline_summary["A_mean"])
+    delta_a550 = float(best_summary["A_at_lambda0"] - baseline_summary["A_at_lambda0"])
+
+    topic_summary = {
+        "baseline_csv": str(baseline_csv),
+        "best_rough_csv": str(best_rough_csv),
+        "best_rough_label": best_rough_label,
+        "lambda0_nm": float(lambda0_nm),
+        "baseline_A_mean": float(baseline_summary["A_mean"]),
+        "best_A_mean": float(best_summary["A_mean"]),
+        "delta_A_mean": delta_a_mean,
+        "baseline_A_at_lambda0": float(baseline_summary["A_at_lambda0"]),
+        "best_A_at_lambda0": float(best_summary["A_at_lambda0"]),
+        "delta_A_at_lambda0": delta_a550,
+        "conclusion_cn": (
+            "相对于平面基准，粗糙吸收表面在平均吸收率和 550 nm 吸收率上均获得正增益。"
+            if delta_a_mean > 0 and delta_a550 > 0
+            else "当前粗糙吸收表面相对平面基准未形成稳定吸收增益，建议回到结构参数继续优化。"
+        ),
+    }
+
+    summary_json = output_file(f"{prefix}_summary.json")
+    with open(summary_json, "w", encoding="utf-8") as f:
+        json.dump(topic_summary, f, ensure_ascii=False, indent=2)
+    saved["summary_json"] = str(summary_json)
+
+    summary_txt = output_file(f"{prefix}_summary.txt")
+    lines = [
+        "粗糙吸收表面专题总包摘要",
+        "=" * 80,
+        f"baseline_csv                = {topic_summary['baseline_csv']}",
+        f"best_rough_csv              = {topic_summary['best_rough_csv']}",
+        f"best_rough_label            = {topic_summary['best_rough_label']}",
+        f"lambda0_nm                  = {float(topic_summary['lambda0_nm']):.6f}",
+        f"baseline_A_mean             = {float(topic_summary['baseline_A_mean']):.12e}",
+        f"best_A_mean                 = {float(topic_summary['best_A_mean']):.12e}",
+        f"delta_A_mean                = {float(topic_summary['delta_A_mean']):+.12e}",
+        f"baseline_A_at_lambda0       = {float(topic_summary['baseline_A_at_lambda0']):.12e}",
+        f"best_A_at_lambda0           = {float(topic_summary['best_A_at_lambda0']):.12e}",
+        f"delta_A_at_lambda0          = {float(topic_summary['delta_A_at_lambda0']):+.12e}",
+        "",
+        f"conclusion_cn               = {topic_summary['conclusion_cn']}",
+    ]
+    with open(summary_txt, "w", encoding="utf-8-sig") as f:
+        f.write("\n".join(lines) + "\n")
+    saved["summary_txt"] = str(summary_txt)
+
+    manifest = {
+        "baseline_csv": str(baseline_csv),
+        "best_rough_csv": str(best_rough_csv),
+        "best_rough_label": best_rough_label,
+        "lambda0_nm": float(lambda0_nm),
+        "baseline_files": baseline_files,
+        "best_files": best_files,
+        "gain_files": gain_files,
+        "roughness_bundle": roughness_bundle,
+        "gain_trend_bundle": gain_trend_bundle,
+        "summary_json": str(summary_json),
+        "summary_txt": str(summary_txt),
+    }
+    manifest_path = output_file(f"{prefix}_manifest.json")
+    with open(manifest_path, "w", encoding="utf-8") as f:
+        json.dump(manifest, f, ensure_ascii=False, indent=2)
+    saved["manifest"] = str(manifest_path)
     return saved
