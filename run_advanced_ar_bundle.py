@@ -21,6 +21,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="多孔二氧化硅膜层参考 CSV 路径",
     )
     parser.add_argument(
+        "--porous-double-csv",
+        default=r"C:\Users\L2791\OneDrive\Desktop\deg.p\New.csv",
+        help="多孔二氧化硅双层减反结构参考 CSV 路径",
+    )
+    parser.add_argument(
         "--moth-eye-effective-csv",
         default=r"C:\Users\L2791\OneDrive\Desktop\deg.p\Rugate2.csv",
         help="蛾眼等效渐变层参考 CSV 路径",
@@ -49,6 +54,7 @@ def main() -> None:
     result = export_advanced_ar_topic_bundle(
         single_ar_csv=Path(args.single_ar_csv),
         porous_csv=Path(args.porous_csv),
+        porous_double_csv=Path(args.porous_double_csv),
         moth_eye_effective_csv=Path(args.moth_eye_effective_csv),
         moth_eye_2d_csv=Path(args.moth_eye_2d_csv),
         prefix=str(args.prefix),

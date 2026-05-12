@@ -32,6 +32,7 @@ from .validation import (
     build_teaching_expansion_validation_cases_from_mapping,
     build_teaching_expansion_validation_templates,
     export_advanced_ar_bundle,
+    export_porous_double_ar_sensitivity_bundle,
     export_quasi_random_absorbing_surface_bundle,
     summarize_absorbing_surface_roughness,
     export_teaching_expansion_validation_bundle_from_file,
@@ -152,6 +153,7 @@ def build_teaching_expansion_validation_cases(
 def build_advanced_ar_cases(
     single_ar_csv: str,
     porous_csv: str,
+    porous_double_csv: str,
     moth_eye_effective_csv: str,
     moth_eye_2d_csv: str,
     *,
@@ -161,6 +163,7 @@ def build_advanced_ar_cases(
     return build_advanced_ar_validation_cases(
         single_ar_csv=single_ar_csv,
         porous_csv=porous_csv,
+        porous_double_csv=porous_double_csv,
         moth_eye_effective_csv=moth_eye_effective_csv,
         moth_eye_2d_csv=moth_eye_2d_csv,
         reference_label=reference_label,
@@ -170,6 +173,7 @@ def build_advanced_ar_cases(
 def export_advanced_ar_topic_bundle(
     single_ar_csv: str,
     porous_csv: str,
+    porous_double_csv: str,
     moth_eye_effective_csv: str,
     moth_eye_2d_csv: str,
     **kwargs: Any,
@@ -178,8 +182,24 @@ def export_advanced_ar_topic_bundle(
     return export_advanced_ar_bundle(
         single_ar_csv=single_ar_csv,
         porous_csv=porous_csv,
+        porous_double_csv=porous_double_csv,
         moth_eye_effective_csv=moth_eye_effective_csv,
         moth_eye_2d_csv=moth_eye_2d_csv,
+        **kwargs,
+    )
+
+
+def export_porous_double_ar_sensitivity_topic(
+    n_porous_csv: str,
+    d_porous_csv: str,
+    d_high_csv: str,
+    **kwargs: Any,
+) -> Dict[str, Any]:
+    """Export the porous double-layer AR sensitivity bundle."""
+    return export_porous_double_ar_sensitivity_bundle(
+        n_porous_csv=n_porous_csv,
+        d_porous_csv=d_porous_csv,
+        d_high_csv=d_high_csv,
         **kwargs,
     )
 
