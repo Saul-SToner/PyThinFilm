@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import csv
 import json
+import re
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Sequence
 
@@ -28,6 +29,8 @@ CN_FONT_CANDIDATES = (
     Path(r"C:\Windows\Fonts\simhei.ttf"),
     Path(r"C:\Windows\Fonts\simsun.ttc"),
 )
+
+_LEADING_FLOAT_RE = re.compile(r"^\s*([+-]?(?:\d+\.\d*|\d*\.?\d+)(?:[Ee][+-]?\d+)?)")
 
 EXPANSION_VALIDATION_CASE_IDS: tuple[str, ...] = (
     "quarter_wave_single_layer",
@@ -2900,4 +2903,606 @@ def export_absorbing_surface_topic_bundle(
     with open(manifest_path, "w", encoding="utf-8") as f:
         json.dump(manifest, f, ensure_ascii=False, indent=2)
     saved["manifest"] = str(manifest_path)
+    return saved
+
+
+def _parse_leading_float(value: Any) -> float:
+    if value is None:
+        raise ValueError("empty value")
+    if isinstance(value, (int, float, np.integer, np.floating)):
+        return float(value)
+    text = str(value).strip()
+    match = _LEADING_FLOAT_RE.match(text)
+    if match is None:
+        raise ValueError(f"cannot parse float from {value!r}")
+    return float(match.group(1))
+
+
+def analyze_tamm_dw_phase_scan(
+    reference_csv: Path | str,
+    *,
+    lambda_window_um: tuple[float, float] | None = None,
+) -> Dict[str, Any]:
+    """Analyze a grouped d_W scan for a Tamm absorber with reflection phase outputs."""
+
+    path = Path(reference_csv)
+    with open(path, "r", encoding="utf-8-sig", newline="") as f:
+        rows = list(csv.reader(f))
+
+    header_idx = None
+    for idx, row in enumerate(rows):
+        if row and "lam (m)" in row[0]:
+            header_idx = idx
+            break
+    if header_idx is None:
+        raise ValueError(f"未找到 lam (m) 表头: {path}")
+
+    data_rows = rows[header_idx + 1 :]
+    grouped: Dict[float, Dict[str, list[float]]] = {}
+    lambda_min_m = None if lambda_window_um is None else float(lambda_window_um[0]) * 1e-6
+    lambda_max_m = None if lambda_window_um is None else float(lambda_window_um[1]) * 1e-6
+
+    for row in data_rows:
+        if not row or len(row) < 11:
+            continue
+        try:
+            lam_m = _parse_leading_float(row[0])
+            d_w_m = _parse_leading_float(row[1])
+            r_val = _parse_leading_float(row[5])
+            t_val = _parse_leading_float(row[6])
+            a_val = _parse_leading_float(row[7])
+            phase_val = _parse_leading_float(row[10])
+        except Exception:
+            continue
+
+        if lambda_min_m is not None and lam_m < lambda_min_m:
+            continue
+        if lambda_max_m is not None and lam_m > lambda_max_m:
+            continue
+
+        bucket = grouped.setdefault(
+            d_w_m,
+            {"lam_m": [], "R": [], "T": [], "A": [], "phase_rad": []},
+        )
+        bucket["lam_m"].append(lam_m)
+        bucket["R"].append(r_val)
+        bucket["T"].append(t_val)
+        bucket["A"].append(a_val)
+        bucket["phase_rad"].append(phase_val)
+
+    if not grouped:
+        raise ValueError(f"未能从 CSV 中读取有效的 d_W 联合扫描数据: {path}")
+
+    groups: List[Dict[str, Any]] = []
+    for d_w_m in sorted(grouped):
+        raw = grouped[d_w_m]
+        lam_um = np.asarray(raw["lam_m"], dtype=float) * 1e6
+        order = np.argsort(lam_um)
+        lam_um = lam_um[order]
+        r_vals = np.asarray(raw["R"], dtype=float)[order]
+        t_vals = np.asarray(raw["T"], dtype=float)[order]
+        a_vals = np.asarray(raw["A"], dtype=float)[order]
+        phase_raw = np.asarray(raw["phase_rad"], dtype=float)[order]
+        phase_unwrapped = np.unwrap(phase_raw)
+
+        peak_idx = int(np.argmax(a_vals))
+        groups.append(
+            {
+                "dW_nm": float(d_w_m * 1e9),
+                "wavelength_um": lam_um,
+                "R": r_vals,
+                "T": t_vals,
+                "A": a_vals,
+                "phase_rad": phase_raw,
+                "phase_unwrapped_rad": phase_unwrapped,
+                "summary": {
+                    "num_points": int(len(lam_um)),
+                    "A_max": float(a_vals[peak_idx]),
+                    "A_mean": float(np.mean(a_vals)),
+                    "R_mean": float(np.mean(r_vals)),
+                    "T_mean": float(np.mean(t_vals)),
+                    "peak_wavelength_um": float(lam_um[peak_idx]),
+                    "phase_at_peak_rad": float(phase_raw[peak_idx]),
+                    "phase_unwrapped_span_rad": float(np.max(phase_unwrapped) - np.min(phase_unwrapped)),
+                    "energy_balance_max_error": float(np.max(np.abs(r_vals + t_vals + a_vals - 1.0))),
+                },
+            }
+        )
+
+    best_group = max(groups, key=lambda item: float(item["summary"]["A_max"]))
+    summary = {
+        "reference_csv": str(path),
+        "num_groups": int(len(groups)),
+        "lambda_min_um": float(min(float(np.min(item["wavelength_um"])) for item in groups)),
+        "lambda_max_um": float(max(float(np.max(item["wavelength_um"])) for item in groups)),
+        "best_dW_nm": float(best_group["dW_nm"]),
+        "best_A_max": float(best_group["summary"]["A_max"]),
+        "best_peak_wavelength_um": float(best_group["summary"]["peak_wavelength_um"]),
+        "best_A_mean": float(best_group["summary"]["A_mean"]),
+    }
+
+    phase_ready = summary["best_A_max"] >= 0.95 and len(groups) >= 3
+    if phase_ready:
+        interpretation_cn = "普通 Tamm 吸收器已进入近完美吸收区，可正式转入反射相位与拓扑分类。"
+    else:
+        interpretation_cn = "当前仍处于普通 Tamm 吸收器参数摸底阶段，建议继续补充高吸收参数点后再进入相位分类。"
+
+    return {
+        "case_id": "tamm_dw_phase_scan",
+        "title_cn": "Tamm 吸收器 d_W-相位联合扫描",
+        "title_en": "Tamm d_W Phase Scan",
+        "reference_csv": str(path),
+        "groups": groups,
+        "summary": summary,
+        "phase_ready": bool(phase_ready),
+        "interpretation_cn": interpretation_cn,
+    }
+
+
+def export_tamm_dw_phase_bundle(
+    reference_csv: Path | str,
+    *,
+    prefix: str = "tamm_dw_phase_v1",
+    lambda_window_um: tuple[float, float] | None = None,
+) -> Dict[str, str]:
+    """Export grouped d_W scan figures and summaries for Tamm phase-stage analysis."""
+
+    result = analyze_tamm_dw_phase_scan(reference_csv, lambda_window_um=lambda_window_um)
+    saved: Dict[str, str] = {}
+    groups = result["groups"]
+    summary = result["summary"]
+
+    csv_path = output_file(f"{prefix}.csv")
+    with open(csv_path, "w", encoding="utf-8-sig") as f:
+        f.write("dW_nm,A_max,A_mean,R_mean,T_mean,peak_wavelength_um,phase_at_peak_rad,phase_unwrapped_span_rad,energy_balance_max_error\n")
+        for item in groups:
+            s = item["summary"]
+            f.write(
+                f"{float(item['dW_nm']):.12g},{float(s['A_max']):.12g},{float(s['A_mean']):.12g},"
+                f"{float(s['R_mean']):.12g},{float(s['T_mean']):.12g},{float(s['peak_wavelength_um']):.12g},"
+                f"{float(s['phase_at_peak_rad']):.12g},{float(s['phase_unwrapped_span_rad']):.12g},"
+                f"{float(s['energy_balance_max_error']):.12g}\n"
+            )
+    saved["csv"] = str(csv_path)
+
+    json_path = output_file(f"{prefix}.json")
+    with open(json_path, "w", encoding="utf-8") as f:
+        json.dump(
+            {
+                "case_id": result["case_id"],
+                "title_cn": result["title_cn"],
+                "reference_csv": result["reference_csv"],
+                "summary": summary,
+                "phase_ready": result["phase_ready"],
+                "interpretation_cn": result["interpretation_cn"],
+                "groups": [
+                    {
+                        "dW_nm": item["dW_nm"],
+                        "summary": item["summary"],
+                    }
+                    for item in groups
+                ],
+            },
+            f,
+            ensure_ascii=False,
+            indent=2,
+        )
+    saved["json"] = str(json_path)
+
+    txt_path = output_file(f"{prefix}.txt")
+    lines = [
+        "Tamm 吸收器 d_W-相位联合扫描",
+        "=" * 80,
+        f"reference_csv             = {result['reference_csv']}",
+        f"num_groups                = {int(summary['num_groups'])}",
+        f"lambda_min_um             = {float(summary['lambda_min_um']):.6f}",
+        f"lambda_max_um             = {float(summary['lambda_max_um']):.6f}",
+        f"best_dW_nm                = {float(summary['best_dW_nm']):.6f}",
+        f"best_A_max                = {float(summary['best_A_max']):.12e}",
+        f"best_peak_wavelength_um   = {float(summary['best_peak_wavelength_um']):.6f}",
+        f"best_A_mean               = {float(summary['best_A_mean']):.12e}",
+        f"phase_ready               = {bool(result['phase_ready'])}",
+        "",
+        f"interpretation_cn         = {result['interpretation_cn']}",
+        "",
+        "group_details:",
+    ]
+    for item in groups:
+        s = item["summary"]
+        lines.append(
+            f"  dW={float(item['dW_nm']):.1f} nm | "
+            f"Amax={float(s['A_max']):.6f} @ {float(s['peak_wavelength_um']):.3f} um | "
+            f"Amean={float(s['A_mean']):.6f} | phase@peak={float(s['phase_at_peak_rad']):+.6f} rad | "
+            f"phase_span={float(s['phase_unwrapped_span_rad']):.6f} rad"
+        )
+    with open(txt_path, "w", encoding="utf-8-sig") as f:
+        f.write("\n".join(lines) + "\n")
+    saved["txt"] = str(txt_path)
+
+    fig, axes = plt.subplots(2, 2, figsize=(13, 9), constrained_layout=True)
+    font = _cn_font()
+    colors = plt.cm.viridis(np.linspace(0.15, 0.9, len(groups)))
+
+    ax = axes[0, 0]
+    for color, item in zip(colors, groups):
+        wl = np.asarray(item["wavelength_um"], dtype=float)
+        a_vals = np.asarray(item["A"], dtype=float)
+        ax.plot(wl, a_vals, color=color, linewidth=2.0, label=f"dW={item['dW_nm']:.0f} nm")
+    _style_axis(ax)
+    _set_axis_labels_cn(ax, title="吸收谱 A(λ)", xlabel="波长 (μm)", ylabel="吸收率 A")
+    ax.legend(prop=font, frameon=False, loc="best")
+
+    ax = axes[0, 1]
+    for color, item in zip(colors, groups):
+        wl = np.asarray(item["wavelength_um"], dtype=float)
+        phase = np.asarray(item["phase_unwrapped_rad"], dtype=float)
+        ax.plot(wl, phase, color=color, linewidth=2.0, label=f"dW={item['dW_nm']:.0f} nm")
+    _style_axis(ax)
+    _set_axis_labels_cn(ax, title="反射相位（展开）", xlabel="波长 (μm)", ylabel="相位 (rad)")
+
+    ax = axes[1, 0]
+    dws = [float(item["dW_nm"]) for item in groups]
+    amax = [float(item["summary"]["A_max"]) for item in groups]
+    peaks = [float(item["summary"]["peak_wavelength_um"]) for item in groups]
+    ax.plot(dws, amax, color=TARGET_GREEN, linewidth=2.4, marker="o")
+    _style_axis(ax)
+    _set_axis_labels_cn(ax, title="峰值吸收率随 d_W 变化", xlabel="d_W (nm)", ylabel="A_max")
+
+    ax = axes[1, 1]
+    ax.plot(dws, peaks, color=REF_BLUE, linewidth=2.4, marker="o", label="峰位")
+    ax2 = ax.twinx()
+    spans = [float(item["summary"]["phase_unwrapped_span_rad"]) for item in groups]
+    ax2.plot(dws, spans, color=ERR_GOLD, linewidth=2.0, marker="s", linestyle="--", label="相位跨度")
+    _style_axis(ax)
+    _set_axis_labels_cn(ax, title="峰位与相位跨度", xlabel="d_W (nm)", ylabel="峰位 (μm)")
+    ax2.set_ylabel("相位跨度 (rad)", color=TEXT_DARK)
+    ax2.tick_params(colors=TEXT_DARK)
+    lines1, labels1 = ax.get_legend_handles_labels()
+    lines2, labels2 = ax2.get_legend_handles_labels()
+    ax.legend(lines1 + lines2, labels1 + labels2, prop=font, frameon=False, loc="best")
+
+    png_path = output_file(f"{prefix}.png")
+    fig.savefig(png_path, dpi=180, bbox_inches="tight")
+    plt.close(fig)
+    saved["png"] = str(png_path)
+
+    return saved
+
+
+def export_tamm_phase_focus_bundle(
+    reference_csv: Path | str,
+    *,
+    focus_dws_nm: Sequence[float] = (100.0, 110.0, 120.0),
+    prefix: str = "tamm_phase_focus_v1",
+    lambda_window_um: tuple[float, float] | None = None,
+) -> Dict[str, str]:
+    """Export a focused phase comparison for representative d_W points."""
+
+    result = analyze_tamm_dw_phase_scan(reference_csv, lambda_window_um=lambda_window_um)
+    focus_targets = [float(x) for x in focus_dws_nm]
+    groups = result["groups"]
+    selected: List[Dict[str, Any]] = []
+    for target in focus_targets:
+        match = min(groups, key=lambda item: abs(float(item["dW_nm"]) - target))
+        if all(abs(float(match["dW_nm"]) - float(existing["dW_nm"])) > 1e-9 for existing in selected):
+            selected.append(match)
+
+    selected = sorted(selected, key=lambda item: float(item["dW_nm"]))
+    if not selected:
+        raise ValueError("未能找到用于相位对比的代表性 d_W 组。")
+
+    saved: Dict[str, str] = {}
+
+    csv_path = output_file(f"{prefix}.csv")
+    with open(csv_path, "w", encoding="utf-8-sig") as f:
+        f.write("dW_nm,A_max,A_mean,peak_wavelength_um,phase_at_peak_rad,phase_unwrapped_span_rad\n")
+        for item in selected:
+            s = item["summary"]
+            f.write(
+                f"{float(item['dW_nm']):.12g},{float(s['A_max']):.12g},{float(s['A_mean']):.12g},"
+                f"{float(s['peak_wavelength_um']):.12g},{float(s['phase_at_peak_rad']):.12g},"
+                f"{float(s['phase_unwrapped_span_rad']):.12g}\n"
+            )
+    saved["csv"] = str(csv_path)
+
+    json_path = output_file(f"{prefix}.json")
+    with open(json_path, "w", encoding="utf-8") as f:
+        json.dump(
+            {
+                "case_id": "tamm_phase_focus",
+                "reference_csv": str(Path(reference_csv)),
+                "focus_dws_nm": [float(item["dW_nm"]) for item in selected],
+                "summary": [
+                    {
+                        "dW_nm": float(item["dW_nm"]),
+                        **item["summary"],
+                    }
+                    for item in selected
+                ],
+            },
+            f,
+            ensure_ascii=False,
+            indent=2,
+        )
+    saved["json"] = str(json_path)
+
+    txt_path = output_file(f"{prefix}.txt")
+    lines = [
+        "Tamm 第2阶段代表点相位对比",
+        "=" * 80,
+        f"reference_csv = {Path(reference_csv)}",
+        f"focus_dws_nm  = {', '.join(f'{float(item['dW_nm']):.0f}' for item in selected)}",
+        "",
+    ]
+    for item in selected:
+        s = item["summary"]
+        lines.append(
+            f"dW={float(item['dW_nm']):.0f} nm | Amax={float(s['A_max']):.6f} | "
+            f"peak={float(s['peak_wavelength_um']):.3f} um | "
+            f"phase@peak={float(s['phase_at_peak_rad']):+.6f} rad | "
+            f"phase_span={float(s['phase_unwrapped_span_rad']):.6f} rad"
+        )
+    with open(txt_path, "w", encoding="utf-8-sig") as f:
+        f.write("\n".join(lines) + "\n")
+    saved["txt"] = str(txt_path)
+
+    fig, axes = plt.subplots(1, 2, figsize=(12, 4.8), constrained_layout=True)
+    font = _cn_font()
+    colors = plt.cm.plasma(np.linspace(0.2, 0.85, len(selected)))
+
+    ax = axes[0]
+    for color, item in zip(colors, selected):
+        wl = np.asarray(item["wavelength_um"], dtype=float)
+        a_vals = np.asarray(item["A"], dtype=float)
+        ax.plot(wl, a_vals, color=color, linewidth=2.4, label=f"dW={item['dW_nm']:.0f} nm")
+        peak_idx = int(np.argmax(a_vals))
+        ax.scatter([wl[peak_idx]], [a_vals[peak_idx]], color=color, s=28, zorder=3)
+    _style_axis(ax)
+    _set_axis_labels_cn(ax, title="代表点吸收谱对比", xlabel="波长 (μm)", ylabel="吸收率 A")
+    ax.legend(prop=font, frameon=False, loc="best")
+
+    ax = axes[1]
+    for color, item in zip(colors, selected):
+        wl = np.asarray(item["wavelength_um"], dtype=float)
+        phase = np.asarray(item["phase_unwrapped_rad"], dtype=float)
+        ax.plot(wl, phase, color=color, linewidth=2.4, label=f"dW={item['dW_nm']:.0f} nm")
+    _style_axis(ax)
+    _set_axis_labels_cn(ax, title="代表点反射相位对比", xlabel="波长 (μm)", ylabel="展开相位 (rad)")
+    ax.legend(prop=font, frameon=False, loc="best")
+
+    png_path = output_file(f"{prefix}.png")
+    fig.savefig(png_path, dpi=180, bbox_inches="tight")
+    plt.close(fig)
+    saved["png"] = str(png_path)
+
+    return saved
+
+
+def export_tamm_phase_candidate_pairs(
+    reference_csv: Path | str,
+    *,
+    candidate_dws_nm: Sequence[float] = (90.0, 100.0, 110.0, 120.0),
+    prefix: str = "tamm_phase_candidates_v1",
+    lambda_window_um: tuple[float, float] | None = None,
+) -> Dict[str, str]:
+    """Rank representative d_W pairs for stage-2 topology candidate selection."""
+
+    result = analyze_tamm_dw_phase_scan(reference_csv, lambda_window_um=lambda_window_um)
+    groups = result["groups"]
+    selected: List[Dict[str, Any]] = []
+    for target in [float(x) for x in candidate_dws_nm]:
+        match = min(groups, key=lambda item: abs(float(item["dW_nm"]) - target))
+        if all(abs(float(match["dW_nm"]) - float(existing["dW_nm"])) > 1e-9 for existing in selected):
+            selected.append(match)
+    selected = sorted(selected, key=lambda item: float(item["dW_nm"]))
+
+    pair_rows: List[Dict[str, float]] = []
+    for i, a in enumerate(selected):
+        for b in selected[i + 1 :]:
+            xa = np.asarray(a["wavelength_um"], dtype=float)
+            xb = np.asarray(b["wavelength_um"], dtype=float)
+            pa = np.asarray(a["phase_unwrapped_rad"], dtype=float)
+            pb = np.asarray(b["phase_unwrapped_rad"], dtype=float)
+            grid = np.linspace(max(float(np.min(xa)), float(np.min(xb))), min(float(np.max(xa)), float(np.max(xb))), 400)
+            diff = np.abs(np.interp(grid, xa, pa) - np.interp(grid, xb, pb))
+            amax_avg = (float(a["summary"]["A_max"]) + float(b["summary"]["A_max"])) / 2.0
+            row = {
+                "dW_a_nm": float(a["dW_nm"]),
+                "dW_b_nm": float(b["dW_nm"]),
+                "mean_phase_diff_rad": float(np.mean(diff)),
+                "max_phase_diff_rad": float(np.max(diff)),
+                "peak_phase_diff_rad": abs(float(a["summary"]["phase_at_peak_rad"]) - float(b["summary"]["phase_at_peak_rad"])),
+                "peak_wavelength_delta_um": abs(float(a["summary"]["peak_wavelength_um"]) - float(b["summary"]["peak_wavelength_um"])),
+                "avg_A_max": float(amax_avg),
+            }
+            row["balanced_score"] = float(row["mean_phase_diff_rad"] * row["avg_A_max"])
+            pair_rows.append(row)
+
+    if not pair_rows:
+        raise ValueError("候选 d_W 点不足，无法构造相位候选对。")
+
+    pair_rows_sorted = sorted(pair_rows, key=lambda item: item["balanced_score"], reverse=True)
+    best_overall = pair_rows_sorted[0]
+    best_peak = max(pair_rows, key=lambda item: item["peak_phase_diff_rad"])
+
+    saved: Dict[str, str] = {}
+    csv_path = output_file(f"{prefix}.csv")
+    with open(csv_path, "w", encoding="utf-8-sig") as f:
+        f.write("dW_a_nm,dW_b_nm,mean_phase_diff_rad,max_phase_diff_rad,peak_phase_diff_rad,peak_wavelength_delta_um,avg_A_max,balanced_score\n")
+        for row in pair_rows_sorted:
+            f.write(
+                f"{row['dW_a_nm']:.12g},{row['dW_b_nm']:.12g},{row['mean_phase_diff_rad']:.12g},"
+                f"{row['max_phase_diff_rad']:.12g},{row['peak_phase_diff_rad']:.12g},{row['peak_wavelength_delta_um']:.12g},"
+                f"{row['avg_A_max']:.12g},{row['balanced_score']:.12g}\n"
+            )
+    saved["csv"] = str(csv_path)
+
+    json_path = output_file(f"{prefix}.json")
+    with open(json_path, "w", encoding="utf-8") as f:
+        json.dump(
+            {
+                "reference_csv": str(Path(reference_csv)),
+                "candidate_dws_nm": [float(item["dW_nm"]) for item in selected],
+                "best_overall_pair": best_overall,
+                "best_peak_phase_pair": best_peak,
+                "pairs": pair_rows_sorted,
+            },
+            f,
+            ensure_ascii=False,
+            indent=2,
+        )
+    saved["json"] = str(json_path)
+
+    txt_path = output_file(f"{prefix}.txt")
+    lines = [
+        "Tamm 第2阶段候选对排名",
+        "=" * 80,
+        f"reference_csv = {Path(reference_csv)}",
+        f"candidate_dws = {', '.join(f'{float(item['dW_nm']):.0f}' for item in selected)}",
+        "",
+        f"整体最优候选对 = ({best_overall['dW_a_nm']:.0f} nm, {best_overall['dW_b_nm']:.0f} nm)",
+        f"峰处相位差最大候选对 = ({best_peak['dW_a_nm']:.0f} nm, {best_peak['dW_b_nm']:.0f} nm)",
+        "",
+    ]
+    for row in pair_rows_sorted:
+        lines.append(
+            f"({row['dW_a_nm']:.0f}, {row['dW_b_nm']:.0f}) nm | "
+            f"mean_phase_diff={row['mean_phase_diff_rad']:.6f} rad | "
+            f"peak_phase_diff={row['peak_phase_diff_rad']:.6f} rad | "
+            f"avg_Amax={row['avg_A_max']:.6f} | "
+            f"score={row['balanced_score']:.6f}"
+        )
+    with open(txt_path, "w", encoding="utf-8-sig") as f:
+        f.write("\n".join(lines) + "\n")
+    saved["txt"] = str(txt_path)
+
+    return saved
+
+
+def export_tamm_interface_priority_bundle(
+    reference_csv: Path | str,
+    *,
+    candidate_dws_nm: Sequence[float] = (90.0, 100.0, 110.0, 120.0),
+    prefix: str = "tamm_interface_priority_v1",
+    lambda_window_um: tuple[float, float] | None = None,
+) -> Dict[str, str]:
+    """Export a practical recommendation bundle for interface-pair selection."""
+
+    result = analyze_tamm_dw_phase_scan(reference_csv, lambda_window_um=lambda_window_um)
+    groups = result["groups"]
+    selected: List[Dict[str, Any]] = []
+    for target in [float(x) for x in candidate_dws_nm]:
+        match = min(groups, key=lambda item: abs(float(item["dW_nm"]) - target))
+        if all(abs(float(match["dW_nm"]) - float(existing["dW_nm"])) > 1e-9 for existing in selected):
+            selected.append(match)
+    selected = sorted(selected, key=lambda item: float(item["dW_nm"]))
+
+    pair_rows: List[Dict[str, float]] = []
+    for i, a in enumerate(selected):
+        for b in selected[i + 1 :]:
+            xa = np.asarray(a["wavelength_um"], dtype=float)
+            xb = np.asarray(b["wavelength_um"], dtype=float)
+            pa = np.asarray(a["phase_unwrapped_rad"], dtype=float)
+            pb = np.asarray(b["phase_unwrapped_rad"], dtype=float)
+            grid = np.linspace(max(float(np.min(xa)), float(np.min(xb))), min(float(np.max(xa)), float(np.max(xb))), 400)
+            diff = np.abs(np.interp(grid, xa, pa) - np.interp(grid, xb, pb))
+            amax_avg = (float(a["summary"]["A_max"]) + float(b["summary"]["A_max"])) / 2.0
+            row = {
+                "dW_a_nm": float(a["dW_nm"]),
+                "dW_b_nm": float(b["dW_nm"]),
+                "mean_phase_diff_rad": float(np.mean(diff)),
+                "max_phase_diff_rad": float(np.max(diff)),
+                "peak_phase_diff_rad": abs(float(a["summary"]["phase_at_peak_rad"]) - float(b["summary"]["phase_at_peak_rad"])),
+                "peak_wavelength_delta_um": abs(float(a["summary"]["peak_wavelength_um"]) - float(b["summary"]["peak_wavelength_um"])),
+                "avg_A_max": float(amax_avg),
+            }
+            row["balanced_score"] = float(row["mean_phase_diff_rad"] * row["avg_A_max"])
+            pair_rows.append(row)
+
+    if not pair_rows:
+        raise ValueError("候选 d_W 点不足，无法生成界面优先级建议。")
+
+    best_overall = max(pair_rows, key=lambda item: item["balanced_score"])
+    best_peak = max(pair_rows, key=lambda item: item["peak_phase_diff_rad"])
+
+    recommended_default = best_peak if best_peak["avg_A_max"] >= 0.99 else best_overall
+    recommended_exploratory = best_overall if best_overall != recommended_default else max(
+        (row for row in pair_rows if row != recommended_default),
+        key=lambda item: item["balanced_score"],
+    )
+
+    recommendation = {
+        "default_pair_nm": [recommended_default["dW_a_nm"], recommended_default["dW_b_nm"]],
+        "exploratory_pair_nm": [recommended_exploratory["dW_a_nm"], recommended_exploratory["dW_b_nm"]],
+        "default_reason_cn": "默认优先采用峰处相位差更大、且两侧都保持近完美吸收的候选对，便于后续界面边界态验证。",
+        "exploratory_reason_cn": "保留整体相位差更强的候选对，作为对照组评估“高平均相位差”与“高局域相位差”的差异。",
+    }
+
+    saved: Dict[str, str] = {}
+    json_path = output_file(f"{prefix}.json")
+    with open(json_path, "w", encoding="utf-8") as f:
+        json.dump(
+            {
+                "reference_csv": str(Path(reference_csv)),
+                "recommendation": recommendation,
+                "best_overall_pair": best_overall,
+                "best_peak_phase_pair": best_peak,
+                "pairs": pair_rows,
+            },
+            f,
+            ensure_ascii=False,
+            indent=2,
+        )
+    saved["json"] = str(json_path)
+
+    txt_path = output_file(f"{prefix}.txt")
+    lines = [
+        "Tamm 第2阶段界面拼接优先级建议",
+        "=" * 80,
+        f"reference_csv = {Path(reference_csv)}",
+        "",
+        f"默认候选对 = ({recommended_default['dW_a_nm']:.0f} nm, {recommended_default['dW_b_nm']:.0f} nm)",
+        f"默认理由 = {recommendation['default_reason_cn']}",
+        "",
+        f"探索候选对 = ({recommended_exploratory['dW_a_nm']:.0f} nm, {recommended_exploratory['dW_b_nm']:.0f} nm)",
+        f"探索理由 = {recommendation['exploratory_reason_cn']}",
+        "",
+        f"整体最优候选对 = ({best_overall['dW_a_nm']:.0f} nm, {best_overall['dW_b_nm']:.0f} nm)",
+        f"峰处相位差最大候选对 = ({best_peak['dW_a_nm']:.0f} nm, {best_peak['dW_b_nm']:.0f} nm)",
+    ]
+    with open(txt_path, "w", encoding="utf-8-sig") as f:
+        f.write("\n".join(lines) + "\n")
+    saved["txt"] = str(txt_path)
+
+    fig, axes = plt.subplots(1, 2, figsize=(12, 4.8), constrained_layout=True)
+    font = _cn_font()
+
+    ax = axes[0]
+    labels = [f"({int(row['dW_a_nm'])},{int(row['dW_b_nm'])})" for row in pair_rows]
+    scores = [float(row["balanced_score"]) for row in pair_rows]
+    bars = ax.bar(np.arange(len(pair_rows)), scores, color="#4c78a8")
+    ax.set_xticks(np.arange(len(pair_rows)))
+    if font is None:
+        ax.set_xticklabels(labels, rotation=20)
+    else:
+        ax.set_xticklabels(labels, rotation=20, fontproperties=font)
+    _style_axis(ax)
+    _set_axis_labels_cn(ax, title="候选对综合评分", xlabel="d_W 候选对 (nm)", ylabel="balanced score")
+    for bar, value in zip(bars, scores):
+        ax.text(bar.get_x() + bar.get_width() / 2, value + max(scores) * 0.02, f"{value:.3f}", ha="center", va="bottom", fontsize=8, color=TEXT_DARK)
+
+    ax = axes[1]
+    peak_diffs = [float(row["peak_phase_diff_rad"]) for row in pair_rows]
+    avg_amax = [float(row["avg_A_max"]) for row in pair_rows]
+    ax.scatter(peak_diffs, avg_amax, color=TARGET_GREEN, s=50)
+    for row, x, y in zip(pair_rows, peak_diffs, avg_amax):
+        ax.text(x + 0.005, y + 0.0015, f"({int(row['dW_a_nm'])},{int(row['dW_b_nm'])})", fontsize=8, color=TEXT_DARK)
+    _style_axis(ax)
+    _set_axis_labels_cn(ax, title="峰处相位差与平均峰值吸收", xlabel="峰处相位差 (rad)", ylabel="平均 A_max")
+
+    png_path = output_file(f"{prefix}.png")
+    fig.savefig(png_path, dpi=180, bbox_inches="tight")
+    plt.close(fig)
+    saved["png"] = str(png_path)
+
     return saved

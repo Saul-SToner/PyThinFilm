@@ -441,3 +441,54 @@ result = export_advanced_ar_topic_bundle(
 - 专题总览图
 - 综合摘要 CSV / JSON / TXT
 - Manifest 清单
+
+## 11. 前沿研究模型树
+
+当前仓库除了教学主树和研究支线外，还新增了一棵**前沿研究模型树**，用于承接不适合直接放进教学主树首页、但需要正式组织推进的创新模块。
+
+当前已开启模块：
+
+1. 拓扑 Tamm 边界态与热辐射空间调控
+
+该模块当前按三层推进：
+
+1. 普通 Tamm 吸收器
+2. 反射相位与拓扑分类
+3. 拓扑 Tamm 边界态与空间调控
+
+当前状态：
+
+- 第 1 层普通 Tamm 吸收器已完成一轮主参数摸底，当前最佳点已推进到 `d_W = 120 nm`
+- 已确认 `d_W` 是关键参数，且在 `10~120 nm` 范围内吸收持续增强并接近完美吸收
+- 第 2 层反射相位与拓扑分类已启动，并已具备第一版相位分析总包
+- 第 3 层边界态与空间调控仍保留为后续阶段
+
+当前还支持一个第 2 阶段的最小相位分析入口，可直接对包含 `atan2(imag(S11), real(S11))` 列的 `d_W` 联合扫描 CSV 进行处理：
+
+```powershell
+C:/Users/L2791/AppData/Local/Programs/Python/Python313/python.exe .\run_tamm_phase_bundle.py `
+  --csv "C:\Users\L2791\OneDrive\Desktop\deg.p\tamm_spectrum_dW_scan(4).csv" `
+  --prefix tamm_dw_phase_v1
+```
+
+导出前沿模型树：
+
+```powershell
+C:/Users/L2791/AppData/Local/Programs/Python/Python313/python.exe .\run_frontier_model_tree.py
+```
+
+导出带清单的总包：
+
+```powershell
+C:/Users/L2791/AppData/Local/Programs/Python/Python313/python.exe .\run_frontier_model_tree.py --bundle
+```
+
+Python 入口：
+
+```python
+from thinfilm import (
+    get_frontier_model_tree,
+    export_frontier_model_tree,
+    export_frontier_model_bundle,
+)
+```

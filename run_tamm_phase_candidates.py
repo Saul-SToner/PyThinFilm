@@ -1,0 +1,47 @@
+from __future__ import annotations
+
+import argparse
+from pathlib import Path
+
+from thinfilm import export_tamm_phase_candidate_ranking
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        description="导出 Tamm 第2阶段候选参数对排名，用于挑选平庸/非平庸反射表面候选组。"
+    )
+    parser.add_argument(
+        "--csv",
+        default=r"C:\Users\L2791\OneDrive\Desktop\deg.p\tamm_spectrum_dW_scan(4).csv",
+        help="包含 d_W 联合扫描与 S11 相位列的 COMSOL CSV 路径",
+    )
+    parser.add_argument(
+        "--prefix",
+        default="tamm_phase_candidates_v1",
+        help="输出文件前缀",
+    )
+    parser.add_argument(
+        "--candidates",
+        nargs="*",
+        type=float,
+        default=[90.0, 100.0, 110.0, 120.0],
+        help="候选 d_W（nm）列表",
+    )
+    return parser
+
+
+def main() -> None:
+    parser = build_parser()
+    args = parser.parse_args()
+    result = export_tamm_phase_candidate_ranking(
+        reference_csv=Path(args.csv),
+        prefix=str(args.prefix),
+        candidate_dws_nm=args.candidates,
+    )
+    print("Tamm 第2阶段候选对排名已导出")
+    for key, value in result.items():
+        print(f"{key}: {value}")
+
+
+if __name__ == "__main__":
+    main()

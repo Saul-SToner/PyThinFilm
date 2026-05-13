@@ -15,12 +15,17 @@ from .education import (
     simulate_report_design,
 )
 from .roadmap import (
+    export_frontier_research_model_tree,
+    export_frontier_research_module_bundle,
     export_teaching_case_expansion_bundle,
     export_teaching_case_expansion_roadmap,
+    get_frontier_research_model_tree,
     get_teaching_case_expansion_roadmap,
+    list_frontier_research_module_ids,
     list_teaching_case_expansion_ids,
 )
 from .validation import (
+    analyze_tamm_dw_phase_scan,
     analyze_quasi_random_absorbing_surface,
     analyze_absorbing_surface_gain_against_baseline,
     export_absorbing_surface_roughness_bundle,
@@ -34,6 +39,10 @@ from .validation import (
     export_advanced_ar_bundle,
     export_porous_double_ar_sensitivity_bundle,
     export_quasi_random_absorbing_surface_bundle,
+    export_tamm_interface_priority_bundle,
+    export_tamm_phase_candidate_pairs,
+    export_tamm_phase_focus_bundle,
+    export_tamm_dw_phase_bundle,
     summarize_absorbing_surface_roughness,
     export_teaching_expansion_validation_bundle_from_file,
     export_teaching_expansion_validation_bundle_from_mapping,
@@ -136,6 +145,30 @@ def export_teaching_expansion_bundle(
 ) -> Dict[str, Any]:
     """Export roadmap, case outputs, and comparison figures for the expansion set."""
     return export_teaching_case_expansion_bundle(**kwargs)
+
+
+def get_frontier_model_tree() -> Dict[str, Any]:
+    """APP-facing frontier research model tree, separated from the teaching main branch."""
+    return get_frontier_research_model_tree()
+
+
+def list_frontier_model_module_ids() -> list[str]:
+    """List frontier research module IDs in roadmap order."""
+    return list_frontier_research_module_ids()
+
+
+def export_frontier_model_tree(
+    **kwargs: Any,
+) -> Dict[str, str]:
+    """Export the structured frontier research model tree."""
+    return export_frontier_research_model_tree(**kwargs)
+
+
+def export_frontier_model_bundle(
+    **kwargs: Any,
+) -> Dict[str, str]:
+    """Export the frontier research model tree bundle."""
+    return export_frontier_research_module_bundle(**kwargs)
 
 
 def list_teaching_expansion_validation_templates() -> list[dict[str, Any]]:
@@ -293,6 +326,46 @@ def export_absorbing_surface_roughness_trend(
 ) -> Dict[str, str]:
     """Export roughness sweep plots and automatic conclusion files."""
     return export_absorbing_surface_roughness_bundle(roughness_files=roughness_files, **kwargs)
+
+
+def analyze_tamm_phase_scan(
+    reference_csv: str,
+    **kwargs: Any,
+) -> Dict[str, Any]:
+    """Analyze grouped d_W scan data for the Tamm phase/topology stage."""
+    return analyze_tamm_dw_phase_scan(reference_csv=reference_csv, **kwargs)
+
+
+def export_tamm_phase_bundle(
+    reference_csv: str,
+    **kwargs: Any,
+) -> Dict[str, str]:
+    """Export grouped d_W phase-stage plots and summaries for the Tamm module."""
+    return export_tamm_dw_phase_bundle(reference_csv=reference_csv, **kwargs)
+
+
+def export_tamm_phase_focus(
+    reference_csv: str,
+    **kwargs: Any,
+) -> Dict[str, str]:
+    """Export a focused phase comparison for representative Tamm d_W points."""
+    return export_tamm_phase_focus_bundle(reference_csv=reference_csv, **kwargs)
+
+
+def export_tamm_phase_candidate_ranking(
+    reference_csv: str,
+    **kwargs: Any,
+) -> Dict[str, str]:
+    """Export stage-2 candidate-pair ranking for Tamm topology comparison."""
+    return export_tamm_phase_candidate_pairs(reference_csv=reference_csv, **kwargs)
+
+
+def export_tamm_interface_priority(
+    reference_csv: str,
+    **kwargs: Any,
+) -> Dict[str, str]:
+    """Export a practical recommendation bundle for Tamm interface-pair selection."""
+    return export_tamm_interface_priority_bundle(reference_csv=reference_csv, **kwargs)
 
 
 def export_teaching_expansion_validation_templates(
