@@ -41,11 +41,14 @@ python run_guided_grating_demo.py
 ```text
 thinfilm/                    教学主树、通用 CSV 读取、验证模块
 guided_grating/              光栅波导研究支线
-run_teaching_demo.py         教学主树命令行入口
-run_guided_grating_demo.py   光栅波导支线命令行入口
+cases/                       按专题整理的具体运行脚本
+run_teaching_demo.py         教学主树稳定入口，转发到 cases/teaching/
+run_guided_grating_demo.py   光栅波导稳定入口，转发到 cases/guided_grating/
 smoke_test.py                最小导入与演示命令体检
 data/                        主路径说明目录
 ```
+
+根目录 `run_*.py` 是给展示、CI 和旧命令使用的稳定入口；具体专题脚本已按案例放入 `cases/`。如果需要查看某一专题有哪些脚本，优先进入对应子目录阅读 `README.md`。
 
 `thinfilm/` 当前重点模块：
 

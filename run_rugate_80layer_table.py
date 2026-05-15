@@ -1,14 +1,7 @@
 from __future__ import annotations
 
-import json
-
-from thinfilm import export_rugate_comsol_layer_table
-
-
-def main() -> None:
-    files = export_rugate_comsol_layer_table()
-    print(json.dumps(files, ensure_ascii=False, indent=2))
+from _entrypoint_runner import run_case_script
 
 
 if __name__ == "__main__":
-    main()
+    run_case_script("cases/advanced_ar/run_rugate_80layer_table.py")
