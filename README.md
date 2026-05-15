@@ -9,6 +9,17 @@
 
 原有反演主线和样本数据已从仓库主工作流中移出，不再作为当前仓库内的主要维护对象。
 
+## 快速开始
+
+```bash
+pip install -r requirements.txt
+python smoke_test.py
+python run_teaching_demo.py --case single_ar
+python run_guided_grating_demo.py
+```
+
+默认输出目录为 `~/thinfilm_outputs`，也可以通过环境变量 `THINFILM_OUTPUT_DIR` 指定。
+
 ## 1. 当前边界
 
 当前统一约定：
@@ -62,11 +73,13 @@ guided_grating/examples.py
 
 合并代码或准备展示前，建议先运行：
 
-```powershell
-C:/Users/L2791/AppData/Local/Programs/Python/Python313/python.exe .\smoke_test.py
+```bash
+python smoke_test.py
 ```
 
 它会检查 `thinfilm` 与 `guided_grating` 的导入，并跑通教学主树和光栅波导支线的最小命令。
+
+仓库还提供 GitHub Actions 工作流 `.github/workflows/smoke.yml`，用于在 push 和 pull request 时自动运行同一套最小体检。
 
 ### 3.1 目标
 
@@ -106,32 +119,32 @@ C:/Users/L2791/AppData/Local/Programs/Python/Python313/python.exe .\smoke_test.p
 
 列出案例：
 
-```powershell
-C:/Users/L2791/AppData/Local/Programs/Python/Python313/python.exe .\run_teaching_demo.py --list
+```bash
+python run_teaching_demo.py --list
 ```
 
 导出单个案例：
 
-```powershell
-C:/Users/L2791/AppData/Local/Programs/Python/Python313/python.exe .\run_teaching_demo.py --case single_ar
+```bash
+python run_teaching_demo.py --case single_ar
 ```
 
 导出对比图：
 
-```powershell
-C:/Users/L2791/AppData/Local/Programs/Python/Python313/python.exe .\run_teaching_demo.py --compare
+```bash
+python run_teaching_demo.py --compare
 ```
 
 导出目录配置：
 
-```powershell
-C:/Users/L2791/AppData/Local/Programs/Python/Python313/python.exe .\run_teaching_demo.py --catalog
+```bash
+python run_teaching_demo.py --catalog
 ```
 
 导出完整主树报告包：
 
-```powershell
-C:/Users/L2791/AppData/Local/Programs/Python/Python313/python.exe .\run_teaching_demo.py --report
+```bash
+python run_teaching_demo.py --report
 ```
 
 ### 3.3 当前可导出的内容
@@ -168,14 +181,14 @@ teaching_main_branch_catalog.json
 
 导出模板：
 
-```powershell
-C:/Users/L2791/AppData/Local/Programs/Python/Python313/python.exe .\run_teaching_expansion_validation.py --template-out --prefix teaching_expansion_validation_cli
+```bash
+python run_teaching_expansion_validation.py --template-out --prefix teaching_expansion_validation_cli
 ```
 
 填写模板中的 `reference_csv` 等字段后，可以直接运行：
 
-```powershell
-C:/Users/L2791/AppData/Local/Programs/Python/Python313/python.exe .\run_teaching_expansion_validation.py --template-file "C:\path\to\filled_template.json" --prefix teaching_expansion_validation_run
+```bash
+python run_teaching_expansion_validation.py --template-file "path/to/filled_template.json" --prefix teaching_expansion_validation_run
 ```
 
 模板支持 `.json` 或 `.csv` 两种格式。
@@ -263,36 +276,38 @@ from thinfilm import (
 -> 窄线宽反射镜设计
 ```
 
+当前光栅波导支线不是独立 RCWA/FEM 物理求解器。占位求解器只用于验证工程骨架和导出链路；正式物理结果来自 COMSOL CSV，Python 负责数据读取、峰位提取、FWHM、参数筛选和可视化。
+
 ### 5.2 命令行入口
 
 运行最小占位示例：
 
-```powershell
-C:/Users/L2791/AppData/Local/Programs/Python/Python313/python.exe .\run_guided_grating_demo.py
+```bash
+python run_guided_grating_demo.py
 ```
 
 读取 COMSOL 单条光谱：
 
-```powershell
-C:/Users/L2791/AppData/Local/Programs/Python/Python313/python.exe .\run_guided_grating_demo.py --csv "C:\path\to\Grant.csv"
+```bash
+python run_guided_grating_demo.py --csv "path/to/Grant.csv"
 ```
 
 读取 `lambda + period` 联合扫描：
 
-```powershell
-C:/Users/L2791/AppData/Local/Programs/Python/Python313/python.exe .\run_guided_grating_demo.py --sweep-csv "C:\path\to\2d.csv" --target-wavelength 1550
+```bash
+python run_guided_grating_demo.py --sweep-csv "path/to/2d.csv" --target-wavelength 1550
 ```
 
 读取 `lambda + t_wg` 联合扫描：
 
-```powershell
-C:/Users/L2791/AppData/Local/Programs/Python/Python313/python.exe .\run_guided_grating_demo.py --sweep-csv "C:\path\to\7new.csv" --sweep-name t_wg --target-wavelength 1550
+```bash
+python run_guided_grating_demo.py --sweep-csv "path/to/7new.csv" --sweep-name t_wg --target-wavelength 1550
 ```
 
 读取 `lambda + fill_factor` 联合扫描：
 
-```powershell
-C:/Users/L2791/AppData/Local/Programs/Python/Python313/python.exe .\run_guided_grating_demo.py --sweep-csv "C:\path\to\8new.csv" --sweep-name fill_factor --target-wavelength 1550
+```bash
+python run_guided_grating_demo.py --sweep-csv "path/to/8new.csv" --sweep-name fill_factor --target-wavelength 1550
 ```
 
 ### 5.3 当前阶段性设计点
@@ -317,10 +332,10 @@ FWHM ≈ 9.6 nm
 
 ## 6. 输出目录
 
-所有默认输出写入：
+所有默认输出写入到环境变量 `THINFILM_OUTPUT_DIR` 指定的目录；如果未设置，则写入用户主目录下的 `thinfilm_outputs/`：
 
 ```text
-C:\Users\L2791\thinfilm_outputs
+~/thinfilm_outputs
 ```
 
 光栅支线常见输出包括：
@@ -336,19 +351,13 @@ guided_grating_*_period_summary.csv
 
 ## 7. 已移出的反演样本
 
-仓库内原反演样本 CSV 已备份到本机目录：
-
-```text
-C:\Users\L2791\thinfilm_backups\inversion_examples_20260505
-```
-
-项目目录内不再保留这批反演样本。
+仓库内原反演样本 CSV 已移出项目目录；如需复查旧数据，请使用仓库外的个人备份，不再把样本 CSV 放回当前主工作流。
 
 ## 8. 环境依赖
 
 安装依赖：
 
-```powershell
+```bash
 pip install -r requirements.txt
 ```
 
@@ -368,11 +377,11 @@ pip install -r requirements.txt
 
 可以直接运行：
 
-```powershell
-C:/Users/L2791/AppData/Local/Programs/Python/Python313/python.exe .\run_teaching_metrics_bundle.py `
-  --single-ar-csv "C:\Users\L2791\OneDrive\Desktop\deg.p\AR_MgF2_BK7G18_550nm_theta0.csv" `
-  --fp-csv "C:\Users\L2791\OneDrive\Desktop\deg.p\FP_HL4_C_LH4_air_air_550nm_theta0_comsol.csv" `
-  --high-reflector-csv "C:\Users\L2791\OneDrive\Desktop\deg.p\highreflect.csv" `
+```bash
+python run_teaching_metrics_bundle.py \
+  --single-ar-csv "path/to/single_ar.csv" \
+  --fp-csv "path/to/fp_filter.csv" \
+  --high-reflector-csv "path/to/high_reflector.csv" \
   --prefix teaching_pipeline_v1
 ```
 
@@ -402,9 +411,9 @@ from pathlib import Path
 from thinfilm import export_final_delivery_bundle
 
 result = export_final_delivery_bundle(
-    single_ar_csv=Path(r"C:\Users\L2791\OneDrive\Desktop\deg.p\AR_MgF2_BK7G18_550nm_theta0.csv"),
-    fp_single_csv=Path(r"C:\Users\L2791\OneDrive\Desktop\deg.p\FP_HL4_C_LH4_air_air_550nm_theta0_comsol.csv"),
-    high_reflector_csv=Path(r"C:\Users\L2791\OneDrive\Desktop\deg.p\highreflect.csv"),
+    single_ar_csv=Path("path/to/single_ar.csv"),
+    fp_single_csv=Path("path/to/fp_filter.csv"),
+    high_reflector_csv=Path("path/to/high_reflector.csv"),
     prefix="teaching_final_delivery_v1",
     reference_label="COMSOL",
 )
@@ -421,12 +430,12 @@ result = export_final_delivery_bundle(
 
 命令行入口：
 
-```powershell
-C:/Users/L2791/AppData/Local/Programs/Python/Python313/python.exe .\run_advanced_ar_bundle.py `
-  --single-ar-csv "C:\Users\L2791\OneDrive\Desktop\deg.p\AR_MgF2_BK7G18_550nm_theta0.csv" `
-  --porous-csv "C:\Users\L2791\OneDrive\Desktop\deg.p\porous.csv" `
-  --moth-eye-effective-csv "C:\Users\L2791\OneDrive\Desktop\deg.p\Rugate2.csv" `
-  --moth-eye-2d-csv "C:\Users\L2791\OneDrive\Desktop\deg.p\moth_eye_2D_trapezoid_P200_H300_Wtop40_Wbottom180_Glass_550nm_theta0_comsol.csv" `
+```bash
+python run_advanced_ar_bundle.py \
+  --single-ar-csv "path/to/single_ar.csv" \
+  --porous-csv "path/to/porous.csv" \
+  --moth-eye-effective-csv "path/to/moth_eye_effective.csv" \
+  --moth-eye-2d-csv "path/to/moth_eye_2d.csv" \
   --prefix advanced_ar_topic_v1
 ```
 
@@ -437,10 +446,10 @@ from pathlib import Path
 from thinfilm import export_advanced_ar_topic_bundle
 
 result = export_advanced_ar_topic_bundle(
-    single_ar_csv=Path(r"C:\Users\L2791\OneDrive\Desktop\deg.p\AR_MgF2_BK7G18_550nm_theta0.csv"),
-    porous_csv=Path(r"C:\Users\L2791\OneDrive\Desktop\deg.p\porous.csv"),
-    moth_eye_effective_csv=Path(r"C:\Users\L2791\OneDrive\Desktop\deg.p\Rugate2.csv"),
-    moth_eye_2d_csv=Path(r"C:\Users\L2791\OneDrive\Desktop\deg.p\moth_eye_2D_trapezoid_P200_H300_Wtop40_Wbottom180_Glass_550nm_theta0_comsol.csv"),
+    single_ar_csv=Path("path/to/single_ar.csv"),
+    porous_csv=Path("path/to/porous.csv"),
+    moth_eye_effective_csv=Path("path/to/moth_eye_effective.csv"),
+    moth_eye_2d_csv=Path("path/to/moth_eye_2d.csv"),
     prefix="advanced_ar_topic_v1",
     reference_label="COMSOL",
 )
@@ -476,22 +485,22 @@ result = export_advanced_ar_topic_bundle(
 
 当前还支持一个第 2 阶段的最小相位分析入口，可直接对包含 `atan2(imag(S11), real(S11))` 列的 `d_W` 联合扫描 CSV 进行处理：
 
-```powershell
-C:/Users/L2791/AppData/Local/Programs/Python/Python313/python.exe .\run_tamm_phase_bundle.py `
-  --csv "C:\Users\L2791\OneDrive\Desktop\deg.p\tamm_spectrum_dW_scan(4).csv" `
+```bash
+python run_tamm_phase_bundle.py \
+  --csv "path/to/tamm_spectrum_dW_scan.csv" \
   --prefix tamm_dw_phase_v1
 ```
 
 导出前沿模型树：
 
-```powershell
-C:/Users/L2791/AppData/Local/Programs/Python/Python313/python.exe .\run_frontier_model_tree.py
+```bash
+python run_frontier_model_tree.py
 ```
 
 导出带清单的总包：
 
-```powershell
-C:/Users/L2791/AppData/Local/Programs/Python/Python313/python.exe .\run_frontier_model_tree.py --bundle
+```bash
+python run_frontier_model_tree.py --bundle
 ```
 
 Python 入口：

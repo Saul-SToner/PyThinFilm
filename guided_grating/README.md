@@ -50,32 +50,32 @@ guided_grating/examples.py
 
 运行最小示例：
 
-```powershell
-C:/Users/L2791/AppData/Local/Programs/Python/Python313/python.exe .\run_guided_grating_demo.py
+```bash
+python run_guided_grating_demo.py
 ```
 
 读取 COMSOL 单条光谱：
 
-```powershell
-C:/Users/L2791/AppData/Local/Programs/Python/Python313/python.exe .\run_guided_grating_demo.py --csv "C:\path\to\Grant.csv"
+```bash
+python run_guided_grating_demo.py --csv "path/to/Grant.csv"
 ```
 
 读取 `lambda + period` 联合扫描：
 
-```powershell
-C:/Users/L2791/AppData/Local/Programs/Python/Python313/python.exe .\run_guided_grating_demo.py --sweep-csv "C:\path\to\2d.csv" --target-wavelength 1550
+```bash
+python run_guided_grating_demo.py --sweep-csv "path/to/2d.csv" --target-wavelength 1550
 ```
 
 读取 `lambda + t_wg` 联合扫描：
 
-```powershell
-C:/Users/L2791/AppData/Local/Programs/Python/Python313/python.exe .\run_guided_grating_demo.py --sweep-csv "C:\path\to\7new.csv" --sweep-name t_wg --target-wavelength 1550
+```bash
+python run_guided_grating_demo.py --sweep-csv "path/to/7new.csv" --sweep-name t_wg --target-wavelength 1550
 ```
 
 读取 `lambda + fill_factor` 联合扫描：
 
-```powershell
-C:/Users/L2791/AppData/Local/Programs/Python/Python313/python.exe .\run_guided_grating_demo.py --sweep-csv "C:\path\to\8new.csv" --sweep-name fill_factor --target-wavelength 1550
+```bash
+python run_guided_grating_demo.py --sweep-csv "path/to/8new.csv" --sweep-name fill_factor --target-wavelength 1550
 ```
 
 ## 4. 当前数据读取规则
@@ -116,10 +116,10 @@ second_param (m 或无量纲)
 
 ## 5. 当前导出内容
 
-默认输出目录：
+默认输出目录由 `THINFILM_OUTPUT_DIR` 控制；未设置时写入用户主目录下的 `thinfilm_outputs/`：
 
 ```text
-C:\Users\L2791\thinfilm_outputs
+~/thinfilm_outputs
 ```
 
 常见输出包括：
