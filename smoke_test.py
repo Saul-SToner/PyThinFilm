@@ -15,6 +15,8 @@ def _run(command: list[str]) -> None:
         command,
         cwd=ROOT,
         text=True,
+        encoding="utf-8",
+        errors="replace",
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         check=False,
@@ -26,6 +28,8 @@ def _run(command: list[str]) -> None:
 
 
 def main() -> None:
+    print(f"[smoke] python: {sys.executable}")
+    print(f"[smoke] version: {sys.version}")
     print("[smoke] checking package imports")
     import thinfilm  # noqa: F401
     from thinfilm import export_teaching_case_outputs, list_teaching_cases  # noqa: F401
@@ -40,7 +44,12 @@ def main() -> None:
         [
             python,
             "-c",
-            "from thinfilm import export_teaching_case_outputs, list_teaching_cases; print('selected imports ok')",
+            "from thinfilm import export_teaching_case_outputs, list_teaching_cases; print('teaching imports ok')",
+        ],
+        [
+            python,
+            "-c",
+            "from thinfilm import export_real_material_library_outputs, simulate_teaching_design_real_materials; print('material imports ok')",
         ],
         [python, "run_teaching_demo.py", "--list"],
         [python, "run_teaching_demo.py", "--case", "single_ar"],

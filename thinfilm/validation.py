@@ -3489,7 +3489,7 @@ def export_tamm_interface_priority_bundle(
     else:
         ax.set_xticklabels(labels, rotation=20, fontproperties=font)
     _style_axis(ax)
-    _set_axis_labels_cn(ax, title="候选对综合评分", xlabel="d_W 候选对 (nm)", ylabel="balanced score")
+    _set_axis_labels_cn(ax, title="候选对综合评分", xlabel="d_W 候选对 (nm)", ylabel="综合评分")
     for bar, value in zip(bars, scores):
         ax.text(bar.get_x() + bar.get_width() / 2, value + max(scores) * 0.02, f"{value:.3f}", ha="center", va="bottom", fontsize=8, color=TEXT_DARK)
 
@@ -3700,7 +3700,7 @@ def export_tamm_reflection_phase_screen_bundle(
     else:
         ax.set_xticklabels(pair_labels, rotation=30, fontproperties=font)
     _style_axis(ax)
-    _set_axis_labels_cn(ax, title="候选端结构对评分", xlabel="d_W 左/右 (nm)", ylabel="score")
+    _set_axis_labels_cn(ax, title="候选端结构对评分", xlabel="d_W 左/右 (nm)", ylabel="评分")
     for bar, value in zip(bars, scores):
         ax.text(bar.get_x() + bar.get_width() / 2, value + max(scores + [1e-9]) * 0.02, f"{value:.2f}", ha="center", va="bottom", fontsize=8, color=TEXT_DARK)
 
@@ -3709,10 +3709,10 @@ def export_tamm_reflection_phase_screen_bundle(
     phase_err = [float(row["phase_error_to_pi_rad"]) for row in rows]
     pass_mask = [bool(row["passes"]) for row in rows]
     ax.scatter(phase_err, min_r, c=[TARGET_GREEN if flag else MAIN_RED for flag in pass_mask], s=52, alpha=0.85)
-    ax.axhline(float(result["criteria"]["min_reflectance"]), color=REF_BLUE, linestyle="--", linewidth=1.4, label="min R threshold")
-    ax.axvline(float(result["criteria"]["max_phase_error_rad"]), color=ERR_GOLD, linestyle="--", linewidth=1.4, label="phase error threshold")
+    ax.axhline(float(result["criteria"]["min_reflectance"]), color=REF_BLUE, linestyle="--", linewidth=1.4, label="最低反射率阈值")
+    ax.axvline(float(result["criteria"]["max_phase_error_rad"]), color=ERR_GOLD, linestyle="--", linewidth=1.4, label="相位误差阈值")
     _style_axis(ax)
-    _set_axis_labels_cn(ax, title="高反射与 π 相位差判据", xlabel="|π-Δφ| (rad)", ylabel="min(R_left, R_right)")
+    _set_axis_labels_cn(ax, title="高反射与 π 相位差判据", xlabel="相位误差 |π-Δφ| (rad)", ylabel="左右端最小反射率")
     ax.legend(prop=font, frameon=False, loc="best")
 
     png_path = output_file(f"{prefix}.png")

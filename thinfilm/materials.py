@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from .paths import PROJECT_DIR, output_file
-from .plotting import BLUE, GREEN, INK, MUTED, RED, style_axis
+from .plotting import BLUE, GREEN, INK, MUTED, RED, apply_plot_style, style_axis
 
 
 REAL_NK_DIR = PROJECT_DIR / "data" / "real_nk"
@@ -278,11 +278,11 @@ def export_real_material_library(
 
     summary_txt = output_file(f"{prefix}_summary.txt")
     lines = [
-        "Unified real-material optical constants library",
+        "真实材料 n/k 光学常数库",
         f"data_dir = {REAL_NK_DIR}",
         f"materials = {', '.join(str(item['material']) for item in catalog)}",
         "",
-        "Coverage:",
+        "覆盖范围:",
     ]
     for item in catalog:
         lines.append(
@@ -303,6 +303,7 @@ def export_real_material_library(
 
 
 def _plot_material_library_overview(path: Path, catalog: Sequence[dict[str, Any]]) -> None:
+    apply_plot_style()
     fig, axes = plt.subplots(1, 2, figsize=(12.0, 4.8), constrained_layout=True)
 
     ax = axes[0]
@@ -315,10 +316,10 @@ def _plot_material_library_overview(path: Path, catalog: Sequence[dict[str, Any]
     ax.set_yticklabels(names)
     ax.set_xscale("log")
     style_axis(ax)
-    ax.set_title("Material wavelength coverage", loc="left")
-    ax.set_xlabel("Wavelength (um, log scale)")
-    ax.axvspan(0.3, 2.5, color=GREEN, alpha=0.10, label="solar")
-    ax.axvspan(8.0, 13.0, color=RED, alpha=0.08, label="8-13 um")
+    ax.set_title("材料光学常数覆盖范围", loc="left")
+    ax.set_xlabel("波长 (μm，对数坐标)")
+    ax.axvspan(0.3, 2.5, color=GREEN, alpha=0.10, label="太阳波段 0.3-2.5 μm")
+    ax.axvspan(8.0, 13.0, color=RED, alpha=0.08, label="大气窗口 8-13 μm")
     ax.legend(loc="lower right")
 
     ax = axes[1]
@@ -341,11 +342,11 @@ def _plot_material_library_overview(path: Path, catalog: Sequence[dict[str, Any]
             continue
         ax.plot(sample_wl, n_vals, color=color, lw=2.0, label=material)
     style_axis(ax)
-    ax.set_title("Visible/NIR index dispersion", loc="left")
-    ax.set_xlabel("Wavelength (um)")
-    ax.set_ylabel("n")
+    ax.set_title("可见/近红外折射率色散", loc="left")
+    ax.set_xlabel("波长 (μm)")
+    ax.set_ylabel("折射率 n")
     ax.legend(loc="best")
 
-    fig.suptitle("Real n/k material library", fontsize=15, fontweight="bold", color=INK, x=0.02, ha="left")
+    fig.suptitle("真实材料 n/k 光学常数库", fontsize=15, fontweight="bold", color=INK, x=0.02, ha="left")
     fig.savefig(path, dpi=190, bbox_inches="tight")
     plt.close(fig)

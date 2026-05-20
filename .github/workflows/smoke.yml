@@ -8,13 +8,17 @@ jobs:
   smoke:
     runs-on: ubuntu-latest
     env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
       MPLBACKEND: Agg
+      PYTHONIOENCODING: utf-8
+      PYTHONUTF8: "1"
       THINFILM_OUTPUT_DIR: ${{ github.workspace }}/thinfilm_outputs
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      - run: python -c "import sys; print(sys.version); print(sys.executable)"
       - run: python -m pip install --upgrade pip
       - run: pip install -r requirements.txt
       - run: python -m compileall thinfilm guided_grating cases smoke_test.py
