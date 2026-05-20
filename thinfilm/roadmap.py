@@ -165,6 +165,7 @@ FRONTIER_RESEARCH_MODEL_TREE: List[Dict[str, Any]] = [
                 "core_outputs_cn": ["反射相位", "相位跨越", "卷绕数分类", "平庸/非平庸标记"],
                 "current_progress_cn": [
                     "已建立 d_W 联合扫描的相位分析入口，并已导出第一版相位分析总包。",
+                    "已新增 1D 反射相位端结构筛选入口 run_tamm_reflection_phase_screen.py，用于筛选同一波长下高反射且相位差接近 π 的端结构对。",
                     "当前最适合以 d_W = 100, 110, 120 nm 三个代表点作为第 2 阶段核心样本做相位比较。",
                 ],
                 "current_findings_cn": [
@@ -175,10 +176,11 @@ FRONTIER_RESEARCH_MODEL_TREE: List[Dict[str, Any]] = [
                     "已建立 cutline 界面态候选判据：interface/background、peak/background、hotspot_peak_x 与 FWHM。",
                     "119/120 nm @ 4.55 μm 三条 y 位置 cutline 均显示 interface/background≈0.965、FWHM≈11.6 μm，不支持强界面局域态。",
                     "100~130 nm 左右厚度 49 组筛选与 130/130 nm 波长扫描均未发现满足界面局域判据的正候选。",
+                    "对当前 tamm_spectrum_dW_scan(4).csv 按 min(R)>=0.70、|π-Δφ|<=0.35 rad 筛选后，通过候选数为 0；最佳对为 90/120 nm，但 min(R) 仅约 0.024，仍不适合进入正界面态拼接。",
                 ],
                 "next_actions_cn": [
                     "暂停直接拼接相近厚度的 2D 猜测式扫描。",
-                    "回到 1D 反射相位筛选，寻找同一波长下 R 较高且 arg(S11) 相差接近 π 的两种端结构。",
+                    "回到 1D 反射相位筛选，扩大 d_W、金属层厚度或 DBR 端层厚度范围，寻找同一波长下 R 较高且 arg(S11) 相差接近 π 的两种端结构。",
                     "只有找到相位差明确的左右端结构后，再做 2D 拼接 cutline 或场图验证。",
                 ],
             },

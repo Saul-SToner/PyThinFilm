@@ -36,8 +36,19 @@ lambda = range(4.2[um], 0.02[um], 5.0[um])
 ```bash
 python run_tamm_phase_bundle.py --csv "path/to/tamm_phase_scan.csv"
 python run_tamm_phase_candidates.py --csv "path/to/tamm_phase_scan.csv"
+python run_tamm_reflection_phase_screen.py --csv "path/to/tamm_phase_scan.csv"
 ```
 
 ## 6. 结果判断
 
 重点不是只找最大吸收，而是判断候选参数之间是否存在可解释的相位差异。若相位变化与吸收峰位置同时稳定，才适合进入界面拼接阶段。
+
+进入 2D 拼接前，优先使用更严格的端结构判据：
+
+```text
+min(R_left, R_right) >= 0.70
+abs(pi - abs(arg(r_left)-arg(r_right))) <= 0.35 rad
+同一波长下同时满足上述两个条件
+```
+
+如果没有参数对满足该条件，不建议继续做大规模 2D 拼接；应先回到 1D 扫描，扩大 `d_W`、金属层厚度或 DBR 端层厚度范围。

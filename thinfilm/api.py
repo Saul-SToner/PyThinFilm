@@ -62,6 +62,7 @@ from .validation import (
     export_tamm_interface_window_scan_collection,
     export_tamm_phase_candidate_pairs,
     export_tamm_phase_focus_bundle,
+    export_tamm_reflection_phase_screen_bundle,
     export_tamm_dw_phase_bundle,
     summarize_absorbing_surface_roughness,
     export_teaching_expansion_validation_bundle_from_file,
@@ -463,6 +464,14 @@ def export_tamm_interface_priority(
 ) -> Dict[str, str]:
     """Export a practical recommendation bundle for Tamm interface-pair selection."""
     return export_tamm_interface_priority_bundle(reference_csv=reference_csv, **kwargs)
+
+
+def export_tamm_reflection_phase_screen(
+    reference_csv: str,
+    **kwargs: Any,
+) -> Dict[str, str]:
+    """Export 1D terminal-pair screening by high reflectance and near-pi phase contrast."""
+    return export_tamm_reflection_phase_screen_bundle(reference_csv=reference_csv, **kwargs)
 
 
 def export_teaching_expansion_validation_templates(

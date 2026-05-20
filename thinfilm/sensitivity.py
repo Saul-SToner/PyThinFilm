@@ -2640,11 +2640,13 @@ def export_sensitivity_stability_summary(
     for row in case_rows:
         resolution_value = row["resolution"]["max_stable_sampling_step_nm"]
         noise_value = row["noise"]["max_stable_noise_sigma"]
+        resolution_text = "未通过" if resolution_value is None else f"{float(resolution_value):.3f} nm"
+        noise_text = "未通过" if noise_value is None else f"{float(noise_value):.6g}"
         lines.extend(
             [
                 f"{row['title_cn']} ({row['case_id']})",
-                f"  最大稳定采样步长: {'未通过' if resolution_value is None else f'{float(resolution_value):.3f} nm'}",
-                f"  最大稳定噪声标准差: {'未通过' if noise_value is None else f'{float(noise_value):.6g}'}",
+                f"  最大稳定采样步长: {resolution_text}",
+                f"  最大稳定噪声标准差: {noise_text}",
                 "",
             ]
         )

@@ -27,7 +27,7 @@ python cases/teaching/run_teaching_demo.py --list
 | `guided_grating/` | 光栅波导支线，读取 COMSOL 光谱并提取峰位/FWHM | `python run_guided_grating_demo.py` | `guided_grating/README.md` |
 | `advanced_ar/` | 高级减反、多孔双层、蛾眼和 rugate 表格 | `python run_advanced_ar_bundle.py` | `advanced_ar/README.md` |
 | `absorbing_surface/` | 粗糙/准随机吸收表面增强分析 | `python run_absorbing_surface_topic_bundle.py` | `absorbing_surface/README.md` |
-| `tamm/` | Tamm 相位、候选参数和界面态窗口分析 | `python run_tamm_phase_bundle.py` | `tamm/README.md` |
+| `tamm/` | Tamm 相位、1D 端结构筛选和界面态窗口分析 | `python run_tamm_reflection_phase_screen.py` | `tamm/README.md` |
 | `pdrc/` | PDRC 被动日间辐射冷却光谱调控 | `python run_pdrc_cooling_bundle.py` | `pdrc/README.md` |
 | `frontier/` | 前沿研究模型树 | `python run_frontier_model_tree.py --show` | `frontier/README.md` |
 | `materials/` | 真实材料 n(lambda), k(lambda) 统一读取、插值与示例对比 | `python run_material_library_demo.py` | `materials/README.md` |

@@ -3227,11 +3227,12 @@ def export_tamm_phase_focus_bundle(
     saved["json"] = str(json_path)
 
     txt_path = output_file(f"{prefix}.txt")
+    focus_dws_text = ", ".join(f"{float(item['dW_nm']):.0f}" for item in selected)
     lines = [
         "Tamm 第2阶段代表点相位对比",
         "=" * 80,
         f"reference_csv = {Path(reference_csv)}",
-        f"focus_dws_nm  = {', '.join(f'{float(item['dW_nm']):.0f}' for item in selected)}",
+        f"focus_dws_nm  = {focus_dws_text}",
         "",
     ]
     for item in selected:
@@ -3354,11 +3355,12 @@ def export_tamm_phase_candidate_pairs(
     saved["json"] = str(json_path)
 
     txt_path = output_file(f"{prefix}.txt")
+    candidate_dws_text = ", ".join(f"{float(item['dW_nm']):.0f}" for item in selected)
     lines = [
         "Tamm 第2阶段候选对排名",
         "=" * 80,
         f"reference_csv = {Path(reference_csv)}",
-        f"candidate_dws = {', '.join(f'{float(item['dW_nm']):.0f}' for item in selected)}",
+        f"candidate_dws = {candidate_dws_text}",
         "",
         f"整体最优候选对 = ({best_overall['dW_a_nm']:.0f} nm, {best_overall['dW_b_nm']:.0f} nm)",
         f"峰处相位差最大候选对 = ({best_peak['dW_a_nm']:.0f} nm, {best_peak['dW_b_nm']:.0f} nm)",
@@ -3499,6 +3501,219 @@ def export_tamm_interface_priority_bundle(
         ax.text(x + 0.005, y + 0.0015, f"({int(row['dW_a_nm'])},{int(row['dW_b_nm'])})", fontsize=8, color=TEXT_DARK)
     _style_axis(ax)
     _set_axis_labels_cn(ax, title="峰处相位差与平均峰值吸收", xlabel="峰处相位差 (rad)", ylabel="平均 A_max")
+
+    png_path = output_file(f"{prefix}.png")
+    fig.savefig(png_path, dpi=180, bbox_inches="tight")
+    plt.close(fig)
+    saved["png"] = str(png_path)
+
+    return saved
+
+
+def analyze_tamm_reflection_phase_screen(
+    reference_csv: Path | str,
+    *,
+    candidate_dws_nm: Sequence[float] | None = None,
+    lambda_window_um: tuple[float, float] | None = None,
+    min_reflectance: float = 0.70,
+    max_phase_error_rad: float = 0.35,
+) -> Dict[str, Any]:
+    """Screen 1D Tamm terminal pairs by high reflectance and near-pi phase contrast."""
+
+    result = analyze_tamm_dw_phase_scan(reference_csv, lambda_window_um=lambda_window_um)
+    groups = result["groups"]
+
+    if candidate_dws_nm:
+        selected: List[Dict[str, Any]] = []
+        for target in [float(x) for x in candidate_dws_nm]:
+            match = min(groups, key=lambda item: abs(float(item["dW_nm"]) - target))
+            if all(abs(float(match["dW_nm"]) - float(existing["dW_nm"])) > 1e-9 for existing in selected):
+                selected.append(match)
+        groups = sorted(selected, key=lambda item: float(item["dW_nm"]))
+
+    rows: List[Dict[str, float | bool]] = []
+    for i, left in enumerate(groups):
+        for right in groups[i + 1 :]:
+            wl_left = np.asarray(left["wavelength_um"], dtype=float)
+            wl_right = np.asarray(right["wavelength_um"], dtype=float)
+            lo = max(float(np.min(wl_left)), float(np.min(wl_right)))
+            hi = min(float(np.max(wl_left)), float(np.max(wl_right)))
+            if hi <= lo:
+                continue
+
+            grid = np.linspace(lo, hi, 800)
+            r_left = np.interp(grid, wl_left, np.asarray(left["R"], dtype=float))
+            r_right = np.interp(grid, wl_right, np.asarray(right["R"], dtype=float))
+            a_left = np.interp(grid, wl_left, np.asarray(left["A"], dtype=float))
+            a_right = np.interp(grid, wl_right, np.asarray(right["A"], dtype=float))
+            phase_left = np.interp(grid, wl_left, np.asarray(left["phase_unwrapped_rad"], dtype=float))
+            phase_right = np.interp(grid, wl_right, np.asarray(right["phase_unwrapped_rad"], dtype=float))
+
+            phase_diff = np.abs(np.angle(np.exp(1j * (phase_left - phase_right))))
+            phase_error = np.abs(np.pi - phase_diff)
+            min_r = np.minimum(r_left, r_right)
+            mean_r = (r_left + r_right) / 2.0
+            score = min_r * np.clip(1.0 - phase_error / np.pi, 0.0, 1.0)
+            best_idx = int(np.argmax(score))
+
+            row = {
+                "dW_left_nm": float(left["dW_nm"]),
+                "dW_right_nm": float(right["dW_nm"]),
+                "wavelength_um": float(grid[best_idx]),
+                "phase_diff_rad": float(phase_diff[best_idx]),
+                "phase_error_to_pi_rad": float(phase_error[best_idx]),
+                "R_left": float(r_left[best_idx]),
+                "R_right": float(r_right[best_idx]),
+                "min_R": float(min_r[best_idx]),
+                "mean_R": float(mean_r[best_idx]),
+                "A_left": float(a_left[best_idx]),
+                "A_right": float(a_right[best_idx]),
+                "phase_left_rad": float(phase_left[best_idx]),
+                "phase_right_rad": float(phase_right[best_idx]),
+                "score": float(score[best_idx]),
+                "passes": bool(min_r[best_idx] >= min_reflectance and phase_error[best_idx] <= max_phase_error_rad),
+            }
+            rows.append(row)
+
+    if not rows:
+        raise ValueError("候选组不足，无法进行 Tamm 反射相位端结构筛选。")
+
+    rows_sorted = sorted(rows, key=lambda item: float(item["score"]), reverse=True)
+    passing = [row for row in rows_sorted if bool(row["passes"])]
+    best = rows_sorted[0]
+
+    if passing:
+        interpretation_cn = "已发现同时满足高反射与近 π 相位差的候选端结构对，可优先进入 2D 界面拼接验证。"
+    else:
+        interpretation_cn = "当前未发现同时满足高反射与近 π 相位差的候选端结构对；建议扩大 1D 参数扫描后再做 2D 拼接。"
+
+    return {
+        "case_id": "tamm_reflection_phase_screen",
+        "title_cn": "Tamm 1D 反射相位端结构筛选",
+        "reference_csv": str(Path(reference_csv)),
+        "criteria": {
+            "min_reflectance": float(min_reflectance),
+            "max_phase_error_rad": float(max_phase_error_rad),
+            "target_phase_diff_rad": float(np.pi),
+        },
+        "candidate_dws_nm": [float(item["dW_nm"]) for item in groups],
+        "rows": rows_sorted,
+        "summary": {
+            "num_pairs": int(len(rows_sorted)),
+            "num_passing_pairs": int(len(passing)),
+            "best_pair": best,
+        },
+        "interpretation_cn": interpretation_cn,
+    }
+
+
+def export_tamm_reflection_phase_screen_bundle(
+    reference_csv: Path | str,
+    *,
+    candidate_dws_nm: Sequence[float] | None = None,
+    prefix: str = "tamm_reflection_phase_screen_v1",
+    lambda_window_um: tuple[float, float] | None = None,
+    min_reflectance: float = 0.70,
+    max_phase_error_rad: float = 0.35,
+) -> Dict[str, str]:
+    """Export 1D Tamm terminal-pair screening by reflectance and phase contrast."""
+
+    result = analyze_tamm_reflection_phase_screen(
+        reference_csv,
+        candidate_dws_nm=candidate_dws_nm,
+        lambda_window_um=lambda_window_um,
+        min_reflectance=min_reflectance,
+        max_phase_error_rad=max_phase_error_rad,
+    )
+    rows = result["rows"]
+    saved: Dict[str, str] = {}
+
+    csv_path = output_file(f"{prefix}.csv")
+    with open(csv_path, "w", encoding="utf-8-sig") as f:
+        f.write(
+            "dW_left_nm,dW_right_nm,wavelength_um,phase_diff_rad,phase_error_to_pi_rad,"
+            "R_left,R_right,min_R,mean_R,A_left,A_right,phase_left_rad,phase_right_rad,score,passes\n"
+        )
+        for row in rows:
+            f.write(
+                f"{float(row['dW_left_nm']):.12g},{float(row['dW_right_nm']):.12g},"
+                f"{float(row['wavelength_um']):.12g},{float(row['phase_diff_rad']):.12g},"
+                f"{float(row['phase_error_to_pi_rad']):.12g},{float(row['R_left']):.12g},"
+                f"{float(row['R_right']):.12g},{float(row['min_R']):.12g},{float(row['mean_R']):.12g},"
+                f"{float(row['A_left']):.12g},{float(row['A_right']):.12g},"
+                f"{float(row['phase_left_rad']):.12g},{float(row['phase_right_rad']):.12g},"
+                f"{float(row['score']):.12g},{bool(row['passes'])}\n"
+            )
+    saved["csv"] = str(csv_path)
+
+    json_path = output_file(f"{prefix}.json")
+    with open(json_path, "w", encoding="utf-8") as f:
+        json.dump(result, f, ensure_ascii=False, indent=2)
+    saved["json"] = str(json_path)
+
+    txt_path = output_file(f"{prefix}.txt")
+    best = result["summary"]["best_pair"]
+    candidate_dws_text = ", ".join(f"{float(x):.0f}" for x in result["candidate_dws_nm"])
+    lines = [
+        "Tamm 1D 反射相位端结构筛选",
+        "=" * 80,
+        f"reference_csv          = {result['reference_csv']}",
+        f"candidate_dws_nm       = {candidate_dws_text}",
+        f"min_reflectance        = {float(result['criteria']['min_reflectance']):.3f}",
+        f"max_phase_error_rad    = {float(result['criteria']['max_phase_error_rad']):.3f}",
+        f"num_pairs              = {int(result['summary']['num_pairs'])}",
+        f"num_passing_pairs      = {int(result['summary']['num_passing_pairs'])}",
+        "",
+        f"best_pair              = ({float(best['dW_left_nm']):.0f} nm, {float(best['dW_right_nm']):.0f} nm)",
+        f"best_wavelength_um     = {float(best['wavelength_um']):.6f}",
+        f"best_min_R             = {float(best['min_R']):.6f}",
+        f"best_phase_diff_rad    = {float(best['phase_diff_rad']):.6f}",
+        f"best_phase_error_rad   = {float(best['phase_error_to_pi_rad']):.6f}",
+        f"best_score             = {float(best['score']):.6f}",
+        "",
+        f"interpretation_cn      = {result['interpretation_cn']}",
+        "",
+        "top_pairs:",
+    ]
+    for row in rows[:10]:
+        lines.append(
+            f"  ({float(row['dW_left_nm']):.0f}, {float(row['dW_right_nm']):.0f}) nm @ "
+            f"{float(row['wavelength_um']):.3f} um | minR={float(row['min_R']):.3f} | "
+            f"Δφ={float(row['phase_diff_rad']):.3f} rad | |π-Δφ|={float(row['phase_error_to_pi_rad']):.3f} | "
+            f"score={float(row['score']):.3f} | pass={bool(row['passes'])}"
+        )
+    with open(txt_path, "w", encoding="utf-8-sig") as f:
+        f.write("\n".join(lines) + "\n")
+    saved["txt"] = str(txt_path)
+
+    fig, axes = plt.subplots(1, 2, figsize=(12.5, 4.8), constrained_layout=True)
+    font = _cn_font()
+    pair_labels = [f"{int(row['dW_left_nm'])}/{int(row['dW_right_nm'])}" for row in rows[:12]]
+    scores = [float(row["score"]) for row in rows[:12]]
+    colors = [TARGET_GREEN if bool(row["passes"]) else REF_BLUE for row in rows[:12]]
+
+    ax = axes[0]
+    bars = ax.bar(np.arange(len(scores)), scores, color=colors)
+    ax.set_xticks(np.arange(len(scores)))
+    if font is None:
+        ax.set_xticklabels(pair_labels, rotation=30)
+    else:
+        ax.set_xticklabels(pair_labels, rotation=30, fontproperties=font)
+    _style_axis(ax)
+    _set_axis_labels_cn(ax, title="候选端结构对评分", xlabel="d_W 左/右 (nm)", ylabel="score")
+    for bar, value in zip(bars, scores):
+        ax.text(bar.get_x() + bar.get_width() / 2, value + max(scores + [1e-9]) * 0.02, f"{value:.2f}", ha="center", va="bottom", fontsize=8, color=TEXT_DARK)
+
+    ax = axes[1]
+    min_r = [float(row["min_R"]) for row in rows]
+    phase_err = [float(row["phase_error_to_pi_rad"]) for row in rows]
+    pass_mask = [bool(row["passes"]) for row in rows]
+    ax.scatter(phase_err, min_r, c=[TARGET_GREEN if flag else MAIN_RED for flag in pass_mask], s=52, alpha=0.85)
+    ax.axhline(float(result["criteria"]["min_reflectance"]), color=REF_BLUE, linestyle="--", linewidth=1.4, label="min R threshold")
+    ax.axvline(float(result["criteria"]["max_phase_error_rad"]), color=ERR_GOLD, linestyle="--", linewidth=1.4, label="phase error threshold")
+    _style_axis(ax)
+    _set_axis_labels_cn(ax, title="高反射与 π 相位差判据", xlabel="|π-Δφ| (rad)", ylabel="min(R_left, R_right)")
+    ax.legend(prop=font, frameon=False, loc="best")
 
     png_path = output_file(f"{prefix}.png")
     fig.savefig(png_path, dpi=180, bbox_inches="tight")

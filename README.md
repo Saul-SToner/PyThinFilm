@@ -563,6 +563,20 @@ python run_tamm_phase_bundle.py \
   --prefix tamm_dw_phase_v1
 ```
 
+进入 2D 拼接之前，推荐先做更严格的 1D 端结构筛选：
+
+```bash
+python run_tamm_reflection_phase_screen.py \
+  --csv "path/to/tamm_spectrum_dW_scan.csv" \
+  --lambda-min-um 4.3 \
+  --lambda-max-um 4.8 \
+  --min-reflectance 0.70 \
+  --max-phase-error-rad 0.35 \
+  --prefix tamm_reflection_phase_screen_v1
+```
+
+该入口会筛选同一波长下 `min(R_left,R_right)` 较高、且 `|π-Δφ|` 较小的左右端结构对。只有通过该判据的候选才建议进入 2D 界面拼接验证。
+
 Tamm 当前收敛结论：
 
 ```text

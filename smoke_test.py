@@ -29,6 +29,7 @@ def main() -> None:
     print("[smoke] checking package imports")
     import thinfilm  # noqa: F401
     from thinfilm import export_teaching_case_outputs, list_teaching_cases  # noqa: F401
+    from thinfilm import export_real_material_library_outputs, simulate_teaching_design_real_materials  # noqa: F401
     import guided_grating  # noqa: F401
 
     print("[smoke] import ok")
@@ -45,6 +46,7 @@ def main() -> None:
         [python, "run_teaching_demo.py", "--case", "single_ar"],
         [python, "run_teaching_demo.py", "--catalog"],
         [python, "run_guided_grating_demo.py"],
+        [python, "run_material_library_demo.py", "--case", "single_ar"],
     ]
     for command in commands:
         _run(command)
