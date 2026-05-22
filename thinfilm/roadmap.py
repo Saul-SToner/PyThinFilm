@@ -118,40 +118,43 @@ FRONTIER_RESEARCH_MODEL_TREE: List[Dict[str, Any]] = [
         "title_cn": "拓扑 Tamm 边界态与热辐射空间调控",
         "title_en": "Topological Tamm Boundary States for Spatial Thermal Radiation Control",
         "module_type": "frontier_research",
-        "goal_cn": "从普通 Tamm 吸收器出发，逐步走向反射相位拓扑分类、界面边界态与热辐射空间调控。",
+        "goal_cn": "从普通 Tamm/TPP 吸收器出发，逐步走向反射相位拓扑分类、界面边界态与热辐射空间调控。",
         "why_cn": "该模块仍建立在一维多层膜与金属薄膜结构之上，能够与现有薄膜平台平滑衔接，同时又具备明显的前沿研究属性。",
-        "status": "in_progress",
+        "status": "optimized_absorber_found",
         "stages": [
             {
                 "stage_id": "tamm_absorber_basic",
-                "title_cn": "普通 Tamm 吸收器",
+                "title_cn": "普通 Tamm / TPP 吸收器",
                 "title_en": "Conventional Tamm Absorber",
                 "priority": 1,
-                "status": "phase_complete",
-                "goal_cn": "建立 Air / 金属薄膜 / 间隔层 / DBR / 基底 结构，并锁定主要高吸收工作波段。",
+                "status": "optimized_absorber_found",
+                "goal_cn": "建立 Air / 金属薄膜 / 间隔层 / DBR / 基底 结构，并锁定主要高吸收工作波段与近完美吸收候选。",
                 "suitable_backend_cn": ["平面多层膜理论模型", "COMSOL 单谱与参数扫描"],
                 "core_outputs_cn": ["R(λ)", "A(λ)", "峰值吸收率", "峰位", "平均吸收率"],
                 "current_progress_cn": [
                     "已修正“结构参数随扫描波长变化”的错误，当前光谱已可按固定结构解释。",
                     "已完成 d_W = 10~120 nm 的主扫描，普通 Tamm 吸收器的主要高吸收工作区已锁定。",
-                    "当前峰位稳定在约 4.50~4.80 μm，高吸收工作区已基本成形。",
+                    "参考 TPP 文献结构重建 Air / W / Si spacer / (Si / SiO2)^4 / Si substrate 反射型吸收器。",
+                    "在 W 厚度固定为 8.42 nm 时，已通过 spacer 粗扫与精扫获得自主优化近完美吸收点。",
                 ],
                 "current_best_params_cn": [
-                    "当前阶段性最佳点：d_W = 120 nm",
-                    "峰值吸收率 A_max ≈ 0.9979",
-                    "峰位约为 4.50 μm",
-                    "平均吸收率 A_mean ≈ 0.9272",
+                    "TPP 当前最佳点：d_spacer = 320 nm，d_W = 8.42 nm",
+                    "峰值吸收率 A = 1 - R ≈ 0.9994",
+                    "反射率 R ≈ 0.00059",
+                    "峰位 λ ≈ 3.34 μm",
                 ],
                 "current_findings_cn": [
                     "d_W 从 10 nm 增加到 120 nm 时，峰值吸收率由约 0.241 持续提升到约 0.998。",
                     "峰位随 d_W 增厚呈轻微短波漂移，由约 4.80 μm 移动到约 4.50 μm。",
                     "到 110~120 nm 区间时已进入近完美吸收区，继续增厚的边际收益开始明显减小。",
+                    "TPP 反射型结构在 d_spacer = 320 nm、λ = 3.34 μm 处达到 A≈0.9994，证明前沿吸收器模块已具备正结果。",
+                    "该 TPP 结果不包装为严格复现论文 4.14 μm，而定义为参考文献结构后的自主参数优化结果。",
                 ],
-                "transition_ready_cn": "普通 Tamm 吸收器的主摸底阶段已经足够支撑第 2 阶段的反射相位与拓扑分类。",
+                "transition_ready_cn": "普通 Tamm/TPP 吸收器已形成可展示正结果，可支撑第 2 阶段的反射相位与拓扑分类。",
                 "next_actions_cn": [
-                    "优先转入反射相位与拓扑分类，不再把主精力放在继续大范围增厚 d_W 上。",
-                    "如需做数值收尾，可只在 110, 115, 120, 125, 130 nm 附近做小范围细扫。",
-                    "后续将以 d_W = 120 nm 及其邻域代表点为基础提取反射相位曲线。",
+                    "补充 d_spacer = 320 nm、λ = 3.34 μm 的 |E|² 电场分布图，用于解释吸收能量局域位置。",
+                    "保留论文 4.14 μm 对齐问题作为后续复现差异讨论，不再阻塞当前前沿模块展示。",
+                    "后续可在当前 TPP 正结果基础上提取反射相位曲线，进入拓扑分类。"
                 ],
             },
             {
@@ -330,14 +333,14 @@ def list_teaching_case_expansion_ids() -> List[str]:
 
 def get_frontier_research_model_tree() -> Dict[str, Any]:
     return {
-        "summary_cn": "前沿研究模块建议与教学主树分离管理；当前保留 Tamm 热辐射空间调控与 PDRC 被动日间辐射冷却两条应用研究支线。",
+        "summary_cn": "前沿研究模块建议与教学主树分离管理；当前保留 PDRC 被动日间辐射冷却、TPP 反射型近完美吸收与 Tamm 界面态筛选三条前沿支线。",
         "principles_cn": [
             "不把前沿研究模块直接塞进教学主树首页，避免打乱教学案例层级。",
             "优先做一维或准一维可验证结构，先锁定光谱和参数趋势，再进入二维场分布或微结构增强。",
             "先保证“固定结构光谱”解释正确，再开展相位、界面结构或 PDRC 参数优化。",
         ],
         "recommended_sequence_cn": [
-            "普通 Tamm 吸收器",
+            "普通 Tamm / TPP 吸收器",
             "反射相位与拓扑分类",
             "拓扑 Tamm 边界态与热辐射空间调控",
             "PDRC 平面多层膜宽波段筛选",
@@ -353,13 +356,28 @@ def list_frontier_research_module_ids() -> List[str]:
 
 def _status_color(status: str) -> str:
     key = str(status).lower()
-    if key in {"implemented", "phase_complete", "first_version_locked", "real_material_validated"}:
+    if key in {"implemented", "phase_complete", "first_version_locked", "real_material_validated", "optimized_absorber_found"}:
         return GREEN
     if key in {"screening_negative"}:
         return RED
     if key in {"in_progress", "ready_to_start"}:
         return BLUE
     return MUTED
+
+
+def _status_label_cn(status: str) -> str:
+    labels = {
+        "implemented": "已实现",
+        "phase_complete": "相位扫描完成",
+        "first_version_locked": "第一版已锁定",
+        "real_material_validated": "真实材料验证完成",
+        "optimized_absorber_found": "已获得优化吸收正结果",
+        "screening_negative": "反例筛选",
+        "in_progress": "进行中",
+        "ready_to_start": "待启动",
+        "planned": "计划中",
+    }
+    return labels.get(str(status), str(status))
 
 
 def _draw_box(
@@ -414,7 +432,7 @@ def _export_frontier_model_tree_png(roadmap: Dict[str, Any], *, prefix: str) -> 
     ax.text(
         0.5,
         0.91,
-        "PDRC 为当前正结果模块；Tamm 已完成界面态判据与反例筛选，下一步转向 1D 反射相位端结构设计。",
+        "PDRC 已形成真实材料验证正结果；TPP 已获得近完美吸收正结果；Tamm 界面态继续作为前沿筛选分支。",
         ha="center",
         va="center",
         fontsize=10.5,
@@ -432,7 +450,7 @@ def _export_frontier_model_tree_png(roadmap: Dict[str, Any], *, prefix: str) -> 
             w=0.23,
             h=0.19,
             title=str(module["title_cn"]),
-            subtitle=f"状态：{module['status']}",
+            subtitle=f"状态：{_status_label_cn(str(module['status']))}",
             color=module_color,
             fontsize=9.4,
         )
@@ -447,7 +465,7 @@ def _export_frontier_model_tree_png(roadmap: Dict[str, Any], *, prefix: str) -> 
                 w=0.17,
                 h=0.15,
                 title=str(stage["title_cn"]),
-                subtitle=f"{stage['status']}",
+                subtitle=_status_label_cn(str(stage["status"])),
                 color=stage_color,
                 fontsize=8.5,
             )
@@ -457,10 +475,10 @@ def _export_frontier_model_tree_png(roadmap: Dict[str, Any], *, prefix: str) -> 
                 _draw_arrow(ax, (stage_xs[idx - 1] + 0.17, y + 0.095), (sx, y + 0.095))
 
     legend_items = [
-        ("locked / complete", GREEN),
-        ("in progress", BLUE),
-        ("negative screening", RED),
-        ("planned", MUTED),
+        ("已锁定 / 已完成", GREEN),
+        ("进行中", BLUE),
+        ("反例筛选", RED),
+        ("计划中", MUTED),
     ]
     lx = 0.06
     for label, color in legend_items:

@@ -42,6 +42,18 @@ tamm_interface_state/
 2. `tamm_phase_transition/`：再说明反射相位、相位跃迁和参数分类。
 3. `tamm_interface_state/`：最后说明左右参数拼接后，如何判断界面局域态。
 
+TPP 反射型吸收器当前已形成可展示正结果：
+
+```text
+结构：Air / W / Si spacer / (Si / SiO2)^4 / Si substrate
+固定参数：d_W = 8.42 nm
+优化参数：d_spacer = 320 nm
+峰位：lambda = 3.34 μm
+结果：R = 0.000590，A = 1 - R = 0.999410
+```
+
+该结果应表述为“参考文献结构后的自主参数优化结果”，不要表述为严格复现论文 4.14 μm 完美吸收峰。
+
 当前深化路线：
 
 ```text
