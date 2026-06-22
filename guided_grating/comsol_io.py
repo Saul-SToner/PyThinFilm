@@ -4,7 +4,7 @@ import csv
 import re
 from collections import defaultdict
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional, Sequence
 
 import numpy as np
 
@@ -15,6 +15,28 @@ def _leading_float(text: str) -> float:
     if match is None:
         raise ValueError(f"Cannot parse numeric prefix from value: {text!r}")
     return float(match.group(0))
+
+
+def _find_column_by_keyword(
+    header: Sequence[str],
+    keywords: Sequence[str],
+    *,
+    default: Optional[int] = None,
+) -> Optional[int]:
+    """Find column index whose cleaned header contains any of the keywords.
+
+    Returns the first match, or *default* if nothing matches.
+    Keywords shorter than 2 characters are skipped to avoid false positives
+    (e.g., "r" matching "period").
+    """
+    for i, cell in enumerate(header):
+        cleaned = _clean_header_name(cell).lower()
+        for kw in keywords:
+            if len(kw) < 2:
+                continue
+            if kw.lower() in cleaned:
+                return i
+    return default
 
 
 def load_comsol_grating_csv(csv_path: Path | str) -> Dict[str, Any]:
@@ -38,6 +60,13 @@ def load_comsol_grating_csv(csv_path: Path | str) -> Dict[str, Any]:
         if len(row) >= 2:
             meta[str(row[0]).lstrip("% ").strip()] = str(row[1]).strip()
 
+    # Header-based column lookup with hardcoded fallbacks
+    wl_col = _find_column_by_keyword(header, ["lambda", "wavelength", "wl"], default=0)
+    r_col = _find_column_by_keyword(header, ["R(1)", "Reflectance", "S11"], default=6)
+    t_col = _find_column_by_keyword(header, ["T(1)", "Transmittance", "S21"], default=7)
+    a_col = _find_column_by_keyword(header, ["A(1)", "Absorptance", "abs("], default=9)
+    sum_col = _find_column_by_keyword(header, ["R+T", "RplusT"], default=10)
+
     wavelength_nm: List[float] = []
     r_vals: List[float] = []
     t_vals: List[float] = []
@@ -45,15 +74,15 @@ def load_comsol_grating_csv(csv_path: Path | str) -> Dict[str, Any]:
     sum_vals: List[float] = []
 
     for row in data_rows:
-        wavelength_nm.append(float(row[0]) * 1e9)
-        r_vals.append(_leading_float(row[6]))
-        t_vals.append(_leading_float(row[7]))
-        if len(row) > 9:
-            a_vals.append(abs(_leading_float(row[9])))
+        wavelength_nm.append(float(row[wl_col]) * 1e9)
+        r_vals.append(_leading_float(row[r_col]))
+        t_vals.append(_leading_float(row[t_col]))
+        if a_col is not None and a_col < len(row) and row[a_col].strip():
+            a_vals.append(abs(_leading_float(row[a_col])))
         else:
             a_vals.append(max(0.0, 1.0 - r_vals[-1] - t_vals[-1]))
-        if len(row) > 10:
-            sum_vals.append(_leading_float(row[10]))
+        if sum_col is not None and sum_col < len(row) and row[sum_col].strip():
+            sum_vals.append(_leading_float(row[sum_col]))
         else:
             sum_vals.append(r_vals[-1] + t_vals[-1])
 
@@ -136,6 +165,14 @@ def load_comsol_two_param_sweep(
     active_label = active_sweep_name.replace(" ", "_")
     value_scale, display_unit = _sweep_scale_and_unit(active_sweep_name)
 
+    # Header-based column lookup with hardcoded fallbacks
+    wl_col = _find_column_by_keyword(header, ["lambda", "wavelength", "wl"], default=0)
+    param_col = 1  # sweep parameter is always column 1
+    r_col = _find_column_by_keyword(header, ["R(1)", "Reflectance", "S11"], default=7)
+    t_col = _find_column_by_keyword(header, ["T(1)", "Transmittance", "S21"], default=8)
+    a_col = _find_column_by_keyword(header, ["A(1)", "Absorptance", "abs("], default=10)
+    sum_col = _find_column_by_keyword(header, ["R+T", "RplusT"], default=11)
+
     groups: Dict[str, Dict[str, Any]] = defaultdict(
         lambda: {
             "param_value_raw": 0.0,
@@ -149,16 +186,16 @@ def load_comsol_two_param_sweep(
     )
 
     for row in data_rows:
-        param_value_raw = float(row[1])
+        param_value_raw = float(row[param_col])
         param_value_display = param_value_raw * value_scale
         key = _period_key(param_value_display)
         groups[key]["param_value_raw"] = param_value_raw
         groups[key]["param_value_display"] = param_value_display
-        groups[key]["wavelength_nm"].append(float(row[0]) * 1e9)
-        groups[key]["R"].append(_leading_float(row[7]))
-        groups[key]["T"].append(_leading_float(row[8]))
-        groups[key]["A"].append(abs(_leading_float(row[10])))
-        groups[key]["sum"].append(_leading_float(row[11]))
+        groups[key]["wavelength_nm"].append(float(row[wl_col]) * 1e9)
+        groups[key]["R"].append(_leading_float(row[r_col]))
+        groups[key]["T"].append(_leading_float(row[t_col]))
+        groups[key]["A"].append(abs(_leading_float(row[a_col])))
+        groups[key]["sum"].append(_leading_float(row[sum_col]))
 
     result_groups: Dict[str, Dict[str, Any]] = {}
     for key, series in sorted(groups.items(), key=lambda item: item[1]["param_value_display"]):

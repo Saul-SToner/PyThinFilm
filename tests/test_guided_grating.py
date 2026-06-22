@@ -11,6 +11,7 @@ import pytest
 
 from guided_grating.comsol_io import (
     _clean_header_name,
+    _find_column_by_keyword,
     _leading_float,
     _normalize_sweep_name,
     _sweep_scale_and_unit,
@@ -145,7 +146,37 @@ class TestSweepScaleAndUnit:
 
 
 # ---------------------------------------------------------------------------
-# 5. load_comsol_grating_csv
+# 5. _find_column_by_keyword
+# ---------------------------------------------------------------------------
+
+class TestFindColumnByKeyword:
+    def test_exact_match(self):
+        header = ["% wl (m)", "period (m)", "Reflectance (1)", "Transmittance (1)", "A (1)"]
+        assert _find_column_by_keyword(header, ["Reflectance"]) == 2
+
+    def test_partial_match(self):
+        header = ["% wavelength (m)", "param", "reflectance", "transmittance"]
+        assert _find_column_by_keyword(header, ["reflectance"]) == 2
+
+    def test_case_insensitive(self):
+        header = ["WAVELENGTH", "Period", "R(1)"]
+        assert _find_column_by_keyword(header, ["WAVELENGTH"]) == 0
+
+    def test_multiple_keywords(self):
+        header = ["% lambda (m)", "param", "S11", "S21"]
+        assert _find_column_by_keyword(header, ["R(1)", "S11"]) == 2
+
+    def test_no_match_returns_default(self):
+        header = ["col0", "col1", "col2"]
+        assert _find_column_by_keyword(header, ["Reflectance"], default=5) == 5
+
+    def test_no_match_no_default(self):
+        header = ["col0", "col1"]
+        assert _find_column_by_keyword(header, ["Reflectance"]) is None
+
+
+# ---------------------------------------------------------------------------
+# 6. load_comsol_grating_csv
 # ---------------------------------------------------------------------------
 
 class TestLoadComsolGratingCSV:
