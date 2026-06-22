@@ -48,7 +48,12 @@ class LayerSpec:
     thickness_nm: float
 
 
-REPORT_CHAPTER2_CASES: Dict[str, Dict[str, Any]] = {
+from functools import lru_cache
+
+
+@lru_cache(maxsize=1)
+def _get_report_chapter2_cases() -> Dict[str, Dict[str, Any]]:
+    return {
     "quarter_wave_single_layer": {
         "title_cn": "1/4波长单层膜",
         "title_en": "Quarter-Wave Single Layer",
@@ -331,6 +336,10 @@ REPORT_CHAPTER2_CASES: Dict[str, Dict[str, Any]] = {
         },
     },
 }
+
+
+REPORT_CHAPTER2_CASES = _get_report_chapter2_cases()
+
 
 REPORT_COMPARISON_FIGURES: Dict[str, Dict[str, Any]] = {
     "quarter_wave_stack_periods": {
@@ -2052,6 +2061,77 @@ def export_rugate_comsol_layer_table(
         "json": str(json_path),
         "txt": str(txt_path),
     }
+
+
+@dataclass
+class ReportDesignParams:
+    """Structured parameters for simulate_report_design."""
+    design_type: str = "single_ar"
+    wavelengths_nm: Sequence[float] | None = None
+    theta_deg: float = 0.0
+    pol: str = "p"
+    lambda0_nm: float = 550.0
+    n_incident: float = 1.0
+    n_substrate: float = 1.52
+    n_low: float = 1.38
+    n_porous: float = 1.18
+    n_mid: float = 1.60
+    n_high: float = 2.00
+    n_high_2: float = 2.15
+    k_incident: float = 0.0
+    k_substrate: float = 0.0
+    k_low: float = 0.0
+    k_mid: float = 0.0
+    k_high: float = 0.0
+    k_high_2: float = 0.0
+    periods: int = 3
+    slices_per_period: int | None = None
+    total_layers: int | None = None
+    n_top: float = 1.10
+    n_bottom: float = 1.50
+    d_total_nm: float = 300.0
+    num_gradient_layers: int = 5
+    gradient_type: str = "linear"
+    layer_indices: Sequence[float] | None = None
+    layer_thickness_nm: Sequence[float] | None = None
+    fp_spacer_kind: str = "L"
+    beamsplitter_front_halfwave_low: bool = False
+
+
+def simulate_report_design_from_params(params: ReportDesignParams) -> Dict[str, Any]:
+    """Run a teaching TMM case from a ReportDesignParams instance."""
+    return simulate_report_design(
+        design_type=params.design_type,
+        wavelengths_nm=params.wavelengths_nm,
+        theta_deg=params.theta_deg,
+        pol=params.pol,
+        lambda0_nm=params.lambda0_nm,
+        n_incident=params.n_incident,
+        n_substrate=params.n_substrate,
+        n_low=params.n_low,
+        n_porous=params.n_porous,
+        n_mid=params.n_mid,
+        n_high=params.n_high,
+        n_high_2=params.n_high_2,
+        k_incident=params.k_incident,
+        k_substrate=params.k_substrate,
+        k_low=params.k_low,
+        k_mid=params.k_mid,
+        k_high=params.k_high,
+        k_high_2=params.k_high_2,
+        periods=params.periods,
+        slices_per_period=params.slices_per_period,
+        total_layers=params.total_layers,
+        n_top=params.n_top,
+        n_bottom=params.n_bottom,
+        d_total_nm=params.d_total_nm,
+        num_gradient_layers=params.num_gradient_layers,
+        gradient_type=params.gradient_type,
+        layer_indices=params.layer_indices,
+        layer_thickness_nm=params.layer_thickness_nm,
+        fp_spacer_kind=params.fp_spacer_kind,
+        beamsplitter_front_halfwave_low=params.beamsplitter_front_halfwave_low,
+    )
 
 
 def simulate_report_design(

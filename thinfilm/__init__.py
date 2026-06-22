@@ -58,6 +58,7 @@ from .education import (
     LayerSpec,
     REPORT_CHAPTER2_CASES,
     REPORT_COMPARISON_FIGURES,
+    ReportDesignParams,
     _multilayer_rt_spectrum_scalar,
     build_double_ar_layers,
     build_fp_double_halfwave_layers,
@@ -84,6 +85,7 @@ from .education import (
     simulate_report_case,
     simulate_report_chapter2_suite,
     simulate_report_design,
+    simulate_report_design_from_params,
     simulate_report_design_real_materials,
 )
 from .io import LoadedCSV, SpectrumData, load_reflectance_spec, load_spectrum_csv, parse_loaded_csv, read_csv_once, read_reflectance_csv
@@ -318,6 +320,7 @@ __all__ = [
     "simulate_report_case",
     "simulate_report_chapter2_suite",
     "simulate_report_design",
+    "simulate_report_design_from_params",
     "simulate_report_design_real_materials",
     "simulate_pdrc_cooling",
     "simulate_pdrc_multilayer_cooling",
