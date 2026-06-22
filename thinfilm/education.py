@@ -1832,6 +1832,198 @@ def simulate_pdrc_multilayer_cooling(
     }
 
 
+def simulate_pdrc_multilayer_cooling_real_materials(
+    *,
+    variant: str = "full",
+    wavelengths_um: Sequence[float] | None = None,
+    theta_deg: float = 0.0,
+    pol: str = "p",
+    ag_thickness_nm: float = 500.0,
+    allow_extrapolate: bool = False,
+) -> Dict[str, Any]:
+    """Simulate PDRC multilayer using real-material n(k) data.
+
+    Uses the same stack definition as the surrogate version but loads
+    wavelength-dependent optical constants from ``data/real_nk/`` CSV files.
+    The vectorized TMM kernel processes all wavelengths in a single pass.
+    """
+    from .materials import material_complex_index
+
+    if wavelengths_um is None:
+        lambda_um = _default_pdrc_wavelength_grid_um()
+    else:
+        lambda_um = np.asarray(wavelengths_um, dtype=float).ravel()
+        lambda_um = lambda_um[np.isfinite(lambda_um)]
+        lambda_um = np.unique(lambda_um)
+    if lambda_um.size == 0:
+        raise ValueError("wavelengths_um must contain at least one finite value.")
+
+    stack = build_pdrc_multilayer_stack(variant=variant, ag_thickness_nm=ag_thickness_nm)
+    thicknesses_nm = [float(layer["thickness_nm"]) for layer in stack]
+
+    # Load real n(k) for all materials at all wavelengths (vectorized)
+    n_air = np.ones(len(lambda_um), dtype=complex)
+    n_substrate = np.full(len(lambda_um), 1.52 + 0j, dtype=complex)
+
+    # Determine valid wavelength intersection from all material data
+    from .materials import common_wavelength_window_um
+    material_names = list({str(layer["material"]) for layer in stack})
+    try:
+        valid_names = [m for m in material_names if m not in {"Ag", "Air"}]
+        if valid_names:
+            lower_um, upper_um = common_wavelength_window_um(valid_names)
+            # Clip to valid range with some margin
+            lower_um = max(lower_um, 0.3)
+            upper_um = min(upper_um, 13.0)
+            mask = (lambda_um >= lower_um) & (lambda_um <= upper_um)
+            if np.sum(mask) < 10:
+                raise ValueError(
+                    f"Material data only covers {lower_um:.2f}-{upper_um:.2f} um, "
+                    f"too narrow for PDRC analysis."
+                )
+            lambda_um = lambda_um[mask]
+            wavelengths_nm = lambda_um * 1000.0
+    except (ValueError, KeyError):
+        # If material data is insufficient, use surrogate range
+        pass
+
+    # Build layer index arrays
+    layer_n_arrays: List[np.ndarray] = []
+    for layer in stack:
+        material = str(layer["material"])
+        n_arr = material_complex_index(
+            material, (lambda_um * 1000.0).tolist(),
+            allow_extrapolate=allow_extrapolate,
+        )
+        layer_n_arrays.append(np.asarray(n_arr, dtype=complex))
+
+    # Vectorized TMM: compute per-wavelength n(k) for incident/substrate
+    n_incident_arr = np.ones(len(lambda_um), dtype=complex)
+    n_substrate_arr = np.full(len(lambda_um), 1.52 + 0j, dtype=complex)
+
+    # Use the scalar TMM for each wavelength with proper dispersive n(k)
+    wavelengths_nm = lambda_um * 1000.0
+    lam_m = wavelengths_nm * 1e-9
+
+    # Pre-compute incident/substrate quantities
+    sin_theta0 = np.sin(np.deg2rad(float(theta_deg)))
+    cos_theta0_arr = np.sqrt(1.0 - (n_incident_arr * sin_theta0 / n_incident_arr) ** 2 + 0j)
+    cos_thetas_arr = np.sqrt(1.0 - (n_incident_arr * sin_theta0 / n_substrate_arr) ** 2 + 0j)
+    cos_theta0_arr = np.where(np.real(cos_theta0_arr) < 0, -cos_theta0_arr, cos_theta0_arr)
+    cos_thetas_arr = np.where(np.real(cos_thetas_arr) < 0, -cos_thetas_arr, cos_thetas_arr)
+
+    pol_key = pol.strip().lower()
+    if pol_key == "s":
+        q0_arr = n_incident_arr * cos_theta0_arr
+        qs_arr = n_substrate_arr * cos_thetas_arr
+    else:
+        q0_arr = cos_theta0_arr / n_incident_arr
+        qs_arr = cos_thetas_arr / n_substrate_arr
+
+    # Accumulated matrix elements
+    N = len(lambda_um)
+    M00 = np.ones(N, dtype=complex)
+    M01 = np.zeros(N, dtype=complex)
+    M10 = np.zeros(N, dtype=complex)
+    M11 = np.ones(N, dtype=complex)
+
+    for i, layer in enumerate(stack):
+        n_layer = layer_n_arrays[i]
+        d_m = float(layer["thickness_nm"]) * 1e-9
+
+        cos_theta_layer = np.sqrt(1.0 - (n_incident_arr * sin_theta0 / n_layer) ** 2 + 0j)
+        cos_theta_layer = np.where(np.real(cos_theta_layer) < 0, -cos_theta_layer, cos_theta_layer)
+
+        if pol_key == "s":
+            q_layer = n_layer * cos_theta_layer
+        else:
+            q_layer = cos_theta_layer / n_layer
+
+        delta = (2.0 * np.pi * n_layer * d_m * cos_theta_layer) / lam_m
+
+        c = np.cos(delta)
+        s = np.sin(delta)
+
+        A00 = c
+        A01 = 1j * s / q_layer
+        A10 = 1j * q_layer * s
+        A11 = c
+
+        new00 = M00 * A00 + M01 * A10
+        new01 = M00 * A01 + M01 * A11
+        new10 = M10 * A00 + M11 * A10
+        new11 = M10 * A01 + M11 * A11
+
+        M00, M01, M10, M11 = new00, new01, new10, new11
+
+    b_val = M00 + M01 * qs_arr
+    c_val = M10 + M11 * qs_arr
+    y_in = c_val / b_val
+    r_complex = (q0_arr - y_in) / (q0_arr + y_in)
+    t_complex = (2.0 * q0_arr) / (q0_arr * b_val + c_val)
+
+    R = np.abs(r_complex) ** 2
+    t_scale = np.real(qs_arr / q0_arr)
+    T = np.maximum(0.0, np.abs(t_complex) ** 2 * t_scale)
+    A = np.maximum(0.0, 1.0 - R - T)
+
+    r_arr = R.astype(float)
+    t_arr = T.astype(float)
+    a_arr = A.astype(float)
+    emissivity = a_arr.copy()
+    bands = [_pdrc_band_label(float(lam)) for lam in lambda_um]
+
+    solar_abs = _band_average(lambda_um, a_arr, 0.3, 2.5)
+    solar_ref = _band_average(lambda_um, r_arr, 0.3, 2.5)
+    epsilon_8_13 = _band_average(lambda_um, emissivity, 8.0, 13.0)
+    score = float(epsilon_8_13 - solar_abs)
+
+    representative_wavelengths = np.asarray([0.5, 1.0, 1.5, 8.0, 10.0, 12.0], dtype=float)
+    representative_rows: List[Dict[str, Any]] = []
+    for target in representative_wavelengths:
+        idx = int(np.argmin(np.abs(lambda_um - target)))
+        representative_rows.append(
+            {
+                "lambda_um": float(lambda_um[idx]),
+                "target_lambda_um": float(target),
+                "R": float(r_arr[idx]),
+                "T": float(t_arr[idx]),
+                "A": float(a_arr[idx]),
+                "emissivity": float(emissivity[idx]),
+                "band": bands[idx],
+            }
+        )
+
+    return {
+        "case_id": "pdrc_multilayer_cooling_real_materials",
+        "title_cn": "被动日间辐射冷却薄膜（真实材料色散）",
+        "title_en": "Passive Daytime Radiative Cooling (Real Materials)",
+        "variant": str(variant),
+        "theta_deg": float(theta_deg),
+        "pol": str(pol),
+        "lambda_um": lambda_um,
+        "wavelength_nm": wavelengths_nm,
+        "r_complex": r_complex.astype(complex),
+        "t_complex": t_complex.astype(complex),
+        "R": r_arr,
+        "T": t_arr,
+        "A": a_arr,
+        "emissivity": emissivity,
+        "band": bands,
+        "layers": stack,
+        "optical_constant_note_cn": "使用 RefractiveIndex.INFO 真实材料 n(k) 数据。",
+        "metrics": {
+            "A_solar_avg": solar_abs,
+            "R_solar_avg": solar_ref,
+            "epsilon_8_13_avg": epsilon_8_13,
+            "cooling_score": score,
+            "success_basic": bool(solar_abs < 0.15 and epsilon_8_13 > 0.70),
+            "success_better": bool(solar_abs < 0.10 and epsilon_8_13 > 0.80),
+        },
+        "representative_points": representative_rows,
+    }
+
+
 def export_pdrc_cooling_bundle(
     *,
     prefix: str = "pdrc_multilayer_cooling_v1",
