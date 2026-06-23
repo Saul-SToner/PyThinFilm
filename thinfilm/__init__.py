@@ -191,7 +191,21 @@ try:
     )
     _PLOTLY_AVAILABLE = True
 except ImportError:
-    _PLOTLY_AVAILABLE = False
+        _PLOTLY_AVAILABLE = False
+
+from .education_content import (
+    PARAMETER_DOCS,
+    DESIGN_DOCS,
+    FORMULA_LIBRARY,
+    get_parameter_info,
+    get_design_info,
+    get_formula_info,
+    list_parameters,
+    list_designs,
+    list_formulas,
+    get_parameter_help,
+    get_design_help,
+)
 
 __all__ = [
     "LayerSpec",
