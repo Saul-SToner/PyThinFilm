@@ -65,6 +65,38 @@ SELECTOR_CN = {
     "cavity": "腔层",
 }
 
+# Shared case overrides for sensitivity bundle functions
+_STANDARD_CASE_OVERRIDES: Dict[str, Dict[str, Any]] = {
+    "single_ar": {
+        "theta_deg": 0.0,
+        "pol": "p",
+        "lambda0_nm": 550.0,
+        "n_incident": 1.0,
+        "n_substrate": 1.52,
+        "n_low": 1.38,
+    },
+    "fp_single_halfwave": {
+        "theta_deg": 0.0,
+        "pol": "p",
+        "lambda0_nm": 550.0,
+        "n_incident": 1.0,
+        "n_substrate": 1.0,
+        "n_low": 1.45,
+        "n_high_2": 2.10,
+        "periods": 4,
+    },
+    "high_reflector": {
+        "theta_deg": 0.0,
+        "pol": "p",
+        "lambda0_nm": 550.0,
+        "n_incident": 1.0,
+        "n_substrate": 1.5215,
+        "n_low": 1.45,
+        "n_high_2": 2.10,
+        "periods": 6,
+    },
+}
+
 
 def _feature_mode(case_id: str, quantity: str) -> str:
     key = str(case_id).strip().lower()
@@ -997,43 +1029,8 @@ def export_standard_system_error_bundle(
     thickness_scale_values: Sequence[float] = (0.98, 0.99, 0.995, 1.0, 1.005, 1.01, 1.02),
 ) -> Dict[str, Any]:
     case_configs = [
-        (
-            "single_ar",
-            {
-                "theta_deg": 0.0,
-                "pol": "p",
-                "lambda0_nm": 550.0,
-                "n_incident": 1.0,
-                "n_substrate": 1.52,
-                "n_low": 1.38,
-            },
-        ),
-        (
-            "fp_single_halfwave",
-            {
-                "theta_deg": 0.0,
-                "pol": "p",
-                "lambda0_nm": 550.0,
-                "n_incident": 1.0,
-                "n_substrate": 1.0,
-                "n_low": 1.45,
-                "n_high_2": 2.10,
-                "periods": 4,
-            },
-        ),
-        (
-            "high_reflector",
-            {
-                "theta_deg": 0.0,
-                "pol": "p",
-                "lambda0_nm": 550.0,
-                "n_incident": 1.0,
-                "n_substrate": 1.5215,
-                "n_low": 1.45,
-                "n_high_2": 2.10,
-                "periods": 6,
-            },
-        ),
+        (case_id, overrides)
+        for case_id, overrides in _STANDARD_CASE_OVERRIDES.items()
     ]
 
     angle_results: Dict[str, Dict[str, Any]] = {}
@@ -1094,43 +1091,11 @@ def export_layerwise_thickness_error_bundle(
     thickness_scale_values: Sequence[float] = (0.98, 0.99, 0.995, 1.0, 1.005, 1.01, 1.02),
 ) -> Dict[str, Any]:
     case_configs = {
-        "single_ar": {
-            "overrides": {
-                "theta_deg": 0.0,
-                "pol": "p",
-                "lambda0_nm": 550.0,
-                "n_incident": 1.0,
-                "n_substrate": 1.52,
-                "n_low": 1.38,
-            },
-            "selectors": ["low"],
-        },
-        "fp_single_halfwave": {
-            "overrides": {
-                "theta_deg": 0.0,
-                "pol": "p",
-                "lambda0_nm": 550.0,
-                "n_incident": 1.0,
-                "n_substrate": 1.0,
-                "n_low": 1.45,
-                "n_high_2": 2.10,
-                "periods": 4,
-            },
-            "selectors": ["high", "low", "cavity"],
-        },
-        "high_reflector": {
-            "overrides": {
-                "theta_deg": 0.0,
-                "pol": "p",
-                "lambda0_nm": 550.0,
-                "n_incident": 1.0,
-                "n_substrate": 1.5215,
-                "n_low": 1.45,
-                "n_high_2": 2.10,
-                "periods": 6,
-            },
-            "selectors": ["high", "low"],
-        },
+        case_id: {
+            "overrides": overrides,
+            "selectors": ["low"] if case_id == "single_ar" else ["high", "low", "cavity"] if "fp" in case_id else ["high", "low"],
+        }
+        for case_id, overrides in _STANDARD_CASE_OVERRIDES.items()
     }
 
     results: Dict[str, Dict[str, Dict[str, Any]]] = {}
@@ -1287,43 +1252,11 @@ def export_refined_layer_tolerance_bundle(
     thickness_scale_values: Sequence[float] = (0.99, 0.9925, 0.995, 0.9975, 1.0, 1.0025, 1.005, 1.0075, 1.01),
 ) -> Dict[str, Any]:
     case_configs = {
-        "single_ar": {
-            "overrides": {
-                "theta_deg": 0.0,
-                "pol": "p",
-                "lambda0_nm": 550.0,
-                "n_incident": 1.0,
-                "n_substrate": 1.52,
-                "n_low": 1.38,
-            },
-            "selector": "low",
-        },
-        "fp_single_halfwave": {
-            "overrides": {
-                "theta_deg": 0.0,
-                "pol": "p",
-                "lambda0_nm": 550.0,
-                "n_incident": 1.0,
-                "n_substrate": 1.0,
-                "n_low": 1.45,
-                "n_high_2": 2.10,
-                "periods": 4,
-            },
-            "selector": "low",
-        },
-        "high_reflector": {
-            "overrides": {
-                "theta_deg": 0.0,
-                "pol": "p",
-                "lambda0_nm": 550.0,
-                "n_incident": 1.0,
-                "n_substrate": 1.5215,
-                "n_low": 1.45,
-                "n_high_2": 2.10,
-                "periods": 6,
-            },
-            "selector": "high",
-        },
+        case_id: {
+            "overrides": overrides,
+            "selector": "low" if case_id != "high_reflector" else "high",
+        }
+        for case_id, overrides in _STANDARD_CASE_OVERRIDES.items()
     }
 
     results: Dict[str, Dict[str, Any]] = {}
@@ -1575,44 +1508,14 @@ def export_standard_refined_angle_bundle(
     *,
     prefix: str = "teaching_refined_angle_standard",
 ) -> Dict[str, Any]:
+    _DEFAULT_THETA = (0.0, 0.2, 0.5, 0.8, 1.0, 1.2, 1.5, 2.0)
+    _FP_THETA = (0.0, 0.1, 0.2, 0.3, 0.5, 0.8, 1.0, 1.5)
     case_configs = {
-        "single_ar": {
-            "theta_values_deg": (0.0, 0.2, 0.5, 0.8, 1.0, 1.2, 1.5, 2.0),
-            "overrides": {
-                "theta_deg": 0.0,
-                "pol": "p",
-                "lambda0_nm": 550.0,
-                "n_incident": 1.0,
-                "n_substrate": 1.52,
-                "n_low": 1.38,
-            },
-        },
-        "fp_single_halfwave": {
-            "theta_values_deg": (0.0, 0.1, 0.2, 0.3, 0.5, 0.8, 1.0, 1.5),
-            "overrides": {
-                "theta_deg": 0.0,
-                "pol": "p",
-                "lambda0_nm": 550.0,
-                "n_incident": 1.0,
-                "n_substrate": 1.0,
-                "n_low": 1.45,
-                "n_high_2": 2.10,
-                "periods": 4,
-            },
-        },
-        "high_reflector": {
-            "theta_values_deg": (0.0, 0.2, 0.5, 0.8, 1.0, 1.2, 1.5, 2.0),
-            "overrides": {
-                "theta_deg": 0.0,
-                "pol": "p",
-                "lambda0_nm": 550.0,
-                "n_incident": 1.0,
-                "n_substrate": 1.5215,
-                "n_low": 1.45,
-                "n_high_2": 2.10,
-                "periods": 6,
-            },
-        },
+        case_id: {
+            "theta_values_deg": _FP_THETA if "fp" in case_id else _DEFAULT_THETA,
+            "overrides": overrides,
+        }
+        for case_id, overrides in _STANDARD_CASE_OVERRIDES.items()
     }
 
     results: Dict[str, Dict[str, Any]] = {}
@@ -1817,59 +1720,17 @@ def export_standard_refined_tolerance_bundle(
     *,
     prefix: str = "teaching_refined_tolerance_standard",
 ) -> Dict[str, Any]:
+    _AR_SCALES = (0.994, 0.995, 0.996, 0.997, 0.998, 0.999, 1.0, 1.001, 1.002, 1.003, 1.004, 1.005, 1.006)
+    _FP_SCALES = (0.9975, 0.9980, 0.9985, 0.9990, 0.9995, 1.0, 1.0005, 1.0010, 1.0015, 1.0020, 1.0025)
+    _HR_SCALES = (0.9925, 0.9930, 0.9935, 0.9940, 0.9945, 0.9950, 0.9975, 1.0, 1.0025, 1.0050, 1.0055, 1.0060, 1.0065, 1.0070, 1.0075)
+    _SCALES_MAP = {"single_ar": _AR_SCALES, "fp_single_halfwave": _FP_SCALES, "high_reflector": _HR_SCALES}
     case_configs = {
-        "single_ar": {
-            "selector": "low",
-            "scale_values": (
-                0.994, 0.995, 0.996, 0.997, 0.998, 0.999,
-                1.0,
-                1.001, 1.002, 1.003, 1.004, 1.005, 1.006,
-            ),
-            "overrides": {
-                "theta_deg": 0.0,
-                "pol": "p",
-                "lambda0_nm": 550.0,
-                "n_incident": 1.0,
-                "n_substrate": 1.52,
-                "n_low": 1.38,
-            },
-        },
-        "fp_single_halfwave": {
-            "selector": "low",
-            "scale_values": (
-                0.9975, 0.9980, 0.9985, 0.9990, 0.9995,
-                1.0,
-                1.0005, 1.0010, 1.0015, 1.0020, 1.0025,
-            ),
-            "overrides": {
-                "theta_deg": 0.0,
-                "pol": "p",
-                "lambda0_nm": 550.0,
-                "n_incident": 1.0,
-                "n_substrate": 1.0,
-                "n_low": 1.45,
-                "n_high_2": 2.10,
-                "periods": 4,
-            },
-        },
-        "high_reflector": {
-            "selector": "high",
-            "scale_values": (
-                0.9925, 0.9930, 0.9935, 0.9940, 0.9945, 0.9950,
-                0.9975, 1.0, 1.0025,
-                1.0050, 1.0055, 1.0060, 1.0065, 1.0070, 1.0075,
-            ),
-            "overrides": {
-                "theta_deg": 0.0,
-                "pol": "p",
-                "lambda0_nm": 550.0,
-                "n_incident": 1.0,
-                "n_substrate": 1.5215,
-                "n_low": 1.45,
-                "n_high_2": 2.10,
-                "periods": 6,
-            },
-        },
+        case_id: {
+            "selector": "low" if case_id != "high_reflector" else "high",
+            "scale_values": _SCALES_MAP[case_id],
+            "overrides": overrides,
+        }
+        for case_id, overrides in _STANDARD_CASE_OVERRIDES.items()
     }
 
     results: Dict[str, Dict[str, Any]] = {}
