@@ -3,12 +3,15 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Dict
 
+import numpy as np
+
 from .comsol_io import (
     load_comsol_grating_csv,
     load_comsol_two_param_sweep,
 )
 from .export import export_guided_grating_result, export_guided_grating_sweep_summary
 from .models import GuidedGratingSpec, GratingSweepConfig
+from .rcwa import GratingLayer, rcwa_1d
 from .solver import simulate_guided_grating_placeholder
 from .spectra import summarize_guided_grating_spectrum, summarize_lambda_period_sweep
 
@@ -107,4 +110,87 @@ def run_comsol_two_param_sweep_demo(
         "best_result": best_result.get("spec", {}),
         "files": files,
         "source_csv": bundle.get("source_csv"),
+    }
+
+
+def run_rcwa_demo(
+    *,
+    period_nm: float = 980.0,
+    grating_thickness_nm: float = 200.0,
+    n_low: float = 1.45,
+    n_high: float = 3.4,
+    fill_factor: float = 0.55,
+    n_incident: float = 1.0,
+    n_substrate: float = 1.45,
+    theta_deg: float = 0.0,
+    pol: str = "TE",
+    wavelength_start_nm: float = 1450.0,
+    wavelength_stop_nm: float = 1650.0,
+    num_points: int = 201,
+    prefix: str = "guided_grating_rcwa",
+) -> Dict[str, Any]:
+    """Run RCWA simulation for a 1D binary grating.
+
+    This demonstrates the autonomous RCWA solver without COMSOL dependency.
+    """
+    grating = GratingLayer(
+        period_nm=period_nm,
+        thickness_nm=grating_thickness_nm,
+        n_low=n_low,
+        n_high=n_high,
+        fill_factor=fill_factor,
+    )
+
+    wavelengths = np.linspace(wavelength_start_nm, wavelength_stop_nm, num_points)
+
+    result = rcwa_1d(
+        wavelengths, grating,
+        n_incident=n_incident,
+        n_substrate=n_substrate,
+        theta_deg=theta_deg,
+        pol=pol,
+    )
+
+    # Convert to standard format for export
+    export_result = {
+        "sample_id": f"rcwa_{pol.lower()}",
+        "model_type": "rcwa_1d_emt",
+        "is_placeholder": False,
+        "backend": "rcwa",
+        "warning": "Using effective medium approximation (EMT) for subwavelength gratings.",
+        "spec": {
+            "period_nm": period_nm,
+            "grating_thickness_nm": grating_thickness_nm,
+            "n_low": n_low,
+            "n_high": n_high,
+            "fill_factor": fill_factor,
+            "n_incident": n_incident,
+            "n_substrate": n_substrate,
+            "theta_deg": theta_deg,
+            "pol": pol,
+        },
+        "wavelength_nm": result["wavelength_nm"],
+        "R": result["R"],
+        "T": result["T"],
+        "A": result["A"],
+    }
+
+    summary = summarize_guided_grating_spectrum(export_result)
+    files = export_guided_grating_result(
+        export_result,
+        prefix=prefix,
+        target_wavelength_nm=(wavelength_start_nm + wavelength_stop_nm) / 2,
+    )
+
+    return {
+        "rcwa_result": result,
+        "summary": summary,
+        "files": files,
+        "grating": {
+            "period_nm": period_nm,
+            "thickness_nm": grating_thickness_nm,
+            "n_low": n_low,
+            "n_high": n_high,
+            "fill_factor": fill_factor,
+        },
     }

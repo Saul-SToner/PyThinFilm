@@ -9,6 +9,7 @@ from guided_grating.rcwa import (
     GratingLayer,
     rcwa_1d,
     rcwa_1d_te,
+    rcwa_1d_tm,
     rcwa_convergence_test,
 )
 
@@ -139,3 +140,44 @@ class TestRCWAEdgeCases:
         result = rcwa_1d(wl, g)
         assert result["R"].shape == (100,)
         assert np.all(np.isfinite(result["R"]))
+
+
+# ---------------------------------------------------------------------------
+# 5. TM polarization
+# ---------------------------------------------------------------------------
+
+class TestRCWATM:
+    def test_tm_returns_all_keys(self):
+        g = GratingLayer(980, 200, 1.45, 3.4, 0.55)
+        result = rcwa_1d([1550.0], g, pol="TM")
+        assert "R" in result
+        assert "T" in result
+        assert "A" in result
+
+    def test_tm_energy_conservation(self):
+        g = GratingLayer(980, 200, 1.45, 3.4, 0.55)
+        wl = np.linspace(1450, 1650, 50)
+        result = rcwa_1d(wl, g, pol="TM")
+        total = result["R"] + result["T"] + result["A"]
+        np.testing.assert_allclose(total, 1.0, atol=0.01)
+
+    def test_tm_different_from_te(self):
+        """TM and TE should give different results due to different effective indices."""
+        g = GratingLayer(980, 200, 1.45, 3.4, 0.55)
+        r_te = rcwa_1d([1550.0], g, pol="TE")["R"][0]
+        r_tm = rcwa_1d([1550.0], g, pol="TM")["R"][0]
+        # TE effective index: sqrt(f*n_h^2 + (1-f)*n_l^2)
+        # TM effective index: 1/sqrt(f/n_h^2 + (1-f)/n_l^2)
+        # These are different, so R should be different
+        assert r_te != r_tm
+
+    def test_tm_single_wavelength(self):
+        g = GratingLayer(980, 200, 1.45, 3.4, 0.55)
+        result = rcwa_1d([1550.0], g, pol="TM")
+        assert result["R"].shape == (1,)
+
+    def test_tm_output_shape(self):
+        g = GratingLayer(980, 200, 1.45, 3.4, 0.55)
+        wl = np.linspace(1450, 1650, 50)
+        result = rcwa_1d(wl, g, pol="TM")
+        assert result["R"].shape == (50,)

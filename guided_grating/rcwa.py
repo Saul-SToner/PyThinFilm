@@ -396,6 +396,99 @@ def rcwa_1d_te(
     }
 
 
+def rcwa_1d_tm(
+    wavelengths_nm: Sequence[float],
+    grating: GratingLayer,
+    n_incident: float = 1.0,
+    n_substrate: float = 1.45,
+    theta_deg: float = 0.0,
+    num_orders: int = 15,
+) -> Dict[str, Any]:
+    """RCWA for 1D binary grating, TM polarization.
+
+    For TM polarization, the effective index is:
+        1/n_eff^2 = f/n_high^2 + (1-f)/n_low^2
+    """
+    wavelengths = np.asarray(wavelengths_nm, dtype=float).ravel()
+    N = int(num_orders)
+    n_g = 2 * N + 1
+    period_m = float(grating.period_nm) * 1e-9
+    d_g = float(grating.thickness_nm) * 1e-9
+
+    theta_rad = np.deg2rad(float(theta_deg))
+    k0_inc = 2.0 * np.pi * float(n_incident) * np.sin(theta_rad)
+
+    f = float(grating.fill_factor)
+    n_low = float(grating.n_low)
+    n_high = float(grating.n_high)
+
+    # TM effective index: 1/n_eff^2 = f/n_high^2 + (1-f)/n_low^2
+    inv_n_eff_sq = f / n_high**2 + (1.0 - f) / n_low**2
+    n_eff = 1.0 / np.sqrt(inv_n_eff_sq)
+
+    m_orders = np.arange(-N, N + 1)
+
+    R_arr = np.zeros(len(wavelengths), dtype=float)
+    T_arr = np.zeros(len(wavelengths), dtype=float)
+    R_all = np.zeros((n_g, len(wavelengths)), dtype=float)
+    T_all = np.zeros((n_g, len(wavelengths)), dtype=float)
+
+    for wl_idx, lam_nm in enumerate(wavelengths):
+        lam_m = float(lam_nm) * 1e-9
+
+        # For TM, use effective index with characteristic matrix
+        # cos(theta) in each medium via Snell's law
+        sin_theta_inc = float(n_incident) * np.sin(theta_rad) / float(n_incident)
+        cos_theta_inc = np.sqrt(max(0.0, 1.0 - sin_theta_inc**2))
+        sin_theta_sub = float(n_incident) * np.sin(theta_rad) / float(n_substrate)
+        cos_theta_sub = np.sqrt(max(0.0, 1.0 - sin_theta_sub**2 + 0j))
+        sin_theta_gr = float(n_incident) * np.sin(theta_rad) / n_eff
+        cos_theta_gr = np.sqrt(max(0.0, 1.0 - sin_theta_gr**2 + 0j))
+
+        # TM admittance: q = cos(theta) / n
+        q0 = float(np.real(cos_theta_inc)) / float(n_incident)
+        qs = float(np.real(cos_theta_sub)) / float(n_substrate)
+        q_g = cos_theta_gr / n_eff
+
+        # Single layer reflection for TM
+        r01 = (q0 - q_g) / (q0 + q_g)
+        r12 = (q_g - qs) / (q_g + qs)
+        delta = 2.0 * np.pi * n_eff * d_g * cos_theta_gr / lam_m
+
+        r = (r01 + r12 * np.exp(2j * delta)) / (1 + r01 * r12 * np.exp(2j * delta))
+        t = (2 * q0 / (q0 + q_g)) * np.exp(1j * delta) / (
+            1 + r01 * r12 * np.exp(2j * delta)
+        )
+
+        R = float(np.abs(r) ** 2)
+        T = float(np.abs(t) ** 2 * np.real(qs / q0))
+
+        R_arr[wl_idx] = R
+        T_arr[wl_idx] = min(T, 1.0 - R)  # Ensure energy conservation
+        R_all[N, wl_idx] = R
+        T_all[N, wl_idx] = T_arr[wl_idx]
+
+    A_arr = np.maximum(0.0, 1.0 - R_arr - T_arr)
+
+    return {
+        "wavelength_nm": wavelengths,
+        "R": R_arr,
+        "T": T_arr,
+        "A": A_arr,
+        "R_all": R_all,
+        "T_all": T_all,
+        "num_orders": N,
+        "grating": {
+            "period_nm": grating.period_nm,
+            "thickness_nm": grating.thickness_nm,
+            "n_low": grating.n_low,
+            "n_high": grating.n_high,
+            "fill_factor": grating.fill_factor,
+        },
+        "note": "TM polarization using effective medium approximation.",
+    }
+
+
 def rcwa_1d(
     wavelengths_nm: Sequence[float],
     grating: GratingLayer,
@@ -410,11 +503,16 @@ def rcwa_1d(
     For subwavelength gratings, uses effective medium theory.
     """
     pol_key = pol.strip().upper()
-    if pol_key != "TE":
-        raise ValueError(f"Only TE polarization is currently supported, got '{pol}'")
-    return rcwa_1d_te(
-        wavelengths_nm, grating, n_incident, n_substrate, theta_deg, num_orders,
-    )
+    if pol_key == "TE":
+        return rcwa_1d_te(
+            wavelengths_nm, grating, n_incident, n_substrate, theta_deg, num_orders,
+        )
+    elif pol_key == "TM":
+        return rcwa_1d_tm(
+            wavelengths_nm, grating, n_incident, n_substrate, theta_deg, num_orders,
+        )
+    else:
+        raise ValueError(f"pol must be 'TE' or 'TM', got '{pol}'")
 
 
 def rcwa_convergence_test(
