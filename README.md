@@ -23,7 +23,7 @@ python run_material_library_demo.py
 
 ## 0. 测试
 
-运行全部测试（220 个用例）：
+运行全部测试（270 个用例）：
 
 ```bash
 python -m pytest tests/ -v
@@ -540,12 +540,90 @@ sweep = load_comsol_two_param_sweep("path/to/sweep.csv", sweep_name="period")
 
 新增 55 个单元测试覆盖 comsol_io、spectra、solver、models 全模块。
 
-## 12. 环境依赖
+## 12. 工程应用案例（TMM-only）
+
+当前提供 5 个 TMM-only 工程应用案例，无需 COMSOL 依赖：
+
+```python
+from examples.applications import (
+    run_solar_cell_ar,      # 太阳能电池减反膜
+    run_wdm_filter,         # 通信 WDM 滤光片
+    run_laser_mirror,       # 激光高反镜 / DBR
+    run_phone_lens_ar,      # 手机镜头多层 AR
+    run_smart_window,       # 智能窗户多层膜
+)
+
+result = run_solar_cell_ar(save_html=True, output_dir="outputs/solar_cell_ar")
+```
+
+每个案例包含：工程背景、膜系结构、设计目标、关键指标、物理解释、Plotly 交互图表。
+
+## 13. Plotly 交互式图表
+
+提供 7 种 Plotly 交互图表函数（可选依赖 `pip install plotly`）：
+
+```python
+from thinfilm import (
+    plot_rta_spectrum,           # R/T/A 光谱交互图
+    plot_layer_structure,        # 膜层结构示意图
+    plot_angle_wavelength_surface,  # 角度-波长 3D 曲面
+    plot_field_distribution,     # 电场分布热图
+    plot_convergence,            # RCWA 收敛性测试图
+    plot_design_comparison,      # 多设计对比图
+    plot_pdrc_dashboard,         # PDRC 光谱仪表盘
+)
+
+fig = plot_rta_spectrum(wavelengths, R, T, A, design_type="单层减反膜")
+fig.write_html("spectrum.html")
+```
+
+## 14. 教育内容模块
+
+提供参数说明、设计原理、公式库，供前端展示：
+
+```python
+from thinfilm import (
+    get_parameter_info,   # 参数说明（物理意义、典型范围、公式）
+    get_design_info,      # 设计类型说明（原理、应用、局限性）
+    get_parameter_help,   # 格式化参数帮助文本
+    get_design_help,      # 格式化设计帮助文本
+    list_parameters,      # 列出所有参数
+    list_designs,         # 列出所有设计类型
+)
+
+info = get_parameter_info("n_low")
+# 返回: {"name_cn": "低折射率层", "formula": r"n_L", "typical_range": "1.38~1.46", ...}
+```
+
+## 15. COMSOL 依赖说明
+
+**教学平台不依赖 COMSOL 作为运行依赖。**
+
+| 模块 | 依赖 | 说明 |
+|------|------|------|
+| TMM 核心 | 独立 | Python TMM 精确求解 |
+| 工程应用案例 | TMM-only | 无需 COMSOL |
+| 真实材料模块 | nk CSV | 无需 COMSOL |
+| RCWA 求解器 | 独立 | Python RCWA 求解 |
+| COMSOL CSV 读取 | 可选 | 仅用于导入外部数据 |
+
+COMSOL 仅作为：
+- 高级验证源（论文发表时交叉验证）
+- 外部参考数据（导入已有的 COMSOL 导出文件）
+- 非必需的高级功能
+
+## 16. 环境依赖
 
 安装依赖：
 
 ```bash
 pip install -r requirements.txt
+```
+
+可选依赖（Plotly 交互图表）：
+
+```bash
+pip install plotly
 ```
 
 缓存与输出忽略规则见：
@@ -554,7 +632,7 @@ pip install -r requirements.txt
 .gitignore
 ```
 
-## 13. 一键生成验证与性能总包
+## 17. 一键生成验证与性能总包
 
 如果已经准备好三类 COMSOL CSV：
 
@@ -606,7 +684,7 @@ result = export_final_delivery_bundle(
 )
 ```
 
-## 14. 高级减反专题总包
+## 18. 高级减反专题总包
 
 当前仓库已支持一个独立的“高级减反专题”总包，用于并列展示：
 
@@ -649,7 +727,7 @@ result = export_advanced_ar_topic_bundle(
 - 综合摘要 CSV / JSON / TXT
 - Manifest 清单
 
-## 15. 前沿研究模型树
+## 19. 前沿研究模型树
 
 当前仓库除了教学主树和研究支线外，还新增了一棵**前沿研究模型树**，用于承接不适合直接放进教学主树首页、但需要正式组织推进的创新模块。
 
