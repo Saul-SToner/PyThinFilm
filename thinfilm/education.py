@@ -1724,20 +1724,8 @@ def _band_average(x_values: np.ndarray, y_values: np.ndarray, lower: float, uppe
     return float(np.trapezoid(y_values[mask], x_values[mask]) / (float(upper) - float(lower)))
 
 
-def simulate_pdrc_multilayer_cooling(
-    *,
-    variant: str = "full",
-    wavelengths_um: Sequence[float] | None = None,
-    theta_deg: float = 0.0,
-    pol: str = "p",
-    ag_thickness_nm: float = 500.0,
-) -> Dict[str, Any]:
-    """Simulate a first-pass PDRC multilayer using wideband TMM.
-
-    This module is intentionally separated from the teaching main tree.  It is
-    meant as a fast design-screening entry point before COMSOL representative
-    point validation.
-    """
+def _normalize_pdrc_wavelength_grid(wavelengths_um: Sequence[float] | None) -> np.ndarray:
+    """Normalize and validate PDRC wavelength grid."""
     if wavelengths_um is None:
         lambda_um = _default_pdrc_wavelength_grid_um()
     else:
@@ -1746,38 +1734,27 @@ def simulate_pdrc_multilayer_cooling(
         lambda_um = np.unique(lambda_um)
     if lambda_um.size == 0:
         raise ValueError("wavelengths_um must contain at least one finite value.")
+    return lambda_um
 
-    stack = build_pdrc_multilayer_stack(variant=variant, ag_thickness_nm=ag_thickness_nm)
-    thicknesses_nm = [float(layer["thickness_nm"]) for layer in stack]
-    r_vals: List[complex] = []
-    t_vals: List[complex] = []
-    r_power: List[float] = []
-    t_power: List[float] = []
-    a_power: List[float] = []
 
-    for lam_um in lambda_um:
-        layer_indices = [
-            _pdrc_material_index(str(layer["material"]), float(lam_um))
-            for layer in stack
-        ]
-        one = _multilayer_rt_single_wavelength(
-            wavelength_nm=float(lam_um) * 1000.0,
-            layer_indices=layer_indices,
-            thicknesses_nm=thicknesses_nm,
-            n_incident=1.0 + 0.0j,
-            n_substrate=_pdrc_substrate_index(float(lam_um)),
-            theta0_deg=float(theta_deg),
-            pol=pol,
-        )
-        r_vals.append(complex(one["r_complex"]))
-        t_vals.append(complex(one["t_complex"]))
-        r_power.append(float(one["R"]))
-        t_power.append(float(one["T"]))
-        a_power.append(float(one["A"]))
-
-    r_arr = np.asarray(r_power, dtype=float)
-    t_arr = np.asarray(t_power, dtype=float)
-    a_arr = np.asarray(a_power, dtype=float)
+def _pdrc_compute_metrics(
+    lambda_um: np.ndarray,
+    r_arr: np.ndarray,
+    t_arr: np.ndarray,
+    a_arr: np.ndarray,
+    r_complex: np.ndarray,
+    t_complex: np.ndarray,
+    stack: List[Dict[str, Any]],
+    *,
+    variant: str,
+    theta_deg: float,
+    pol: str,
+    case_id: str,
+    title_cn: str,
+    title_en: str,
+    optical_note: str,
+) -> Dict[str, Any]:
+    """Shared post-processing for PDRC simulation results."""
     emissivity = a_arr.copy()
     bands = [_pdrc_band_label(float(lam)) for lam in lambda_um]
 
@@ -1803,23 +1780,23 @@ def simulate_pdrc_multilayer_cooling(
         )
 
     return {
-        "case_id": "pdrc_multilayer_cooling",
-        "title_cn": "被动日间辐射冷却薄膜光谱调控模块",
-        "title_en": "Passive Daytime Radiative Cooling Multilayer",
+        "case_id": case_id,
+        "title_cn": title_cn,
+        "title_en": title_en,
         "variant": str(variant),
         "theta_deg": float(theta_deg),
         "pol": str(pol),
         "lambda_um": lambda_um,
         "wavelength_nm": lambda_um * 1000.0,
-        "r_complex": np.asarray(r_vals, dtype=complex),
-        "t_complex": np.asarray(t_vals, dtype=complex),
+        "r_complex": r_complex,
+        "t_complex": t_complex,
         "R": r_arr,
         "T": t_arr,
         "A": a_arr,
         "emissivity": emissivity,
         "band": bands,
         "layers": stack,
-        "optical_constant_note_cn": "第一版使用内置有效光学常数近似；后续可替换为实测 n,k 数据。",
+        "optical_constant_note_cn": optical_note,
         "metrics": {
             "A_solar_avg": solar_abs,
             "R_solar_avg": solar_ref,
@@ -1830,6 +1807,110 @@ def simulate_pdrc_multilayer_cooling(
         },
         "representative_points": representative_rows,
     }
+
+
+def simulate_pdrc_multilayer_cooling(
+    *,
+    variant: str = "full",
+    wavelengths_um: Sequence[float] | None = None,
+    theta_deg: float = 0.0,
+    pol: str = "p",
+    ag_thickness_nm: float = 500.0,
+) -> Dict[str, Any]:
+    """Simulate a first-pass PDRC multilayer using wideband TMM.
+
+    This module is intentionally separated from the teaching main tree.  It is
+    meant as a fast design-screening entry point before COMSOL representative
+    point validation.
+    """
+    lambda_um = _normalize_pdrc_wavelength_grid(wavelengths_um)
+
+    stack = build_pdrc_multilayer_stack(variant=variant, ag_thickness_nm=ag_thickness_nm)
+    thicknesses_nm = [float(layer["thickness_nm"]) for layer in stack]
+    wavelengths_nm = lambda_um * 1000.0
+    lam_m = wavelengths_nm * 1e-9
+
+    # Vectorized: compute all material indices at once
+    n_incident = np.ones(len(lambda_um), dtype=complex)
+    n_substrate = np.array([_pdrc_substrate_index(float(lam)) for lam in lambda_um], dtype=complex)
+
+    # Build per-wavelength layer index arrays
+    layer_n_arrays: List[np.ndarray] = []
+    for layer in stack:
+        material = str(layer["material"])
+        n_arr = np.array([_pdrc_material_index(material, float(lam)) for lam in lambda_um], dtype=complex)
+        layer_n_arrays.append(n_arr)
+
+    # Vectorized TMM
+    sin_theta0 = np.sin(np.deg2rad(float(theta_deg)))
+    cos_theta0_arr = np.sqrt(1.0 - (n_incident * sin_theta0 / n_incident) ** 2 + 0j)
+    cos_thetas_arr = np.sqrt(1.0 - (n_incident * sin_theta0 / n_substrate) ** 2 + 0j)
+    cos_theta0_arr = np.where(np.real(cos_theta0_arr) < 0, -cos_theta0_arr, cos_theta0_arr)
+    cos_thetas_arr = np.where(np.real(cos_thetas_arr) < 0, -cos_thetas_arr, cos_thetas_arr)
+
+    pol_key = pol.strip().lower()
+    if pol_key == "s":
+        q0_arr = n_incident * cos_theta0_arr
+        qs_arr = n_substrate * cos_thetas_arr
+    else:
+        q0_arr = cos_theta0_arr / n_incident
+        qs_arr = cos_thetas_arr / n_substrate
+
+    N = len(lambda_um)
+    M00 = np.ones(N, dtype=complex)
+    M01 = np.zeros(N, dtype=complex)
+    M10 = np.zeros(N, dtype=complex)
+    M11 = np.ones(N, dtype=complex)
+
+    for i, layer in enumerate(stack):
+        n_layer = layer_n_arrays[i]
+        d_m = float(layer["thickness_nm"]) * 1e-9
+
+        cos_theta_layer = np.sqrt(1.0 - (n_incident * sin_theta0 / n_layer) ** 2 + 0j)
+        cos_theta_layer = np.where(np.real(cos_theta_layer) < 0, -cos_theta_layer, cos_theta_layer)
+
+        if pol_key == "s":
+            q_layer = n_layer * cos_theta_layer
+        else:
+            q_layer = cos_theta_layer / n_layer
+
+        delta = (2.0 * np.pi * n_layer * d_m * cos_theta_layer) / lam_m
+
+        c = np.cos(delta)
+        s = np.sin(delta)
+
+        A00 = c
+        A01 = 1j * s / q_layer
+        A10 = 1j * q_layer * s
+        A11 = c
+
+        new00 = M00 * A00 + M01 * A10
+        new01 = M00 * A01 + M01 * A11
+        new10 = M10 * A00 + M11 * A10
+        new11 = M10 * A01 + M11 * A11
+
+        M00, M01, M10, M11 = new00, new01, new10, new11
+
+    b_val = M00 + M01 * qs_arr
+    c_val = M10 + M11 * qs_arr
+    y_in = c_val / b_val
+    r_complex = (q0_arr - y_in) / (q0_arr + y_in)
+    t_complex = (2.0 * q0_arr) / (q0_arr * b_val + c_val)
+
+    R = np.abs(r_complex) ** 2
+    t_scale = np.real(qs_arr / q0_arr)
+    T = np.maximum(0.0, np.abs(t_complex) ** 2 * t_scale)
+    A = np.maximum(0.0, 1.0 - R - T)
+
+    return _pdrc_compute_metrics(
+        lambda_um, R.astype(float), T.astype(float), A.astype(float),
+        r_complex, t_complex, stack,
+        variant=variant, theta_deg=theta_deg, pol=pol,
+        case_id="pdrc_multilayer_cooling",
+        title_cn="被动日间辐射冷却薄膜光谱调控模块",
+        title_en="Passive Daytime Radiative Cooling Multilayer",
+        optical_note="第一版使用内置有效光学常数近似；后续可替换为实测 n,k 数据。",
+    )
 
 
 def simulate_pdrc_multilayer_cooling_real_materials(
@@ -1849,14 +1930,7 @@ def simulate_pdrc_multilayer_cooling_real_materials(
     """
     from .materials import material_complex_index
 
-    if wavelengths_um is None:
-        lambda_um = _default_pdrc_wavelength_grid_um()
-    else:
-        lambda_um = np.asarray(wavelengths_um, dtype=float).ravel()
-        lambda_um = lambda_um[np.isfinite(lambda_um)]
-        lambda_um = np.unique(lambda_um)
-    if lambda_um.size == 0:
-        raise ValueError("wavelengths_um must contain at least one finite value.")
+    lambda_um = _normalize_pdrc_wavelength_grid(wavelengths_um)
 
     stack = build_pdrc_multilayer_stack(variant=variant, ag_thickness_nm=ag_thickness_nm)
     thicknesses_nm = [float(layer["thickness_nm"]) for layer in stack]
@@ -1970,58 +2044,16 @@ def simulate_pdrc_multilayer_cooling_real_materials(
     r_arr = R.astype(float)
     t_arr = T.astype(float)
     a_arr = A.astype(float)
-    emissivity = a_arr.copy()
-    bands = [_pdrc_band_label(float(lam)) for lam in lambda_um]
 
-    solar_abs = _band_average(lambda_um, a_arr, 0.3, 2.5)
-    solar_ref = _band_average(lambda_um, r_arr, 0.3, 2.5)
-    epsilon_8_13 = _band_average(lambda_um, emissivity, 8.0, 13.0)
-    score = float(epsilon_8_13 - solar_abs)
-
-    representative_wavelengths = np.asarray([0.5, 1.0, 1.5, 8.0, 10.0, 12.0], dtype=float)
-    representative_rows: List[Dict[str, Any]] = []
-    for target in representative_wavelengths:
-        idx = int(np.argmin(np.abs(lambda_um - target)))
-        representative_rows.append(
-            {
-                "lambda_um": float(lambda_um[idx]),
-                "target_lambda_um": float(target),
-                "R": float(r_arr[idx]),
-                "T": float(t_arr[idx]),
-                "A": float(a_arr[idx]),
-                "emissivity": float(emissivity[idx]),
-                "band": bands[idx],
-            }
-        )
-
-    return {
-        "case_id": "pdrc_multilayer_cooling_real_materials",
-        "title_cn": "被动日间辐射冷却薄膜（真实材料色散）",
-        "title_en": "Passive Daytime Radiative Cooling (Real Materials)",
-        "variant": str(variant),
-        "theta_deg": float(theta_deg),
-        "pol": str(pol),
-        "lambda_um": lambda_um,
-        "wavelength_nm": wavelengths_nm,
-        "r_complex": r_complex.astype(complex),
-        "t_complex": t_complex.astype(complex),
-        "R": r_arr,
-        "T": t_arr,
-        "A": a_arr,
-        "emissivity": emissivity,
-        "band": bands,
-        "layers": stack,
-        "optical_constant_note_cn": "使用 RefractiveIndex.INFO 真实材料 n(k) 数据。",
-        "metrics": {
-            "A_solar_avg": solar_abs,
-            "R_solar_avg": solar_ref,
-            "epsilon_8_13_avg": epsilon_8_13,
-            "cooling_score": score,
-            "success_basic": bool(solar_abs < 0.15 and epsilon_8_13 > 0.70),
-            "success_better": bool(solar_abs < 0.10 and epsilon_8_13 > 0.80),
-        },
-        "representative_points": representative_rows,
-    }
+    return _pdrc_compute_metrics(
+        lambda_um, r_arr, t_arr, a_arr,
+        r_complex, t_complex, stack,
+        variant=variant, theta_deg=theta_deg, pol=pol,
+        case_id="pdrc_multilayer_cooling_real_materials",
+        title_cn="被动日间辐射冷却薄膜（真实材料色散）",
+        title_en="Passive Daytime Radiative Cooling (Real Materials)",
+        optical_note="使用 RefractiveIndex.INFO 真实材料 n(k) 数据。",
+    )
 
 
 def export_pdrc_cooling_bundle(
