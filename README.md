@@ -21,6 +21,26 @@ python run_material_library_demo.py
 
 默认输出目录为 `~/thinfilm_outputs`，也可以通过环境变量 `THINFILM_OUTPUT_DIR` 指定。
 
+## 0. 测试
+
+运行全部测试（220 个用例）：
+
+```bash
+python -m pytest tests/ -v
+```
+
+快速验证（仅 TMM 核心）：
+
+```bash
+python -m pytest tests/test_tmm_core.py -q
+```
+
+性能基线：
+
+```bash
+python benchmarks/performance_baseline.py
+```
+
 ## 1. 当前边界
 
 当前统一约定：
@@ -443,7 +463,84 @@ guided_grating_*_period_summary.csv
 
 仓库内原反演样本 CSV 已移出项目目录；如需复查旧数据，请使用仓库外的个人备份，不再把样本 CSV 放回当前主工作流。
 
-## 8. 环境依赖
+## 8. 性能优化
+
+当前版本经过七次优化，关键性能指标：
+
+| 场景 | 优化前 | 优化后 | 加速比 |
+|------|--------|--------|--------|
+| 标量 TMM 600点/21层 | 0.072s | 0.001s | **72x** |
+| 色散 TMM 100点/3层 | 0.254s | 0.00014s | **1,764x** |
+| CSV selector 重试 | 最多5次读盘 | 1次 | **5x** |
+| 材料加载 (10材料) | 11次磁盘读取 | 1次 | **11x** |
+
+优化内容：
+
+1. **TMM 向量化**：保留层循环，波长维度全部 numpy 向量化
+2. **材料缓存**：manifest `lru_cache` + CSV 数据 dict 缓存
+3. **IO 单次读取**：`read_csv_once()` + `parse_loaded_csv()` 架构
+4. **共享工具函数**：`_shared.py` 消除跨模块重复
+
+## 9. 反射相位计算（Tamm 分析支持）
+
+TMM 核心新增反射相位计算函数：
+
+```python
+from thinfilm import (
+    multilayer_rt_spectrum,
+    reflection_phase_radians,
+    reflection_phase_degrees,
+    phase_difference,
+)
+
+# 计算光谱
+result = multilayer_rt_spectrum(wavelengths_nm, layers, n_incident=1.0, n_substrate=1.52)
+
+# 提取反射相位
+phase_rad = reflection_phase_radians(result)       # 弧度，自动 unwrap
+phase_deg = reflection_phase_degrees(result)        # 角度制
+
+# 左右端结构相位差（Tamm 界面态筛选）
+delta_phi = phase_difference(result_left, result_right)  # 范围 (-π, π]
+```
+
+相位差判据：同一波长下 `min(R_left, R_right)` 较高且 `|π - Δφ|` 较小的候选对，建议进入 2D 界面拼接验证。
+
+## 10. PDRC 真实材料仿真
+
+新增真实材料色散版本的 PDRC 仿真：
+
+```python
+from thinfilm import simulate_pdrc_multilayer_cooling_real_materials
+
+# 使用 RefractiveIndex.INFO 真实 n(k) 数据
+result = simulate_pdrc_multilayer_cooling_real_materials()
+
+# 输出指标
+print(f"太阳吸收: {result['metrics']['A_solar_avg']:.4f}")
+print(f"8-13um 发射率: {result['metrics']['epsilon_8_13_avg']:.4f}")
+print(f"冷却评分: {result['metrics']['cooling_score']:.4f}")
+```
+
+注意：真实材料数据覆盖范围有限（SiO2: 0.21-6.7um, TiO2: 0.43-1.53um），函数会自动裁剪波长到有效范围。
+
+## 11. guided_grating 改进
+
+COMSOL CSV 解析已从硬编码列索引改为 header 查找：
+
+```python
+from guided_grating import load_comsol_grating_csv, load_comsol_two_param_sweep
+
+# 自动从 header 行定位 R/T/A 列
+result = load_comsol_grating_csv("path/to/grating.csv")
+
+# 扫描数据同样支持 header 查找
+sweep = load_comsol_two_param_sweep("path/to/sweep.csv", sweep_name="period")
+```
+
+新增 55 个单元测试覆盖 comsol_io、spectra、solver、models 全模块。
+
+## 12. 环境依赖
 
 安装依赖：
 
@@ -457,7 +554,7 @@ pip install -r requirements.txt
 .gitignore
 ```
 
-## 9. 一键生成验证与性能总包
+## 13. 一键生成验证与性能总包
 
 如果已经准备好三类 COMSOL CSV：
 
@@ -509,7 +606,7 @@ result = export_final_delivery_bundle(
 )
 ```
 
-## 10. 高级减反专题总包
+## 14. 高级减反专题总包
 
 当前仓库已支持一个独立的“高级减反专题”总包，用于并列展示：
 
@@ -552,7 +649,7 @@ result = export_advanced_ar_topic_bundle(
 - 综合摘要 CSV / JSON / TXT
 - Manifest 清单
 
-## 11. 前沿研究模型树
+## 15. 前沿研究模型树
 
 当前仓库除了教学主树和研究支线外，还新增了一棵**前沿研究模型树**，用于承接不适合直接放进教学主树首页、但需要正式组织推进的创新模块。
 

@@ -110,6 +110,9 @@ tests/
   test_materials_cache.py    材料缓存机制（12 用例）
   test_io.py                 CSV I/O 解析（16 用例）
   test_simulate_report_design.py  全 design_type 分支覆盖（40 用例）
+  test_guided_grating.py     光栅波导模块（55 用例）
+  test_tamm_phase.py         Tamm 反射相位计算（14 用例）
+  test_pdrc.py               PDRC surrogate + 真实材料仿真（18 用例）
 ```
 
 性能基线：
