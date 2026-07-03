@@ -1,0 +1,17 @@
+graph TD
+    A["<b>① 数据检索与读取</b><br/>输入：介质名称 + 仿真波长范围<br/>读取色散 CSV（列：λ, n, κ）"]
+
+    B{"<b>② 内存缓存校验</b><br/>该介质插值器<br/>是否已在缓存中？"}
+
+    C["<b>③ 插值建立</b><br/>解析数据，剔除空值 / 异常行<br/>建立 Cubic Spline：n_interp(λ) 与 κ_interp(λ)<br/>写入内存缓存"]
+
+    D["<b>④ 输出复折射率</b><br/>ñ(λ) = n(λ) − iκ(λ)<br/>输出至 TMM 特征矩阵求解"]
+
+    A --> B
+    B -- 否，新建插值 --> C --> D
+    B -- 是，直接取缓存 --> D
+
+    style A fill:#f4f7f6,stroke:#708090,stroke-width:1.5px
+    style B fill:#e8f4f8,stroke:#4682b4,stroke-width:1.5px
+    style C fill:#e8f5e9,stroke:#2e7d32,stroke-width:1.5px
+    style D fill:#fff3e0,stroke:#e65100,stroke-width:1.5px

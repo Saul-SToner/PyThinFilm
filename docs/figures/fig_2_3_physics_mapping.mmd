@@ -1,0 +1,36 @@
+graph TD
+    subgraph MAIN ["主链路：电磁场理论 → TMM 计算"]
+        T1["麦克斯韦旋度方程<br/>∇×E = −∂B/∂t，∇×H = ∂D/∂t"]
+        T2["切向电磁场连续条件<br/>E_t 连续，H_t 连续"]
+        T3["菲涅尔系数与<br/>斜入射光学导纳 η"]
+        T4["TMM 特征矩阵级联<br/>M = M₁·M₂·…·M_N"]
+        T5["能流守恒输出<br/>R=|r|²，T=Re(η_s)/Re(η_0)·|t|²<br/>A=1−R−T"]
+        T6["腔内驻波场强<br/>E(z) 逆向递推分布"]
+        T1-->T2-->T3-->T4-->T5
+        T4-->T6
+    end
+
+    subgraph SIDE ["物性输入旁支"]
+        M1["实测色散数据<br/>ñ(λ)=n(λ)−iκ(λ)<br/>Cubic Spline 插值"]
+        M2["EMT 零阶亚波长近似<br/>n_eff,TE²=f·n_H²+(1−f)·n_L²<br/><i>注：非严格 RCWA 算法</i>"]
+        M1-->T4
+        M2-->T4
+    end
+
+    subgraph EXT ["外部数据导入（COMSOL CSV）"]
+        E1["COMSOL 扫描 CSV<br/><i>仅用于外部数据导入与特征提取</i><br/><i>平台不执行全波内部求解</i>"]
+        E2["曲线滤波 → FWHM<br/>Q=λ₀/FWHM，MAE/RMSE"]
+        E1-->E2
+    end
+
+    subgraph APP ["拓展物理应用"]
+        P1["PDRC 辐射冷却<br/>太阳谱 + 大气窗口光谱加权积分"]
+        P2["Tamm 界面局域态<br/>Unwrap 反射相位差满足匹配条件"]
+        T5-->P1
+        T4-->P2
+    end
+
+    style MAIN fill:#e8f4f8,stroke:#4682b4,stroke-width:1.5px
+    style SIDE fill:#e8f5e9,stroke:#2e7d32,stroke-width:1.5px
+    style EXT  fill:#fce4ec,stroke:#c2185b,stroke-width:1.5px
+    style APP  fill:#fff3e0,stroke:#e65100,stroke-width:1.5px

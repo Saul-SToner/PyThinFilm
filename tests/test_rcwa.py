@@ -162,13 +162,16 @@ class TestRCWATM:
         np.testing.assert_allclose(total, 1.0, atol=0.01)
 
     def test_tm_different_from_te(self):
-        """TM and TE should give different results due to different effective indices."""
+        """TE/TM 极化差异验证（EMT 各向异性）。
+
+        EMT 给出不同的有效折射率：
+        - TE: n_eff^2 = f*n_H^2 + (1-f)*n_L^2
+        - TM: 1/n_eff^2 = f/n_H^2 + (1-f)/n_L^2
+        因此 TE 和 TM 的反射率不同。
+        """
         g = GratingLayer(980, 200, 1.45, 3.4, 0.55)
         r_te = rcwa_1d([1550.0], g, pol="TE")["R"][0]
         r_tm = rcwa_1d([1550.0], g, pol="TM")["R"][0]
-        # TE effective index: sqrt(f*n_h^2 + (1-f)*n_l^2)
-        # TM effective index: 1/sqrt(f/n_h^2 + (1-f)/n_l^2)
-        # These are different, so R should be different
         assert r_te != r_tm
 
     def test_tm_single_wavelength(self):

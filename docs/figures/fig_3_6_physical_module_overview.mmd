@@ -1,0 +1,18 @@
+graph TD
+    L1["<b>① 实验运行入口层</b><br/>run_case.py · run_teaching_demo.py<br/>run_material_library_demo.py · run_guided_grating_demo.py<br/>examples/applications/"]
+
+    L2["<b>② 计算实验设计层</b><br/>教学基础案例：增透膜 / 高反膜 / F-P 腔<br/>工程应用案例：太阳能 / WDM / 激光镜 / 手机镜头 / 智能窗膜<br/>拓展物理案例：Tamm 界面态 / PDRC 辐射制冷"]
+
+    L3["<b>③ 物理计算核心层</b><br/>TMM 特征矩阵向量化级联求解<br/>腔内电场驻波 E(z) 递推计算<br/>EMT 零阶亚波长近似（非严格 RCWA，guided_grating/rcwa.py）<br/>COMSOL CSV 外部导入特征提取（非内部全波求解，comsol_io.py）"]
+
+    L4["<b>④ 物性数据库支撑层</b><br/>data/real_nk/ 实测色散物理常数库<br/>Cubic Spline 插值：ñ(λ) = n(λ) − iκ(λ)"]
+
+    L5["<b>⑤ 自检与结果归档层</b><br/>pytest 270 个单元用例（R+T+A=1 守恒断言）<br/>smoke_test.py 全链路自检<br/>Plotly HTML + 静态 PNG + docs/evidence/ 归档"]
+
+    L1 --> L2 --> L3 --> L4 --> L5
+
+    style L1 fill:#f4f7f6,stroke:#708090,stroke-width:1.5px
+    style L2 fill:#e8f4f8,stroke:#4682b4,stroke-width:1.5px
+    style L3 fill:#e8f5e9,stroke:#2e7d32,stroke-width:1.5px
+    style L4 fill:#fff3e0,stroke:#e65100,stroke-width:1.5px
+    style L5 fill:#fce4ec,stroke:#c2185b,stroke-width:1.5px

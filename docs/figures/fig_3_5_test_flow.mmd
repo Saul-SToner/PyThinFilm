@@ -1,0 +1,23 @@
+graph TD
+    A["<b>① 触发自检流程</b><br/>启动物理与数学一致性自检"]
+
+    subgraph B ["② 双路验证执行"]
+        B1["单元测试（pytest）<br/>270 个用例：<br/>退化单层 → 菲涅尔一致性<br/>R+T+A=1 守恒断言<br/>色散与各向异性边界"]
+        B2["功能管道冒烟自检<br/>（smoke_test.py）<br/>全链路数据流与结果校验"]
+    end
+
+    subgraph C ["③ 日志归档"]
+        C1["pytest_log.txt<br/>断言记录"]
+        C2["smoke_test_log.txt<br/>自检输出记录"]
+    end
+
+    D["<b>④ 证据输出与文档排版</b><br/>导出物理谱图（docs/figures/）<br/>更新 evidence_list.md<br/>插入作品说明书 Word / PDF"]
+
+    A --> B
+    B --> C
+    C --> D
+
+    style A  fill:#f4f7f6,stroke:#708090,stroke-width:1.5px
+    style B  fill:#e8f4f8,stroke:#4682b4,stroke-width:1.5px
+    style C  fill:#e8f5e9,stroke:#2e7d32,stroke-width:1.5px
+    style D  fill:#fff3e0,stroke:#e65100,stroke-width:1.5px

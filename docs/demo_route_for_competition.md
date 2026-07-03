@@ -11,173 +11,128 @@
 
 1. **开场** (30s)
    - 平台名称和定位
-   - "完全自主的光学薄膜教学平台，不依赖 COMSOL"
+   - "基于 Python 自主实现平面薄膜及亚波长周期结构电磁计算，不依赖 COMSOL 运行时"
 
 2. **核心功能演示** (2min)
    - 运行 `run_teaching_demo.py --case single_ar`
-   - 展示 R/T/A 光谱图
-   - 展示膜层结构图
+   - 展示 R/T/A 光谱图及物理一致性自检
+   - 展示多层膜腔内空间电场驻波局域分布图
 
 3. **工程应用案例** (1min)
-   - 展示太阳能电池 AR 案例
-   - 展示激光高反镜案例
-   - 强调"从教学到工程"的完整覆盖
+   - 展示太阳能电池 AR 案例、手机镜头 AR 对照
+   - 强调"从教学基础现象到具体光电工程设计"的完整覆盖
 
 4. **交互性展示** (1min)
-   - 展示 Plotly 交互图表
-   - 展示参数调节效果
+   - 展示 Plotly 交互图表（支持浮动查看和无级缩放）
+   - 展示在网页端/数据报包中查看参数调节与波长扫描的物理效应
 
 5. **技术亮点** (30s)
-   - 270 个单元测试
-   - TMM 向量化加速 1764x
-   - RCWA 自主求解器
+   - 270 个 pytest 单元测试保证计算物理正确性
+   - 传输矩阵法（TMM）向量化广播级联加速 1764 倍
+   - 亚波长周期结构一维极化等效介质近似 (EMT)
 
 ### 关键台词
-- "这个平台完全用 Python 实现，不依赖任何商业软件"
-- "所有核心算法都有单元测试保证正确性"
-- "从教学演示到工程设计，一站式覆盖"
+- "这个平台完全用 Python 底层公式编码实现，脱离了对大型商业软件运行时环境的依赖"
+- "所有核心物理算法都通过了严格的物理守恒性（R+T+A = 1）和退化极值测试"
+- "实现了从基础物理原理演示到复杂光电器件工程设计的闭环展示"
+
+---
 
 ## 15 分钟答辩路线
 
 ### 目标
-深入展示技术细节和创新点。
+深入展示技术细节、底层物理体系和创新点。
 
 ### 路线
 
-1. **问题背景** (2min)
-   - 光学薄膜在现代光学中的重要性
-   - 教学中缺乏交互式工具的痛点
+1. **问题背景与选题意义** (2min)
+   - 光学薄膜在光电制造与微纳器件中的重要地位
+   - 高校波动光学教学中公式繁多、电磁场空间分布抽象的痛点
+   - 开源交互式轻量级工具对低成本实验教学的巨大补充价值
 
-2. **平台架构** (2min)
-   - 模块化设计：thinfilm / guided_grating
-   - 三层架构：计算引擎 / 导出层 / 演示层
+2. **平台底层物理体系** (2min)
+   - Maxwell 方程与一维切向连续电磁边界条件
+   - 菲涅尔公式级联与 TMM 特征矩阵推导
+   - 真实材料色散（Cubic Spline 插值）与消光系数吸收模型
+   - 亚波长周期结构零阶等效介质极化特性 (EMT)
 
-3. **核心算法** (3min)
-   - TMM 传输矩阵法（向量化实现）
-   - RCWA 有效介质理论
-   - 性能优化：1764x 加速
+3. **核心算法设计** (3min)
+   - TMM 特征矩阵的 NumPy 向量化并行级联求解（消除多重波长循环，加速 1764 倍）
+   - 真实材料 LRU 内存双级缓存与 IO 单次读取机制
+   - 物理一致性测试套件的自动化验证
 
-4. **工程应用** (3min)
-   - 5 个 TMM-only 案例详解
-   - 每个案例的工程指标
-   - 与实际应用的对应关系
+4. **工程应用与现象复验** (3min)
+   - 5 个 TMM-only 工程应用案例（太阳能、通信滤波、激光镜、手机镜头、节能窗）
+   - 前沿拓展研究案例（被动辐射制冷 PDRC 的 ASTM G173 太阳光谱加权、Tamm 局域态相位差筛选）
 
-5. **教育内容** (2min)
-   - 参数说明系统
-   - 设计原理文档
-   - 公式库
+5. **可靠性验证与复现机制** (2min)
+   - pytest 单元测试及断言覆盖（能量守恒、极值退化、偏振分裂）
+   - 一键自检程序与数据归档（docs/evidence/）
 
-6. **代码质量** (2min)
-   - 270 个单元测试
-   - CI/CD 集成
-   - 代码审查和重构
+6. **技术边界与创新点** (2min)
+   - 厘清平台物理边界（光栅部分为零阶 EMT 近似，并非完整 RCWA 傅里叶空间求解器，不代替 COMSOL 求解）
+   - 六大创新点汇报（开源轻量、理论设计一体化、色散与案例结合、自动化测试、教育模块等）
 
 7. **未来展望** (1min)
-   - RCWA 完整实现
-   - 更多工程案例
-   - Web 交互界面
+   - 拓展支持严格耦合波分析 (RCWA) 矩阵求解器
+   - 进一步扩充微纳光子器件工程设计案例
 
 ### 演示脚本
 
 ```python
-# 1. 展示 TMM 核心
+# 1. 展示 TMM 核心计算与电场分布
 from thinfilm import simulate_report_design, plot_rta_spectrum
 result = simulate_report_design("single_ar")
-fig = plot_rta_spectrum(result["wavelength_nm"], result["R"], result["T"], result["A"])
-fig.show()
+# 快速获取反射、透射、吸收光谱数据
 
 # 2. 展示工程案例
 from examples.applications import run_solar_cell_ar
 solar = run_solar_cell_ar()
-print(f"太阳能电池 AR: 平均反射率 {solar['metrics']['avg_R_300_1100nm']:.4f}")
+print(f"太阳能电池减反膜：加权平均反射率为 {solar['metrics']['avg_R_300_1100nm']:.4f}")
 
-# 3. 展示 RCWA
+# 3. 展示亚波长光栅等效介质极化计算
 from guided_grating import rcwa_1d, GratingLayer
-g = GratingLayer(980, 200, 1.45, 3.4, 0.55)
-r = rcwa_1d([1550.0], g)
-print(f"光栅 R: {r['R'][0]:.4f}")
-
-# 4. 展示教育内容
-from thinfilm import get_design_help
-print(get_design_help("single_ar"))
+g = GratingLayer(period_nm=980, thickness_nm=200, n_low=1.45, n_high=3.4, fill_factor=0.55)
+# 通过 EMT 零阶极化等效计算折射率与反射谱
 ```
 
-## TMM-only 工程案例路线
+---
 
-### 案例 1: 太阳能电池减反膜
-```python
-from examples.applications import run_solar_cell_ar
-result = run_solar_cell_ar()
-# 关键指标: 平均反射率、550nm反射率、R<2%带宽
-```
-
-### 案例 2: 通信 WDM 滤光片
-```python
-from examples.applications import run_wdm_filter
-result = run_wdm_filter()
-# 关键指标: FWHM、FSR、精细度、通道隔离
-```
-
-### 案例 3: 激光高反镜
-```python
-from examples.applications import run_laser_mirror
-result = run_laser_mirror()
-# 关键指标: 峰值反射率、停带宽度、周期对比
-```
-
-### 案例 4: 手机镜头 AR
-```python
-from examples.applications import run_phone_lens_ar
-result = run_phone_lens_ar()
-# 关键指标: 平均反射率、三色平衡、透射率
-```
-
-### 案例 5: 智能窗户
-```python
-from examples.applications import run_smart_window
-result = run_smart_window()
-# 关键指标: 可见光透过率、NIR反射率、SHGC
-```
-
-## RCWA 扩展路线
+## 亚波长一维光栅 EMT 极化分析路线
 
 ### 当前状态
-- 1D 光栅 EMT 近似实现
-- 支持 TE/TM 偏振
-- 19 个单元测试
+- 一维周期性亚波长结构零阶等效介质理论 (EMT) 极化计算
+- 支持 TE/TM 各向异性偏振对照
+- 19 个关于 guided_grating 的专项单元测试
 
 ### 后续扩展
-1. 完整 RCWA（支持衍射级次）
-2. 2D 光栅支持
-3. 与 COMSOL 验证对比
+1. 完整一维严格耦合波分析 (RCWA) 傅里叶特征值求解器开发
+2. 二维二维格子光栅结构支持
+3. COMSOL 联合扫描反射光谱的更深入特征提取
 
 ### 演示代码
 ```python
 from guided_grating import rcwa_1d, GratingLayer, rcwa_convergence_test
+import numpy as np
 
 # 基本计算
-g = GratingLayer(980, 200, 1.45, 3.4, 0.55)
+g = GratingLayer(period_nm=980, thickness_nm=200, n_low=1.45, n_high=3.4, fill_factor=0.55)
 result = rcwa_1d(np.linspace(1400, 1700, 100), g, pol="TE")
 
-# 收敛性测试
+# 极化计算收敛性测试
 conv = rcwa_convergence_test(g, wavelength_nm=1550.0)
-print(f"收敛: {conv['converged']}")
+print(f"EMT 计算收敛状态: {conv['converged']}")
 ```
 
-## 不依赖 COMSOL 的演示说明
+---
+
+## 物理与技术边界声明
 
 ### 平台定位
-- **教学平台**: 完全自主 Python 实现
-- **不依赖 COMSOL**: 所有核心计算由 Python 完成
-- **COMSOL 仅作为**: 高级验证源、外部参考数据
+- **教学展示平台**：完全基于 Python 底层物理关系级联开发。
+- **不替代商业求解器**：平台不执行全波三维有限元求解，COMSOL 仅用于前期复杂器件参数探索后的 CSV 数据导出验证与对比。
 
-### 演示时的话术
-- "这个平台完全用 Python 实现，不需要安装任何商业软件"
-- "所有算法都有单元测试保证正确性"
-- "如果需要验证，可以导入 COMSOL 数据进行对比，但不是必需的"
-
-### 技术优势
-1. **自主可控**: 不依赖商业软件许可
-2. **开源透明**: 所有代码可审查
-3. **易于部署**: 仅需 Python 环境
-4. **教学友好**: 学生可以查看和修改源码
+### 答辩/演示话术
+- "本平台采用独立 Python 算法代码实现，降低了波动光学实验和物理设计的软硬件门槛。"
+- "本平台平面部分以传输矩阵法 (TMM) 为计算核心；亚波长光栅部分采用零阶有效介质理论 (EMT) 极化等效计算。我们严格厘清了平台的物理计算边界，不夸大宣传。"
+- "在遇到复杂的三维电磁散射或光栅波导共振时，平台设计了 CSV 数据管线，直接读取并特征提取 COMSOL 数据，以互补的形式实现学术复验。"

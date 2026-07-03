@@ -1,0 +1,15 @@
+graph TD
+    A["<b>① 输入准备</b><br/>各层厚度 d_j，复折射率 ñ_j = n_j - iκ_j<br/>入射角 θ，偏振态 TE / TM"]
+
+    B["<b>② 单层物理量计算</b><br/>斜入射电磁导纳 η_j（TE: ñcosθ，TM: ñ/cosθ）<br/>传播相位延迟 δ_j = 2π·ñ_j·d_j·cosθ_j / λ"]
+
+    C["<b>③ 特征矩阵级联</b><br/>构造单层 2×2 特征矩阵 M_j<br/>M = M₁ · M₂ · … · M_N"]
+
+    D["<b>④ 光谱输出与物理复验</b><br/>复振幅系数 r、t → R = |r|²<br/>T = Re(η_s)/Re(η_0)·|t|²，A = 1 − R − T<br/>逆向递推腔内驻波场强 E(z)"]
+
+    A --> B --> C --> D
+
+    style A fill:#f4f7f6,stroke:#708090,stroke-width:1.5px
+    style B fill:#e8f4f8,stroke:#4682b4,stroke-width:1.5px
+    style C fill:#e8f5e9,stroke:#2e7d32,stroke-width:1.5px
+    style D fill:#fff3e0,stroke:#e65100,stroke-width:1.5px
