@@ -119,45 +119,71 @@
 * **TM 偏振**（P 偏振）：电场方向平行于入射面。
 
 根据电磁边界条件，这两种偏振对应的 Fresnel 振幅反射系数 $r$ 和振幅透射系数 $t$ 分别为：
-$$r_s = \frac{n_1 \cos\theta_i - n_2 \cos\theta_t}{n_1 \cos\theta_i + n_2 \cos\theta_t}, \quad t_s = \frac{2n_1 \cos\theta_i}{n_1 \cos\theta_i + n_2 \cos\theta_t}$$
-$$r_p = \frac{n_2 \cos\theta_i - n_1 \cos\theta_t}{n_2 \cos\theta_i + n_1 \cos\theta_t}, \quad t_p = \frac{2n_1 \cos\theta_i}{n_2 \cos\theta_i + n_1 \cos\theta_t}$$
+$$
+r_s = \frac{n_1 \cos\theta_i - n_2 \cos\theta_t}{n_1 \cos\theta_i + n_2 \cos\theta_t}, \quad t_s = \frac{2n_1 \cos\theta_i}{n_1 \cos\theta_i + n_2 \cos\theta_t}
+$$
+$$
+r_p = \frac{n_2 \cos\theta_i - n_1 \cos\theta_t}{n_2 \cos\theta_i + n_1 \cos\theta_t}, \quad t_p = \frac{2n_1 \cos\theta_i}{n_2 \cos\theta_i + n_1 \cos\theta_t}
+$$
 其中 $\theta_t$ 为折射角，由折射定律 $n_1 \sin\theta_i = n_2 \sin\theta_t$ 确定。
 
 ##### 2.1.3 多光束干涉与薄膜相位差
 若介质为平面薄膜，当厚度与波长可比拟时，电磁波在薄膜的上下两个分界面处会发生无限次往复反射与透射，反射波在膜层上表面发生干涉。相邻两次出射的干涉光波的光程差决定了总反射光谱。光波在第 $j$ 层介质中单次往返引起的光学相位延迟 $\delta_j$ 表示为：
-$$\delta_j = \frac{2\pi}{\lambda} \tilde{n}_j d_j \cos\theta_j$$
+$$
+\delta_j = \frac{2\pi}{\lambda} \tilde{n}_j d_j \cos\theta_j
+$$
 其中 $\tilde{n}_j(\lambda) = n_j(\lambda) + ik_j(\lambda)$ 为该层介质的复折射率，其虚部用于描述材料吸收（具体正负号取决于时间因子约定），$d_j$ 为薄膜物理厚度，$\theta_j$ 为膜层内的折射角。
 
 #### 2.2 传输矩阵法 TMM
 
 ##### 2.2.1 单层膜特征矩阵
 传输矩阵法通过一维边界条件级联，求解多层平面薄膜的场关系。对于第 $j$ 层平面介质薄膜，其左边界 $j-1$ 处的切向场（电场 $E_{j-1}$，磁场 $H_{j-1}$）与右边界 $j$ 处的切向场（$E_j$，$H_j$）通过特征矩阵 $M_j$ 关联：
-$$\begin{pmatrix} E_{j-1} \\ H_{j-1} \end{pmatrix} = \begin{pmatrix} \cos\delta_j & \frac{i}{\eta_j}\sin\delta_j \\ i\eta_j\sin\delta_j & \cos\delta_j \end{pmatrix} \begin{pmatrix} E_j \\ H_j \end{pmatrix} = M_j \begin{pmatrix} E_j \\ H_j \end{pmatrix}$$
+$$
+\begin{pmatrix} E_{j-1} \\ H_{j-1} \end{pmatrix} = \begin{pmatrix} \cos\delta_j & \frac{i}{\eta_j}\sin\delta_j \\ i\eta_j\sin\delta_j & \cos\delta_j \end{pmatrix} \begin{pmatrix} E_j \\ H_j \end{pmatrix} = M_j \begin{pmatrix} E_j \\ H_j \end{pmatrix}
+$$
 其中 $\delta_j$ 为前述相位延迟，$\eta_j$ 为第 $j$ 层介质的斜入射光学导纳。
 对于 TE 偏振：
-$$\eta_{j,TE} = \tilde{n}_j \cos\theta_j$$
+$$
+\eta_{j,TE} = \tilde{n}_j \cos\theta_j
+$$
 对于 TM 偏振：
-$$\eta_{j,TM} = \frac{\tilde{n}_j}{\cos\theta_j}$$
+$$
+\eta_{j,TM} = \frac{\tilde{n}_j}{\cos\theta_j}
+$$
 
 ##### 2.2.2 多层膜总矩阵
 当系统由 $N$ 层平面介质堆叠组成时，通过连续性边界条件将各层界面的特征矩阵依次级联，即可得到整个系统的总传输特征矩阵 $M$：
-$$M = \prod_{j=1}^{N} M_j = M_1 M_2 \cdots M_N = \begin{pmatrix} m_{11} & m_{12} \\ m_{21} & m_{22} \end{pmatrix}$$
+$$
+M = \prod_{j=1}^{N} M_j = M_1 M_2 \cdots M_N = \begin{pmatrix} m_{11} & m_{12} \\ m_{21} & m_{22} \end{pmatrix}
+$$
 
 ##### 2.2.3 反射率、透射率、吸收率计算
 设入射介质的光学导纳为 $\eta_0$，基底介质的光学导纳为 $\eta_s$。振幅反射系数 $r$ 和振幅透射系数 $t$ 可由下式计算：
-$$r = \frac{\eta_0 (m_{11} + \eta_s m_{12}) - (m_{21} + \eta_s m_{22})}{\eta_0 (m_{11} + \eta_s m_{12}) + (m_{21} + \eta_s m_{22})}$$
-$$t = \frac{2\eta_0}{\eta_0 (m_{11} + \eta_s m_{12}) + (m_{21} + \eta_s m_{22})}$$
+$$
+r = \frac{\eta_0 (m_{11} + \eta_s m_{12}) - (m_{21} + \eta_s m_{22})}{\eta_0 (m_{11} + \eta_s m_{12}) + (m_{21} + \eta_s m_{22})}
+$$
+$$
+t = \frac{2\eta_0}{\eta_0 (m_{11} + \eta_s m_{12}) + (m_{21} + \eta_s m_{22})}
+$$
 由此可计算出反射率 $R$、透射率 $T$ 和吸收率 $A$：
-$$R = |r|^2$$
-$$T = \frac{\text{Re}(\eta_s)}{\text{Re}(\eta_0)} |t|^2$$
-$$A = 1 - R - T$$
+$$
+R = |r|^2
+$$
+$$
+T = \frac{\text{Re}(\eta_s)}{\text{Re}(\eta_0)} |t|^2
+$$
+$$
+A = 1 - R - T
+$$
 
 ##### 2.2.4 TE/TM 偏振差异
 斜入射时（入射角 $\theta_0 > 0$），由于 TE 和 TM 偏振对应的光学导纳 $\eta_j$ 的物理定义不同（TE 正比于 $\cos\theta_j$，TM 反比于 $\cos\theta_j$），这导致了光谱透射和反射在两种极化状态下表现出各向异性，例如在特定入射角（如布儒斯特角）下 TM 偏振反射率会发生急剧衰减甚至归零。
 
 ##### 2.2.5 腔内电场分布计算
 在计算出各界面的总反射系数和透射系数后，可以通过一维反向递推，计算出多层膜内部每一层不同深度 $z$ 处的正向波和反向反射波的相干叠加场强。内部第 $j$ 层深度为 $z'$ 处的电场驻波分布可描述为正向与反向传输电磁分量的干涉：
-$$E_j(z') = E_{j}^+ e^{-i \tilde{k}_{jz} z'} + E_{j}^- e^{i \tilde{k}_{jz} z'}$$
+$$
+E_j(z') = E_{j}^+ e^{-i \tilde{k}_{jz} z'} + E_{j}^- e^{i \tilde{k}_{jz} z'}
+$$
 其中 $\tilde{k}_{jz} = \frac{2\pi}{\lambda}\tilde{n}_j\cos\theta_j$。通过这一公式可以直观展示一维光学谐振腔内的场分布特性。
 
 * **图示预留位置**：【图 2-1：传输矩阵法 TMM 计算流程示意图】
@@ -179,8 +205,12 @@ $$E_j(z') = E_{j}^+ e^{-i \tilde{k}_{jz} z'} + E_{j}^- e^{i \tilde{k}_{jz} z'}$$
 
 ##### 2.4.2 TE/TM 等效折射率
 在零阶有效介质理论近似下，对于平行（TE 偏振）和垂直（TM 偏振）于条纹方向的电矢量入射，光栅层可等效为以下均质折射率层：
-$$n_{eff,TE}^2 = f n_{high}^2 + (1 - f) n_{low}^2$$
-$$\frac{1}{n_{eff,TM}^2} = \frac{f}{n_{high}^2} + \frac{1 - f}{n_{low}^2}$$
+$$
+n_{eff,TE}^2 = f n_{high}^2 + (1 - f) n_{low}^2
+$$
+$$
+\frac{1}{n_{eff,TM}^2} = \frac{f}{n_{high}^2} + \frac{1 - f}{n_{low}^2}
+$$
 其中 $f$ 为高折射率材料所占的体积占空比（Fill Factor），$n_{high}$ 和 $n_{low}$ 分别为组成光栅的高、低折射率材料折射率。本平台基于此等效值，使用传输矩阵法计算单层各向异性薄膜，以演示亚波长格栅的偏振干涉特性。
 
 ##### 2.4.3 适用边界与失效条件
@@ -208,31 +238,45 @@ guided_grating/rcwa.py 文件名沿用了早期开发阶段的模块命名；当
 
 #### 2.6.1 麦克斯韦方程组与薄膜光学边界条件
 电磁场在无源各向同性介质中的麦克斯韦旋度方程可描述平面波传播的基本规律：
-$$\nabla \times \mathbf{E} = -\mu \frac{\partial \mathbf{H}}{\partial t}, \quad \nabla \times \mathbf{H} = \epsilon \frac{\partial \mathbf{E}}{\partial t}$$
+$$
+\nabla \times \mathbf{E} = -\mu \frac{\partial \mathbf{H}}{\partial t}, \quad \nabla \times \mathbf{H} = \epsilon \frac{\partial \mathbf{E}}{\partial t}
+$$
 该方程组是波动光学和本平台薄膜仿真的根本物理源头，用于推导介质层中的简谐平面波传播形式。
 在两个平整介质界面处，电场与磁场的切向分量必须连续，即满足切向连续电磁边界条件：
-$$E_{1,t} = E_{2,t}, \quad H_{1,t} = H_{2,t}$$
+$$
+E_{1,t} = E_{2,t}, \quad H_{1,t} = H_{2,t}
+$$
 本平台传输矩阵（TMM）的核心递推关系即由该一维边界连续性条件级联而成。
 
 #### 2.6.2 平面波、复折射率与材料吸收
 单色简谐平面波沿 $z$ 方向在一维薄膜层中传播时，电场复振幅形式为：
-$$E(z) = E_0 e^{-i k_z z}$$
+$$
+E(z) = E_0 e^{-i k_z z}
+$$
 该公式用于平台腔内电场空间分布的相位计算，是确定每一层相位延迟的理论依据。
 引入复折射率以描述吸收性光学介质的消光性质：
-$$\tilde{n}(\lambda) = n(\lambda) + ik(\lambda)$$
+$$
+\tilde{n}(\lambda) = n(\lambda) + ik(\lambda)
+$$
 本平台在计算特征矩阵时，直接调用该复折射率。其虚部（消光系数/消光常数）决定了传播相位延迟 $\delta$ 中的虚部，用于实现带间吸收损耗计算。具体符号取决于时间因子约定。
 
 #### 2.6.3 能量守恒与 R/T/A 物理约束
 根据电磁场能流密度（Poynting 矢量）的守恒律，对于任意各向同性介质薄膜系统，反射率 $R$、透射率 $T$ 和吸收率 $A$ 在能量上必须受到以下守恒条件的约束：
-$$R + T + A \equiv 1.0$$
+$$
+R + T + A \equiv 1.0
+$$
 在测试套件 `tests/test_tmm_core.py` 中，该恒等式被写为核心物理一致性断言，用于捕获和防止计算溢出或物理漏算。
 
 #### 2.6.4 相位干涉条件与典型膜系设计
 一维共振腔或布拉格反射镜（DBR）在设计波长 $\lambda_0$ 处的厚度匹配通常需要满足相长/相消干涉的光学厚度条件：
-$$n_j d_j = \frac{\lambda_0}{4}$$
+$$
+n_j d_j = \frac{\lambda_0}{4}
+$$
 在教学模块中，该 1/4 波长条件用于自动配置高反膜的对称各层几何厚度。
 对于 Tamm 界面局域激发的复振幅反射系数相位角 $\phi$，在共振匹配点需满足相位差极值条件：
-$$\Delta\phi = \phi_{left}(\lambda) + \phi_{right}(\lambda) = 2m\pi \quad (m \in \mathbb{Z})$$
+$$
+\Delta\phi = \phi_{left}(\lambda) + \phi_{right}(\lambda) = 2m\pi \quad (m \in \mathbb{Z})
+$$
 在 `run_case.py` 的 Tamm 案例中，此极值判据用于在波长网格中筛选并提取真实的共振激发峰位。
 
 #### 2.6.5 平台主要模块对应的物理方程表

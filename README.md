@@ -55,13 +55,19 @@ PyThinFilm/
 ![图 2-1：传输矩阵法 TMM 计算流程示意图](docs/figures/fig_2_1_tmm_flow.png)
 
 对于第 $j$ 层平面介质薄膜，其左边界处的切向场（电场 $E_{j-1}$，磁场 $H_{j-1}$）与右边界处的切向场（$E_j$，$H_j$）通过一维特征矩阵 $M_j$ 关联：
-$$\begin{pmatrix} E_{j-1} \\ H_{j-1} \end{pmatrix} = M_j \begin{pmatrix} E_j \\ H_j \end{pmatrix} = \begin{pmatrix} \cos\delta_j & \frac{i}{\eta_j}\sin\delta_j \\ i\eta_j\sin\delta_j & \cos\delta_j \end{pmatrix} \begin{pmatrix} E_j \\ H_j \end{pmatrix}$$
+$$
+\begin{pmatrix} E_{j-1} \\ H_{j-1} \end{pmatrix} = M_j \begin{pmatrix} E_j \\ H_j \end{pmatrix} = \begin{pmatrix} \cos\delta_j & \frac{i}{\eta_j}\sin\delta_j \\ i\eta_j\sin\delta_j & \cos\delta_j \end{pmatrix} \begin{pmatrix} E_j \\ H_j \end{pmatrix}
+$$
 
 其中 $\delta_j = \frac{2\pi}{\lambda} \tilde{n}_j d_j \cos\theta_j$ 为平面简谐波的传播相位延迟，$\eta_j$ 为第 $j$ 层介质的斜入射光学导纳（对于 TE 偏振为 $\tilde{n}_j\cos\theta_j$，TM 偏振为 $\tilde{n}_j/\cos\theta_j$）。级联所有 $N$ 层介质得到系统总传输矩阵：
-$$M = M_1 M_2 \cdots M_N = \begin{pmatrix} m_{11} & m_{12} \\ m_{21} & m_{22} \end{pmatrix}$$
+$$
+M = M_1 M_2 \cdots M_N = \begin{pmatrix} m_{11} & m_{12} \\ m_{21} & m_{22} \end{pmatrix}
+$$
 
 由入射光学导纳 $\eta_0$ 与基底导纳 $\eta_s$ 计算得到振幅系数 $r$ 和 $t$。最终解得光谱反射率 $R$、透射率 $T$ 和吸收率 $A$：
-$$R = |r|^2, \quad T = \frac{\text{Re}(\eta_s)}{\text{Re}(\eta_0)}|t|^2, \quad A = 1 - R - T$$
+$$
+R = |r|^2, \quad T = \frac{\text{Re}(\eta_s)}{\text{Re}(\eta_0)}|t|^2, \quad A = 1 - R - T
+$$
 
 系统利用 NumPy 向量化广播重构计算内核，消除了传统的波长和角度循环，在典型教学案例中具有较快的参数扫描速度。
 
@@ -102,7 +108,9 @@ $$R = |r|^2, \quad T = \frac{\text{Re}(\eta_s)}{\text{Re}(\eta_0)}|t|^2, \quad A
 ### 1. 有效介质理论（EMT）近似
 对于一维周期结构光栅，当其周期 $P$ 远小于入射电磁波长 $\lambda$ （静态区，$P \ll \lambda$）时，光栅层可等效为一个各向异性的均质单层薄膜。
 在零阶有效介质理论下，对于 TE 和 TM 偏振，光栅层可等效为以下折射率介质：
-$$n_{eff,TE}^2 = f n_{high}^2 + (1 - f) n_{low}^2, \quad \frac{1}{n_{eff,TM}^2} = \frac{f}{n_{high}^2} + \frac{1 - f}{n_{low}^2}$$
+$$
+n_{eff,TE}^2 = f n_{high}^2 + (1 - f) n_{low}^2, \quad \frac{1}{n_{eff,TM}^2} = \frac{f}{n_{high}^2} + \frac{1 - f}{n_{low}^2}
+$$
 其中 $f$ 为高折射率介质所占的体积占空比。本平台基于此等效值，使用传输矩阵法计算单层各向异性薄膜，以演示亚波长光栅的偏振极化与双折射干涉特性。
 
 ### 2. 外部 COMSOL 数据导入与特征分析
