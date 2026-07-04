@@ -56,12 +56,12 @@ PyThinFilm/
 
 对于第 $j$ 层平面介质薄膜，其左边界处的切向场（电场 $E_{j-1}$，磁场 $H_{j-1}$）与右边界处的切向场（$E_j$，$H_j$）通过一维特征矩阵 $M_j$ 关联：
 $$
-\begin{pmatrix} E_{j-1} \\ H_{j-1} \end{pmatrix} = M_j \begin{pmatrix} E_j \\ H_j \end{pmatrix} = \begin{pmatrix} \cos\delta_j & \frac{i}{\eta_j}\sin\delta_j \\ i\eta_j\sin\delta_j & \cos\delta_j \end{pmatrix} \begin{pmatrix} E_j \\ H_j \end{pmatrix}
+\begin{pmatrix} E_{j-1} \\\\ H_{j-1} \end{pmatrix} = M_j \begin{pmatrix} E_j \\\\ H_j \end{pmatrix} = \begin{pmatrix} \cos\delta_j & \frac{i}{\eta_j}\sin\delta_j \\\\ i\eta_j\sin\delta_j & \cos\delta_j \end{pmatrix} \begin{pmatrix} E_j \\\\ H_j \end{pmatrix}
 $$
 
 其中 $\delta_j = \frac{2\pi}{\lambda} \tilde{n}_j d_j \cos\theta_j$ 为平面简谐波的传播相位延迟，$\eta_j$ 为第 $j$ 层介质的斜入射光学导纳（对于 TE 偏振为 $\tilde{n}_j\cos\theta_j$，TM 偏振为 $\tilde{n}_j/\cos\theta_j$）。级联所有 $N$ 层介质得到系统总传输矩阵：
 $$
-M = M_1 M_2 \cdots M_N = \begin{pmatrix} m_{11} & m_{12} \\ m_{21} & m_{22} \end{pmatrix}
+M = M_1 M_2 \cdots M_N = \begin{pmatrix} m_{11} & m_{12} \\\\ m_{21} & m_{22} \end{pmatrix}
 $$
 
 由入射光学导纳 $\eta_0$ 与基底导纳 $\eta_s$ 计算得到振幅系数 $r$ 和 $t$。最终解得光谱反射率 $R$、透射率 $T$ 和吸收率 $A$：
@@ -132,14 +132,14 @@ $$
 
 ### 2. 5 个 TMM-only 工程应用案例
 位于 `examples/applications/`，专注于物理指标分析与光谱图表导出：
-- **太阳能电池减反膜**：在 300∼1100 nm 太阳光波段最小化积分反射，优化电池光电收集效率。
-- **波分复用（WDM）三腔滤波器**：在光通信频段（1540∼1560 nm）实现平顶陡峭带通。
+- **太阳能电池减反膜**：在 300–1100 nm 太阳光波段最小化积分反射，优化电池光电收集效率。
+- **波分复用（WDM）三腔滤波器**：在光通信频段（1540–1560 nm）实现平顶陡峭带通。
 - **1064 nm 固体激光器反射镜**：为特定单色波长提供超窄带宽的高反射，抑制腔镜热负载。
-- **相机镜头多层增透膜**：对比多层与单层 AR 在可见光波段（400∼700 nm）的反射谱差异。
+- **相机镜头多层增透膜**：对比多层与单层 AR 在可见光波段（400–700 nm）的反射谱差异。
 - **智能窗户节能膜**：可见光波段高透、近红外波段（800 nm 以上）高反射，复现日光阻隔效果。
 
 ### 3. 前沿拓展研究案例
-- **被动辐射制冷 (PDRC)**：在 $\text{SiO}_2$ 与 $\text{TiO}_2$ 真实色散数据上进行结构设计，利用标准太阳光谱（ASTM G173 AM1.5 Global）和 $8\sim 13\ \mu\text{m}$ 大气窗口加权平均，计算日间被动制冷评分。
+- **被动辐射制冷 (PDRC)**：在 $\text{SiO}_2$ 与 $\text{TiO}_2$ 真实色散数据上进行结构设计，利用标准太阳光谱（ASTM G173 AM1.5 Global）和 8–13 μm 大气窗口加权平均，计算日间被动制冷评分。
 - **Tamm 界面局域态探索**：计算布拉格反射镜与吸光层界面反射相位差，展示 1D 边界模式的极值相位匹配条件。
 
 ---
