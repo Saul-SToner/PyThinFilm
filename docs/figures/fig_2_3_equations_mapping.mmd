@@ -1,0 +1,24 @@
+graph TD
+    subgraph PhysicsSystem ["物理方程与理论体系"]
+        maxwell["麦克斯韦方程组 (电磁场波动方程)"] --> boundary["切向边界连续条件 (E, H 切向连续)"]
+        boundary --> fresnel["菲涅尔公式与斜入射光学导纳"]
+        fresnel --> tmm["TMM 一维特征矩阵乘积级联"]
+        tmm --> rta["光强反射率 R、透射率 T、吸收率 A"]
+        tmm --> field["一维腔内相干相长电场叠加"]
+    end
+
+    subgraph MaterialSystem ["材料与等效输入旁支"]
+        real_nk["真实材料物理常数 (色散与跃迁吸收)"] --> interp["Cubic Spline 三阶样条平滑插值 (n - i*k)"]
+        interp --> tmm
+        emt["亚波长周期结构 (P 远小于 lambda)"] --> double_ref["EMT 零阶极化各向同性/各向异性等效折射率"]
+        double_ref --> tmm
+    end
+
+    subgraph ExternalSystem ["外部仿真特征提取"]
+        comsol["COMSOL 扫描 CSV 离散光谱数据"] --> feature["曲线滤波与 FWHM / Q值 / MAE 物理量提取"]
+    end
+
+    subgraph ExtendedPhysics ["物理拓展应用"]
+        rta --> pdrc["PDRC 太阳辐射与大气窗口光谱加权积分"]
+        tmm --> tamm["Tamm 界面局域 Unwrap 复反射相位差匹配"]
+    end

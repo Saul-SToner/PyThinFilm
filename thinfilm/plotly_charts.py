@@ -12,6 +12,8 @@ from typing import Any, Dict, List, Optional, Sequence
 
 import numpy as np
 
+from .plot_logic import focused_power_limits, infer_rta_focus, rta_trace_styles
+
 try:
     import plotly.graph_objects as go
     from plotly.subplots import make_subplots
@@ -24,17 +26,30 @@ except ImportError:
 # ---------------------------------------------------------------------------
 
 COLORS = {
-    "R": "#c94f2d",  # MAIN_RED
-    "T": "#0f766e",  # TARGET_GREEN
-    "A": "#b7791f",  # ABS_GOLD
-    "layer_high": "#1d4ed8",  # Blue
-    "layer_low": "#d7dde5",  # Light gray
-    "substrate": "#f7f8fb",  # Off-white
+    "R": "#0F4D92",
+    "T": "#42949E",
+    "A": "#7C6CCF",
+    "layer_high": "#7C6CCF",
+    "layer_low": "#77D7D1",
+    "substrate": "#F2F2F2",
     "incident": "#ffffff",  # White
-    "grid": "#d7dde5",
-    "text": "#223046",
+    "grid": "#E6E6E6",
+    "text": "#272727",
     "bg": "#ffffff",
 }
+
+
+def _apply_interactive_style(fig: go.Figure) -> None:
+    """Mirror the static semantic palette without treating Plotly as submission art."""
+    fig.update_layout(
+        paper_bgcolor="#FFFFFF",
+        plot_bgcolor="#FFFFFF",
+        font=dict(family="Arial, Microsoft YaHei, sans-serif", size=12, color=COLORS["text"]),
+        title_font=dict(size=16),
+        legend=dict(bgcolor="rgba(255,255,255,0)", borderwidth=0),
+    )
+    fig.update_xaxes(showgrid=False, showline=True, linewidth=1, linecolor="#272727", mirror=False)
+    fig.update_yaxes(showgrid=False, showline=True, linewidth=1, linecolor="#272727", mirror=False)
 
 
 # ---------------------------------------------------------------------------
@@ -49,6 +64,8 @@ def plot_rta_spectrum(
     *,
     title: str = "光学薄膜光谱特性",
     design_type: str | None = None,
+    focus: str | None = None,
+    focus_view: bool = True,
     show_legend: bool = True,
     height: int = 450,
 ) -> go.Figure:
@@ -64,6 +81,11 @@ def plot_rta_spectrum(
         Chart title.
     design_type : str, optional
         Design type label to show in subtitle.
+    focus : {"R", "T", "A"}, optional
+        Explicit primary quantity. If omitted, infer from case semantics/data.
+    focus_view : bool
+        Start with a tight primary-quantity y range. A button restores the
+        complete R/T/A range.
     show_legend : bool
         Whether to show legend.
     height : int
@@ -74,26 +96,45 @@ def plot_rta_spectrum(
     go.Figure
         Plotly figure object.
     """
+    curves = {
+        "R": np.asarray(R, dtype=float),
+        "T": np.asarray(T, dtype=float),
+        "A": np.asarray(A, dtype=float),
+    }
+    focus_kind = infer_rta_focus(
+        curves["R"],
+        curves["T"],
+        curves["A"],
+        context=f"{title} {design_type or ''}",
+        preferred=focus,
+    )
+    trace_styles = rta_trace_styles(focus_kind, curves)
+    focus_limits = focused_power_limits(curves[focus_kind])
+    focus_cn = {"R": "反射率 R", "T": "透射率 T", "A": "吸收率 A"}[focus_kind]
+
     fig = go.Figure()
 
     fig.add_trace(go.Scatter(
         x=wavelengths_nm, y=R,
-        name="反射率 R",
-        line=dict(color=COLORS["R"], width=2.5),
+        name="R (反射率 Reflectance)",
+        line=dict(color=COLORS["R"], width=trace_styles["R"]["linewidth"], dash=trace_styles["R"]["dash"]),
+        opacity=trace_styles["R"]["alpha"],
         hovertemplate="λ=%{x:.1f} nm<br>R=%{y:.4f}<extra></extra>",
     ))
 
     fig.add_trace(go.Scatter(
         x=wavelengths_nm, y=T,
-        name="透射率 T",
-        line=dict(color=COLORS["T"], width=2.5),
+        name="T (透射率 Transmittance)",
+        line=dict(color=COLORS["T"], width=trace_styles["T"]["linewidth"], dash=trace_styles["T"]["dash"]),
+        opacity=trace_styles["T"]["alpha"],
         hovertemplate="λ=%{x:.1f} nm<br>T=%{y:.4f}<extra></extra>",
     ))
 
     fig.add_trace(go.Scatter(
         x=wavelengths_nm, y=A,
-        name="吸收率 A",
-        line=dict(color=COLORS["A"], width=2, dash="dot"),
+        name="A (吸收率 Absorptance)",
+        line=dict(color=COLORS["A"], width=trace_styles["A"]["linewidth"], dash=trace_styles["A"]["dash"]),
+        opacity=trace_styles["A"]["alpha"],
         hovertemplate="λ=%{x:.1f} nm<br>A=%{y:.4f}<extra></extra>",
     ))
 
@@ -107,7 +148,9 @@ def plot_rta_spectrum(
             hovertemplate="λ=%{x:.1f} nm<br>R+T+A=%{y:.4f}<extra></extra>",
         ))
 
-    subtitle = design_type if design_type else ""
+    subtitle_parts = [part for part in (design_type, f"主变量：{focus_cn}") if part]
+    subtitle = " · ".join(subtitle_parts)
+    initial_range = list(focus_limits) if focus_view else [-0.02, 1.05]
 
     fig.update_layout(
         title=dict(
@@ -117,7 +160,8 @@ def plot_rta_spectrum(
         ),
         xaxis_title="波长 (nm)",
         yaxis_title="R / T / A",
-        yaxis=dict(range=[-0.02, 1.05]),
+        yaxis=dict(range=initial_range),
+        showlegend=show_legend,
         legend=dict(
             x=0.01, y=0.99,
             bgcolor="rgba(255,255,255,0.8)",
@@ -127,8 +171,23 @@ def plot_rta_spectrum(
         template="plotly_white",
         height=height,
         hovermode="x unified",
+        updatemenus=[
+            dict(
+                type="buttons",
+                direction="right",
+                x=1.0,
+                xanchor="right",
+                y=1.16,
+                yanchor="top",
+                buttons=[
+                    dict(label=f"聚焦 {focus_kind}", method="relayout", args=[{"yaxis.range": list(focus_limits)}]),
+                    dict(label="R/T/A 总览", method="relayout", args=[{"yaxis.range": [-0.02, 1.05]}]),
+                ],
+            )
+        ],
     )
 
+    _apply_interactive_style(fig)
     return fig
 
 
@@ -178,6 +237,7 @@ def plot_layer_structure(
     x_left = 0
     colors = [COLORS["incident"], COLORS["substrate"]]
     layer_colors = [COLORS["layer_high"], COLORS["layer_low"]]
+    label_stride = max(1, int(np.ceil(len(layers) / 8)))
 
     for i, layer in enumerate(all_layers):
         if layer.get("is_halfspace"):
@@ -217,18 +277,20 @@ def plot_layer_structure(
                 line=dict(width=2, color=color),
             )
 
-            label = f"{layer['name']}<br>{thickness:.0f} nm<br>n={n_val:.2f}"
-            fig.add_annotation(
-                x=x_left + thickness / 2, y=0.5,
-                text=label,
-                showarrow=False,
-                font=dict(size=10, color="white"),
-            )
+            layer_index = i - 1
+            if len(layers) <= 8 or layer_index % label_stride == 0 or layer_index == len(layers) - 1:
+                label = f"{layer['name']}<br>{thickness:.0f} nm · n={n_val:.2f}"
+                fig.add_annotation(
+                    x=x_left + thickness / 2, y=0.5,
+                    text=label,
+                    showarrow=False,
+                    font=dict(size=9, color="white"),
+                )
 
             x_left += thickness
 
     fig.update_layout(
-        title=title,
+        title=f"{title}<br><sub>{len(layers)} 层 · 总厚度 {total_thickness:.0f} nm；仅标注代表层</sub>" if len(layers) > 8 else title,
         xaxis=dict(
             title="位置 (nm)",
             range=[-scale * 2.5, total_thickness + scale * 2.5],
@@ -244,6 +306,7 @@ def plot_layer_structure(
         plot_bgcolor=COLORS["bg"],
     )
 
+    _apply_interactive_style(fig)
     return fig
 
 
@@ -256,11 +319,12 @@ def plot_angle_wavelength_surface(
     angles_deg: np.ndarray,
     R_2d: np.ndarray,
     *,
-    title: str = "角度-波长-反射率曲面",
+    title: str = "角度–波长响应图",
     quantity: str = "R",
+    render_mode: str = "heatmap",
     height: int = 500,
 ) -> go.Figure:
-    """Create a 3D surface plot of R/T vs angle and wavelength.
+    """Create a quantitative heatmap, with an optional 3D exploratory view.
 
     Parameters
     ----------
@@ -282,27 +346,32 @@ def plot_angle_wavelength_surface(
     go.Figure
         3D surface plot.
     """
-    fig = go.Figure(data=[
-        go.Surface(
-            x=wavelengths_nm,
-            y=angles_deg,
-            z=R_2d,
-            colorscale="RdBu_r" if quantity == "R" else "Viridis",
-            colorbar=dict(title=quantity),
+    mode = str(render_mode).strip().lower()
+    colorscale = "RdBu_r" if quantity == "R" else "Viridis"
+    if mode == "heatmap":
+        fig = go.Figure(data=[go.Heatmap(
+            x=wavelengths_nm, y=angles_deg, z=R_2d,
+            colorscale=colorscale, colorbar=dict(title=quantity),
+            hovertemplate="λ=%{x:.1f} nm<br>θ=%{y:.1f}°<br>" + quantity + "=%{z:.4f}<extra></extra>",
+        )])
+        fig.update_layout(
+            title=title, xaxis_title="波长 (nm)", yaxis_title="入射角 (°)",
+            template="plotly_white", height=height,
         )
-    ])
+    elif mode == "surface":
+        fig = go.Figure(data=[go.Surface(
+            x=wavelengths_nm, y=angles_deg, z=R_2d,
+            colorscale=colorscale, colorbar=dict(title=quantity),
+        )])
+        fig.update_layout(
+            title=f"{title}（探索视图）",
+            scene=dict(xaxis_title="波长 (nm)", yaxis_title="入射角 (°)", zaxis_title=quantity),
+            template="plotly_white", height=height,
+        )
+    else:
+        raise ValueError("render_mode must be 'heatmap' or 'surface'")
 
-    fig.update_layout(
-        title=title,
-        scene=dict(
-            xaxis_title="波长 (nm)",
-            yaxis_title="入射角 (°)",
-            zaxis_title=quantity,
-        ),
-        template="plotly_white",
-        height=height,
-    )
-
+    _apply_interactive_style(fig)
     return fig
 
 
@@ -359,6 +428,7 @@ def plot_field_distribution(
         height=height,
     )
 
+    _apply_interactive_style(fig)
     return fig
 
 
@@ -370,10 +440,10 @@ def plot_convergence(
     orders: List[int],
     R_values: List[float],
     *,
-    title: str = "RCWA 收敛性测试",
+    title: str = "近似模型数值稳定性检查",
     height: int = 350,
 ) -> go.Figure:
-    """Plot RCWA convergence with increasing number of orders.
+    """Plot an order-parameter stability check for the approximate model.
 
     Parameters
     ----------
@@ -415,12 +485,19 @@ def plot_convergence(
 
     fig.update_layout(
         title=title,
-        xaxis_title="衍射阶数 N (总阶数 = 2N+1)",
+        xaxis_title="近似阶数参数 N",
         yaxis_title="零阶反射率 R₀",
         template="plotly_white",
         height=height,
     )
+    fig.add_annotation(
+        text="用于数值稳定性检查，不代表严格 RCWA 收敛性证明",
+        x=0.01, y=0.01, xref="paper", yref="paper",
+        showarrow=False, font=dict(size=11, color="#65727A"),
+        xanchor="left", yanchor="bottom",
+    )
 
+    _apply_interactive_style(fig)
     return fig
 
 
@@ -455,11 +532,13 @@ def plot_design_comparison(
     """
     fig = go.Figure()
 
-    colors = ["#c94f2d", "#0f766e", "#1d4ed8", "#b7791f", "#7c3aed", "#0891b2"]
+    colors = [COLORS["R"], COLORS["T"], COLORS["A"], "#77D7D1", "#B64342", "#A8A8A8"]
 
+    all_values: list[float] = []
     for i, (name, data) in enumerate(designs.items()):
         wl = data.get("wavelength_nm", data.get("wavelengths_nm", []))
         vals = data.get(quantity, data.get(f"{quantity}_values", []))
+        all_values.extend(np.asarray(vals, dtype=float).reshape(-1).tolist())
         color = colors[i % len(colors)]
 
         fig.add_trace(go.Scatter(
@@ -473,7 +552,7 @@ def plot_design_comparison(
         title=title,
         xaxis_title="波长 (nm)",
         yaxis_title=quantity,
-        yaxis=dict(range=[-0.02, 1.05]),
+        yaxis=dict(range=list(focused_power_limits(all_values))),
         legend=dict(
             x=0.01, y=0.99,
             bgcolor="rgba(255,255,255,0.8)",
@@ -482,7 +561,15 @@ def plot_design_comparison(
         height=height,
         hovermode="x unified",
     )
+    fig.update_layout(updatemenus=[dict(
+        type="buttons", direction="right", x=1.0, xanchor="right", y=1.14,
+        buttons=[
+            dict(label=f"聚焦 {quantity}", method="relayout", args=[{"yaxis.range": list(focused_power_limits(all_values))}]),
+            dict(label="完整 0–1", method="relayout", args=[{"yaxis.range": [-0.02, 1.05]}]),
+        ],
+    )])
 
+    _apply_interactive_style(fig)
     return fig
 
 
@@ -578,4 +665,5 @@ def plot_pdrc_dashboard(
     )
     fig.update_xaxes(title_text="波长 (μm)", row=1, col=1)
 
+    _apply_interactive_style(fig)
     return fig

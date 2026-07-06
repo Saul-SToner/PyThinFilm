@@ -8,11 +8,13 @@ from typing import Any, Dict, Iterable, List, Sequence
 
 import matplotlib.pyplot as plt
 import numpy as np
+from .plotting import save_publication_figure
 from matplotlib.font_manager import FontProperties
 
 from .education import list_report_chapter2_cases, simulate_report_case
 from .io import load_spectrum_csv, read_csv_once, parse_loaded_csv
 from .paths import output_file
+from .figure_audit import audit_external_comparison, build_figure_audit, write_figure_audit
 from ._shared import (
     MAIN_RED,
     REF_BLUE,
@@ -486,6 +488,7 @@ def export_teaching_validation_result(
     save_csv: bool = True,
     save_json: bool = True,
     save_txt: bool = True,
+    save_analysis_plot: bool = False,
 ) -> Dict[str, str]:
     saved: Dict[str, str] = {}
     stem = f"{prefix}_{result['case_id']}"
@@ -498,6 +501,22 @@ def export_teaching_validation_result(
     core_metrics = _validation_core_metrics(result)
     core_metrics_cn = _validation_core_metrics_cn(result)
     display_title = str(result.get("title_en") or result.get("title_cn") or result["case_id"])
+
+    comparison_audit = build_figure_audit(
+        figure_id=f"{stem}_main",
+        title=f"{display_title} | 理论与{result['reference_label']}对照",
+        evidence_level="external_validation",
+        checks=[audit_external_comparison(
+            theory,
+            reference,
+            reference_label=str(result["reference_label"]),
+            reference_file=result.get("reference_csv"),
+            residual=error,
+        )],
+        source_files=[] if not result.get("reference_csv") else [result["reference_csv"]],
+    )
+    audit_path = output_file(f"{stem}_figure_audit.json")
+    saved["audit_json"] = write_figure_audit(audit_path, comparison_audit)
 
     if save_csv:
         csv_path = output_file(f"{stem}_comparison.csv")
@@ -569,10 +588,8 @@ def export_teaching_validation_result(
             "\n".join(
                 [
                     f"MAE = {summary['mae']:.4e}",
-                    f"RMSE = {summary['rmse']:.4e}",
                     f"最大误差 = {summary['max_abs_error']:.4e}",
-                    f"平均偏差 = {summary['mean_bias']:+.4e}",
-                    f"中心点误差 = {summary['lambda0_error']:+.4e}",
+                    f"设计波长处响应差 = {summary['lambda0_error']:+.4e}",
                 ]
             ),
             transform=ax0.transAxes,
@@ -582,16 +599,22 @@ def export_teaching_validation_result(
             bbox={"boxstyle": "round,pad=0.35", "facecolor": "white", "alpha": 0.85, "edgecolor": "#cccccc"},
         )
 
-        ax1.plot(wl, error, color=ERR_GOLD, linewidth=2.0)
+        max_error_idx = int(np.argmax(np.abs(error)))
+        ax1.plot(wl, error, color=ERR_GOLD, linewidth=2.0, label="理论 − 外部参考")
+        ax1.scatter([wl[max_error_idx]], [error[max_error_idx]], color=MAIN_RED, edgecolor="white", s=38, zorder=4, label="最大绝对误差")
         ax1.axhline(0.0, color="#666666", linewidth=1.0, alpha=0.85)
         ax1.axvline(float(result["lambda0_nm"]), color=TARGET_GREEN, linestyle=":", linewidth=1.4, alpha=0.9)
         ax1.set_xlabel("波长 (nm)")
-        ax1.set_ylabel("误差")
+        ax1.set_ylabel(f"响应残差 Δ{result['quantity']}")
+        ax1.legend(loc="best")
 
         fig.tight_layout()
-        fig.savefig(png_path, dpi=180)
+        save_publication_figure(fig, png_path)
         plt.close(fig)
         saved["main_png"] = str(png_path)
+
+        if not save_analysis_plot:
+            return saved
 
         analysis_png = output_file(f"{stem}_analysis.png")
         fig2, axes2 = plt.subplots(1, 3, figsize=(11.0, 3.8))
@@ -622,7 +645,7 @@ def export_teaching_validation_result(
 
         fig2.suptitle(f"{display_title} | 验证分析", fontweight="semibold", color=TEXT_DARK)
         fig2.tight_layout()
-        fig2.savefig(analysis_png, dpi=180)
+        save_publication_figure(fig2, analysis_png)
         plt.close(fig2)
         saved["analysis_png"] = str(analysis_png)
 
@@ -739,7 +762,7 @@ def export_teaching_validation_suite_summary(
 
     fig.suptitle("教学验证总览", fontsize=12, fontweight="semibold", color=TEXT_DARK)
     fig.tight_layout()
-    fig.savefig(png_path, dpi=180)
+    save_publication_figure(fig, png_path)
     plt.close(fig)
     saved["overview_png"] = str(png_path)
     return saved
@@ -1341,11 +1364,16 @@ def export_advanced_ar_bundle(
         saved["txt"] = str(txt_path)
 
     if save_plot:
-        fig, axes = plt.subplots(2, 3, figsize=(15.5, 9), constrained_layout=True)
+        fig = plt.figure(figsize=(7.2, 5.4), constrained_layout=True)
+        gs = fig.add_gridspec(2, 3, height_ratios=[1.75, 1.0])
+        ax_hero = fig.add_subplot(gs[0, :])
+        ax_design = fig.add_subplot(gs[1, 0])
+        ax_error = fig.add_subplot(gs[1, 1])
+        ax_mean = fig.add_subplot(gs[1, 2])
         font = _cn_font()
 
         # Panel 1: all reference curves
-        ax = axes[0, 0]
+        ax = ax_hero
         for row in display_rows:
             comp = row["comparison"]
             wl = np.asarray(comp["wavelength_nm"], dtype=float)
@@ -1355,32 +1383,12 @@ def export_advanced_ar_bundle(
         _set_axis_labels_cn(ax, title="参考曲线总览", xlabel="波长 (nm)", ylabel="反射率 R")
         ax.legend(prop=font, frameon=False, loc="best")
 
-        # Panel 2: theory progression + 2D reference
-        ax = axes[0, 1]
-        for row in display_rows[:4]:
-            comp = row["comparison"]
-            wl = np.asarray(comp["wavelength_nm"], dtype=float)
-            theory = np.asarray(comp["theory"], dtype=float)
-            ax.plot(wl, theory, linewidth=2.0, label=f"{row['topic_cn']}（理论）")
-        last = display_rows[-1]
-        ax.plot(
-            np.asarray(last["comparison"]["wavelength_nm"], dtype=float),
-            np.asarray(last["comparison"]["reference"], dtype=float),
-            linewidth=2.2,
-            linestyle="--",
-            color=REF_BLUE,
-            label="2D 蛾眼梯形结构（COMSOL）",
-        )
-        style_axis(ax)
-        _set_axis_labels_cn(ax, title="减反结构演化对照", xlabel="波长 (nm)", ylabel="反射率 R")
-        ax.legend(prop=font, frameon=False, loc="best")
-
-        # Panel 3: lambda0 reflectance
-        ax = axes[0, 2]
+        # Supporting panel: lambda0 reflectance
+        ax = ax_design
         labels = [row["topic_cn"] for row in display_rows]
         values = [float(row["summary"]["reference_at_lambda0"]) for row in display_rows]
         x = np.arange(len(labels))
-        colors = [MAIN_RED, TARGET_GREEN, "#0f766e", REF_BLUE, "#6b46c1"]
+        colors = [MAIN_RED, TARGET_GREEN, "#77D7D1", REF_BLUE, "#7C6CCF"]
         bars = ax.bar(x, values, color=colors[: len(labels)])
         ax.set_xticks(x)
         ax.set_xticklabels(labels, rotation=18, ha="right", fontproperties=font)
@@ -1397,8 +1405,8 @@ def export_advanced_ar_bundle(
         style_axis(ax)
         _set_axis_labels_cn(ax, title="550 nm 处反射率", xlabel="结构类型", ylabel="反射率 R")
 
-        # Panel 4: validation MAE
-        ax = axes[1, 0]
+        # Supporting panel: validation MAE
+        ax = ax_error
         mae_vals = [float(row["summary"]["mae"]) for row in display_rows]
         bars = ax.bar(x, mae_vals, color=colors[: len(labels)])
         ax.set_xticks(x)
@@ -1416,8 +1424,8 @@ def export_advanced_ar_bundle(
         style_axis(ax)
         _set_axis_labels_cn(ax, title="理论与参考曲线 MAE", xlabel="结构类型", ylabel="MAE")
 
-        # Panel 5: mean reflectance
-        ax = axes[1, 1]
+        # Supporting panel: mean reflectance
+        ax = ax_mean
         mean_vals = [
             float(np.mean(np.asarray(row["comparison"]["reference"], dtype=float)))
             for row in display_rows
@@ -1438,10 +1446,8 @@ def export_advanced_ar_bundle(
         style_axis(ax)
         _set_axis_labels_cn(ax, title="平均反射率", xlabel="结构类型", ylabel="平均反射率 R")
 
-        axes[1, 2].axis("off")
-
         png_path = output_file(f"{prefix}_overview.png")
-        fig.savefig(png_path, dpi=180, bbox_inches="tight")
+        save_publication_figure(fig, png_path)
         plt.close(fig)
         saved["overview_png"] = str(png_path)
 
@@ -1680,7 +1686,7 @@ def export_quasi_random_absorbing_surface_bundle(
         _set_axis_labels_cn(ax, title="全波段平均能量分配", xlabel="指标", ylabel="比例")
 
         png_path = output_file(f"{prefix}_overview.png")
-        fig.savefig(png_path, dpi=180, bbox_inches="tight")
+        save_publication_figure(fig, png_path)
         plt.close(fig)
         saved["overview_png"] = str(png_path)
 
@@ -1775,14 +1781,14 @@ def export_absorbing_surface_comparison(
 
     ax = axes[0, 0]
     ax.plot(wl_a, a_a, color=TARGET_GREEN, linewidth=2.4, label=f"{label_a} 吸收率 A")
-    ax.plot(wl_b, a_b, color="#6b46c1", linewidth=2.4, linestyle="--", label=f"{label_b} 吸收率 A")
+    ax.plot(wl_b, a_b, color="#7C6CCF", linewidth=2.4, linestyle="--", label=f"{label_b} 吸收率 A")
     style_axis(ax)
     _set_axis_labels_cn(ax, title="吸收率对比", xlabel="波长 (nm)", ylabel="吸收率 A")
     ax.legend(prop=font, frameon=False, loc="best")
 
     ax = axes[0, 1]
     ax.plot(wl_a, r_a, color=MAIN_RED, linewidth=2.0, label=f"{label_a} 反射率 R")
-    ax.plot(wl_b, r_b, color="#d97706", linewidth=2.0, linestyle="--", label=f"{label_b} 反射率 R")
+    ax.plot(wl_b, r_b, color="#B07A1C", linewidth=2.0, linestyle="--", label=f"{label_b} 反射率 R")
     style_axis(ax)
     _set_axis_labels_cn(ax, title="反射率对比", xlabel="波长 (nm)", ylabel="反射率 R")
     ax.legend(prop=font, frameon=False, loc="best")
@@ -1794,7 +1800,7 @@ def export_absorbing_surface_comparison(
     vals_a = [float(s_a["A_at_lambda0"]), float(s_a["A_mean"])]
     vals_b = [float(s_b["A_at_lambda0"]), float(s_b["A_mean"])]
     bars_a = ax.bar(x - width / 2, vals_a, width=width, color=TARGET_GREEN, label=label_a)
-    bars_b = ax.bar(x + width / 2, vals_b, width=width, color="#6b46c1", label=label_b)
+    bars_b = ax.bar(x + width / 2, vals_b, width=width, color="#7C6CCF", label=label_b)
     ax.set_xticks(x)
     if font is None:
         ax.set_xticklabels(labels)
@@ -1845,7 +1851,7 @@ def export_absorbing_surface_comparison(
     _set_axis_labels_cn(ax, title="版本2 相对版本1 的变化", xlabel="指标", ylabel="差值")
 
     png_path = output_file(f"{prefix}.png")
-    fig.savefig(png_path, dpi=180, bbox_inches="tight")
+    save_publication_figure(fig, png_path)
     plt.close(fig)
     saved["png"] = str(png_path)
     return saved
@@ -1946,7 +1952,7 @@ def export_absorbing_surface_roughness_sweep(
     _set_axis_labels_cn(ax, title="粗糙度因子与 550 nm 吸收率", xlabel="粗糙度倍率", ylabel="A@550")
 
     png_path = output_file(f"{prefix}.png")
-    fig.savefig(png_path, dpi=180, bbox_inches="tight")
+    save_publication_figure(fig, png_path)
     plt.close(fig)
     saved["png"] = str(png_path)
     return saved
@@ -2241,7 +2247,7 @@ def export_porous_double_ar_sensitivity_bundle(
         ax.legend(frameon=False, loc="best", prop=font)
 
     png_path = output_file(f"{prefix}.png")
-    fig.savefig(png_path, dpi=180, bbox_inches="tight")
+    save_publication_figure(fig, png_path)
     plt.close(fig)
     saved["png"] = str(png_path)
     return saved
@@ -2494,7 +2500,7 @@ def export_absorbing_surface_gain_bundle(
 
     ax = axes[0, 1]
     ax.plot(wl_b, r_b, color=MAIN_RED, linewidth=2.0, label=f"{baseline_label} 反射率 R")
-    ax.plot(wl_r, r_r, color="#d97706", linewidth=2.0, linestyle="--", label=f"{rough_label} 反射率 R")
+    ax.plot(wl_r, r_r, color="#B07A1C", linewidth=2.0, linestyle="--", label=f"{rough_label} 反射率 R")
     ax.plot(wl_b, t_b, color=REF_BLUE, linewidth=1.8, alpha=0.75, label=f"{baseline_label} 透射率 T")
     ax.plot(wl_r, t_r, color="#5b21b6", linewidth=1.8, linestyle="--", alpha=0.75, label=f"{rough_label} 透射率 T")
     style_axis(ax)
@@ -2559,7 +2565,7 @@ def export_absorbing_surface_gain_bundle(
     _set_axis_labels_cn(ax, title="粗糙表面相对平面基准的变化", xlabel="指标", ylabel="差值")
 
     png_path = output_file(f"{prefix}.png")
-    fig.savefig(png_path, dpi=180, bbox_inches="tight")
+    save_publication_figure(fig, png_path)
     plt.close(fig)
     saved["png"] = str(png_path)
     return saved
@@ -2704,7 +2710,7 @@ def export_absorbing_surface_gain_trend_bundle(
 
     ax = axes[0]
     ax.plot(x, delta_a_mean, color=TARGET_GREEN, marker="o", linewidth=2.4, label="Δ平均A")
-    ax.plot(x, delta_a550, color="#6b46c1", marker="o", linewidth=2.2, label="ΔA@550")
+    ax.plot(x, delta_a550, color="#7C6CCF", marker="o", linewidth=2.2, label="ΔA@550")
     _set_axis_labels_cn(ax, title="粗糙度与吸收增益", xlabel="粗糙度倍率", ylabel="增益")
     ax.legend(prop=_cn_font(), frameon=False, loc="best")
 
@@ -2716,7 +2722,7 @@ def export_absorbing_surface_gain_trend_bundle(
     ax.legend(prop=_cn_font(), frameon=False, loc="best")
 
     png_path = output_file(f"{prefix}.png")
-    fig.savefig(png_path, dpi=180, bbox_inches="tight")
+    save_publication_figure(fig, png_path)
     plt.close(fig)
     saved["png"] = str(png_path)
     return saved
@@ -3102,7 +3108,7 @@ def export_tamm_dw_phase_bundle(
     ax.legend(lines1 + lines2, labels1 + labels2, prop=font, frameon=False, loc="best")
 
     png_path = output_file(f"{prefix}.png")
-    fig.savefig(png_path, dpi=180, bbox_inches="tight")
+    save_publication_figure(fig, png_path)
     plt.close(fig)
     saved["png"] = str(png_path)
 
@@ -3212,7 +3218,7 @@ def export_tamm_phase_focus_bundle(
     ax.legend(prop=font, frameon=False, loc="best")
 
     png_path = output_file(f"{prefix}.png")
-    fig.savefig(png_path, dpi=180, bbox_inches="tight")
+    save_publication_figure(fig, png_path)
     plt.close(fig)
     saved["png"] = str(png_path)
 
@@ -3443,7 +3449,7 @@ def export_tamm_interface_priority_bundle(
     _set_axis_labels_cn(ax, title="峰处相位差与平均峰值吸收", xlabel="峰处相位差 (rad)", ylabel="平均 A_max")
 
     png_path = output_file(f"{prefix}.png")
-    fig.savefig(png_path, dpi=180, bbox_inches="tight")
+    save_publication_figure(fig, png_path)
     plt.close(fig)
     saved["png"] = str(png_path)
 
@@ -3626,37 +3632,42 @@ def export_tamm_reflection_phase_screen_bundle(
         f.write("\n".join(lines) + "\n")
     saved["txt"] = str(txt_path)
 
-    fig, axes = plt.subplots(1, 2, figsize=(12.5, 4.8), constrained_layout=True)
+    fig, axes = plt.subplots(1, 2, figsize=(6.4, 3.0), constrained_layout=True)
     font = _cn_font()
     pair_labels = [f"{int(row['dW_left_nm'])}/{int(row['dW_right_nm'])}" for row in rows[:12]]
     scores = [float(row["score"]) for row in rows[:12]]
     colors = [TARGET_GREEN if bool(row["passes"]) else REF_BLUE for row in rows[:12]]
 
     ax = axes[0]
-    bars = ax.bar(np.arange(len(scores)), scores, color=colors)
+    bars = ax.bar(np.arange(len(scores)), scores, color=colors, width=0.55)
     ax.set_xticks(np.arange(len(scores)))
     if font is None:
-        ax.set_xticklabels(pair_labels, rotation=30)
+        ax.set_xticklabels(pair_labels, rotation=35, fontsize=6.8)
     else:
-        ax.set_xticklabels(pair_labels, rotation=30, fontproperties=font)
+        ax.set_xticklabels(pair_labels, rotation=35, fontproperties=font, fontsize=6.8)
     style_axis(ax)
     _set_axis_labels_cn(ax, title="候选端结构对评分", xlabel="d_W 左/右 (nm)", ylabel="评分")
     for bar, value in zip(bars, scores):
-        ax.text(bar.get_x() + bar.get_width() / 2, value + max(scores + [1e-9]) * 0.02, f"{value:.2f}", ha="center", va="bottom", fontsize=8, color=TEXT_DARK)
+        ax.text(bar.get_x() + bar.get_width() / 2, value + max(scores + [1e-9]) * 0.02, f"{value:.2f}", ha="center", va="bottom", fontsize=6.8, color=TEXT_DARK)
 
     ax = axes[1]
     min_r = [float(row["min_R"]) for row in rows]
     phase_err = [float(row["phase_error_to_pi_rad"]) for row in rows]
     pass_mask = [bool(row["passes"]) for row in rows]
-    ax.scatter(phase_err, min_r, c=[TARGET_GREEN if flag else MAIN_RED for flag in pass_mask], s=52, alpha=0.85)
-    ax.axhline(float(result["criteria"]["min_reflectance"]), color=REF_BLUE, linestyle="--", linewidth=1.4, label="最低反射率阈值")
-    ax.axvline(float(result["criteria"]["max_phase_error_rad"]), color=ERR_GOLD, linestyle="--", linewidth=1.4, label="相位误差阈值")
+    ax.scatter(phase_err, min_r, c=[TARGET_GREEN if flag else MAIN_RED for flag in pass_mask], s=24, alpha=0.85)
+    ax.axhline(float(result["criteria"]["min_reflectance"]), color=REF_BLUE, linestyle="--", linewidth=1.1, label="最低反射率阈值 (0.70)")
+    ax.axvline(float(result["criteria"]["max_phase_error_rad"]), color=ERR_GOLD, linestyle="--", linewidth=1.1, label="相位误差阈值 (0.35 rad)")
     style_axis(ax)
     _set_axis_labels_cn(ax, title="高反射与 π 相位差判据", xlabel="相位误差 |π-Δφ| (rad)", ylabel="左右端最小反射率")
-    ax.legend(prop=font, frameon=False, loc="best")
+    
+    # Legend settings
+    leg_prop = font.copy() if font is not None else None
+    if leg_prop is not None:
+        leg_prop.set_size(6.8)
+    ax.legend(prop=leg_prop, fontsize=6.8, frameon=False, loc="best")
 
     png_path = output_file(f"{prefix}.png")
-    fig.savefig(png_path, dpi=180, bbox_inches="tight")
+    save_publication_figure(fig, png_path)
     plt.close(fig)
     saved["png"] = str(png_path)
 
@@ -3986,7 +3997,7 @@ def export_tamm_interface_window_analysis(
     _set_axis_labels_cn(ax, title="横向局域宽度", xlabel="左侧 d_W (nm)", ylabel="wx (μm)")
 
     png_path = output_file(f"{prefix}.png")
-    fig.savefig(png_path, dpi=180, bbox_inches="tight")
+    save_publication_figure(fig, png_path)
     plt.close(fig)
     saved["png"] = str(png_path)
     return saved
@@ -4122,7 +4133,7 @@ def export_tamm_interface_window_collection(
     axes[0, 0].legend(prop=font, frameon=False, loc="best")
 
     png_path = output_file(f"{prefix}.png")
-    fig.savefig(png_path, dpi=180, bbox_inches="tight")
+    save_publication_figure(fig, png_path)
     plt.close(fig)
     saved["png"] = str(png_path)
 
@@ -4340,7 +4351,7 @@ def export_tamm_interface_window_scan_collection(
     axes[0].legend(prop=font, frameon=False, loc="best")
 
     png_path = output_file(f"{prefix}.png")
-    fig.savefig(png_path, dpi=180, bbox_inches="tight")
+    save_publication_figure(fig, png_path)
     plt.close(fig)
     saved["png"] = str(png_path)
     return saved

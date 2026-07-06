@@ -7,6 +7,9 @@ from typing import Any, Dict, Iterable, List, Sequence
 import matplotlib.pyplot as plt
 import numpy as np
 
+from .plotting import plot_bars_with_missing, save_publication_figure
+from .figure_audit import audit_missing_values, build_figure_audit, write_figure_audit
+
 from .education import LayerSpec, multilayer_rt_spectrum, simulate_report_case
 from .io import load_spectrum_csv
 from .paths import output_file
@@ -639,7 +642,7 @@ def export_resolution_analysis(
     fig.suptitle(f"{result['title_cn']} | 分辨率影响分析", fontsize=12, fontweight="semibold", color=TEXT_DARK)
     fig.tight_layout()
     png_path = output_file(f"{stem}_analysis.png")
-    fig.savefig(png_path, dpi=180)
+    save_publication_figure(fig, png_path)
     plt.close(fig)
     saved["analysis_png"] = str(png_path)
     return saved
@@ -734,15 +737,18 @@ def export_noise_analysis(
     axes[1, 0].set_xlabel("噪声标准差")
     axes[1, 0].set_ylabel("偏移 (nm)")
 
-    axes[1, 1].plot(result["base_summary"]["feature_wavelength_nm"], result["base_summary"]["feature_value"], marker="o", color=MAIN_RED)
-    axes[1, 1].set_title("基准特征点")
-    axes[1, 1].set_xlabel("波长 (nm)")
-    axes[1, 1].set_ylabel(str(result["quantity"]))
+    feature_value_mean = np.asarray([float(row["value_at_lambda0_shift_mean"]) for row in rows], dtype=float)
+    feature_value_std = np.asarray([float(row["value_at_lambda0_shift_std"]) for row in rows], dtype=float)
+    axes[1, 1].errorbar(sigma, feature_value_mean, yerr=feature_value_std, marker="o", color=REF_BLUE, linewidth=2.0, capsize=3)
+    axes[1, 1].axhline(0.0, color="#666666", linewidth=1.0, alpha=0.85)
+    axes[1, 1].set_title("噪声 vs 设计波长处响应变化")
+    axes[1, 1].set_xlabel("噪声标准差")
+    axes[1, 1].set_ylabel(f"Δ{result['quantity']}")
 
     fig.suptitle(f"{result['title_cn']} | 噪声敏感性分析", fontsize=12, fontweight="semibold", color=TEXT_DARK)
     fig.tight_layout()
     png_path = output_file(f"{stem}_analysis.png")
-    fig.savefig(png_path, dpi=180)
+    save_publication_figure(fig, png_path)
     plt.close(fig)
     saved["analysis_png"] = str(png_path)
     return saved
@@ -829,7 +835,7 @@ def export_angle_sensitivity_analysis(
     fig.suptitle(f"{result['title_cn']} | 入射角误差分析", fontsize=12, fontweight="semibold", color=TEXT_DARK)
     fig.tight_layout()
     png_path = output_file(f"{stem}_analysis.png")
-    fig.savefig(png_path, dpi=180)
+    save_publication_figure(fig, png_path)
     plt.close(fig)
     saved["analysis_png"] = str(png_path)
     return saved
@@ -926,7 +932,7 @@ def export_thickness_sensitivity_analysis(
     fig.suptitle(f"{result['title_cn']} | {selector_cn}厚度误差分析", fontsize=12, fontweight="semibold", color=TEXT_DARK)
     fig.tight_layout()
     png_path = output_file(f"{stem}_analysis.png")
-    fig.savefig(png_path, dpi=180)
+    save_publication_figure(fig, png_path)
     plt.close(fig)
     saved["analysis_png"] = str(png_path)
     return saved
@@ -1211,27 +1217,21 @@ def export_layerwise_thickness_summary(
     saved["json"] = str(json_path)
 
     labels = [f"{row['title_cn']}-{row['selector_cn']}" for row in rows]
-    feature_shift = np.asarray([
-        0.0 if row["feature_shift_nm_at_worst"] is None else abs(float(row["feature_shift_nm_at_worst"]))
-        for row in rows
-    ], dtype=float)
-    mae_vals = np.asarray([
-        0.0 if row["mae_at_worst"] is None else float(row["mae_at_worst"])
-        for row in rows
-    ], dtype=float)
+    feature_shift = [None if row["feature_shift_nm_at_worst"] is None else abs(float(row["feature_shift_nm_at_worst"])) for row in rows]
+    mae_vals = [None if row["mae_at_worst"] is None else float(row["mae_at_worst"]) for row in rows]
     x = np.arange(len(labels), dtype=float)
 
     fig, axes = plt.subplots(1, 2, figsize=(12.5, 4.6))
     for ax in axes:
         style_axis(ax)
 
-    axes[0].bar(x, mae_vals, color=MAIN_RED, width=0.56)
+    plot_bars_with_missing(axes[0], x, mae_vals, color=MAIN_RED)
     axes[0].set_xticks(x)
     axes[0].set_xticklabels(labels, rotation=20, ha="right")
     axes[0].set_title("分层厚度误差下的 MAE", fontweight="semibold")
     axes[0].set_ylabel("MAE")
 
-    axes[1].bar(x, feature_shift, color=ERR_GOLD, width=0.56)
+    plot_bars_with_missing(axes[1], x, feature_shift, color=ERR_GOLD)
     axes[1].set_xticks(x)
     axes[1].set_xticklabels(labels, rotation=20, ha="right")
     axes[1].set_title("分层厚度误差下的特征偏移", fontweight="semibold")
@@ -1240,7 +1240,7 @@ def export_layerwise_thickness_summary(
     fig.suptitle("分层厚度误差敏感性总览", fontsize=12, fontweight="semibold", color=TEXT_DARK)
     fig.tight_layout()
     png_path = output_file(f"{prefix}_overview.png")
-    fig.savefig(png_path, dpi=180)
+    save_publication_figure(fig, png_path)
     plt.close(fig)
     saved["overview_png"] = str(png_path)
     return saved
@@ -1450,46 +1450,51 @@ def export_refined_layer_tolerance_summary(
     labels = [f"{row['title_cn']}-{row['selector_cn']}" for row in rows]
     y = np.arange(len(labels), dtype=float)
     centers = np.asarray([
-        0.0 if row["recommended_min_percent"] is None or row["recommended_max_percent"] is None
+        np.nan if row["recommended_min_percent"] is None or row["recommended_max_percent"] is None
         else (float(row["recommended_min_percent"]) + float(row["recommended_max_percent"])) / 2.0
         for row in rows
     ], dtype=float)
     lower_err = np.asarray([
-        0.0 if row["recommended_min_percent"] is None or row["recommended_max_percent"] is None
+        np.nan if row["recommended_min_percent"] is None or row["recommended_max_percent"] is None
         else centers[i] - float(row["recommended_min_percent"])
         for i, row in enumerate(rows)
     ], dtype=float)
     upper_err = np.asarray([
-        0.0 if row["recommended_min_percent"] is None or row["recommended_max_percent"] is None
+        np.nan if row["recommended_min_percent"] is None or row["recommended_max_percent"] is None
         else float(row["recommended_max_percent"]) - centers[i]
         for i, row in enumerate(rows)
     ], dtype=float)
-    mae_vals = np.asarray([
-        0.0 if row["best_test_mae"] is None else float(row["best_test_mae"])
-        for row in rows
-    ], dtype=float)
+    mae_vals = [None if row["best_test_mae"] is None else float(row["best_test_mae"]) for row in rows]
 
     fig, axes = plt.subplots(1, 2, figsize=(12.8, 4.8))
     for ax in axes:
         style_axis(ax)
 
+    valid = np.isfinite(centers)
     axes[0].errorbar(
-        centers,
-        y,
-        xerr=np.vstack([lower_err, upper_err]),
+        centers[valid],
+        y[valid],
+        xerr=np.vstack([lower_err[valid], upper_err[valid]]),
         fmt="o",
         color=TARGET_GREEN,
         ecolor=TARGET_GREEN,
         elinewidth=2.0,
         capsize=4,
     )
+    if np.any(~valid):
+        axes[0].scatter(np.zeros(np.sum(~valid)), y[~valid], marker="x", s=48, color=MAIN_RED, label="当前采样内未通过")
+        axes[0].legend(loc="best")
     axes[0].axvline(0.0, color="#666666", linewidth=1.0, alpha=0.85)
     axes[0].set_yticks(y)
     axes[0].set_yticklabels(labels)
     axes[0].set_xlabel("允许厚度相对误差 (%)")
     axes[0].set_title("最敏感层允许容差区间", fontweight="semibold")
 
-    axes[1].barh(y, mae_vals, color=MAIN_RED, height=0.56)
+    finite_mae = np.asarray([np.nan if value is None else value for value in mae_vals], dtype=float)
+    mae_mask = np.isfinite(finite_mae)
+    axes[1].barh(y[mae_mask], finite_mae[mae_mask], color=MAIN_RED, height=0.56)
+    if np.any(~mae_mask):
+        axes[1].scatter(np.zeros(np.sum(~mae_mask)), y[~mae_mask], marker="x", s=48, color=MAIN_RED)
     axes[1].set_yticks(y)
     axes[1].set_yticklabels(labels)
     axes[1].set_xlabel("MAE")
@@ -1498,7 +1503,7 @@ def export_refined_layer_tolerance_summary(
     fig.suptitle("精细分层厚度容差总览", fontsize=12, fontweight="semibold", color=TEXT_DARK)
     fig.tight_layout()
     png_path = output_file(f"{prefix}_overview.png")
-    fig.savefig(png_path, dpi=180)
+    save_publication_figure(fig, png_path)
     plt.close(fig)
     saved["overview_png"] = str(png_path)
     return saved
@@ -1682,26 +1687,26 @@ def export_refined_angle_tolerance_summary(
 
     labels = [str(row["title_cn"]) for row in rows]
     y = np.arange(len(labels), dtype=float)
-    angle_vals = np.asarray([
-        0.0 if row["recommended_max_theta_deg"] is None else float(row["recommended_max_theta_deg"])
-        for row in rows
-    ], dtype=float)
-    mae_vals = np.asarray([
-        0.0 if row["best_test_mae"] is None else float(row["best_test_mae"])
-        for row in rows
-    ], dtype=float)
+    angle_vals = np.asarray([np.nan if row["recommended_max_theta_deg"] is None else float(row["recommended_max_theta_deg"]) for row in rows], dtype=float)
+    mae_vals = np.asarray([np.nan if row["best_test_mae"] is None else float(row["best_test_mae"]) for row in rows], dtype=float)
 
     fig, axes = plt.subplots(1, 2, figsize=(12.8, 4.8))
     for ax in axes:
         style_axis(ax)
 
-    axes[0].barh(y, angle_vals, color=TARGET_GREEN, height=0.56)
+    angle_mask = np.isfinite(angle_vals)
+    axes[0].barh(y[angle_mask], angle_vals[angle_mask], color=TARGET_GREEN, height=0.56)
+    axes[0].scatter(np.zeros(np.sum(~angle_mask)), y[~angle_mask], marker="x", s=48, color=MAIN_RED, label="当前采样内未通过")
+    if np.any(~angle_mask):
+        axes[0].legend(loc="best")
     axes[0].set_yticks(y)
     axes[0].set_yticklabels(labels)
     axes[0].set_xlabel("允许最大入射角误差 (°)")
     axes[0].set_title("精细角度容差", fontweight="semibold")
 
-    axes[1].barh(y, mae_vals, color=MAIN_RED, height=0.56)
+    mae_mask = np.isfinite(mae_vals)
+    axes[1].barh(y[mae_mask], mae_vals[mae_mask], color=MAIN_RED, height=0.56)
+    axes[1].scatter(np.zeros(np.sum(~mae_mask)), y[~mae_mask], marker="x", s=48, color=MAIN_RED)
     axes[1].set_yticks(y)
     axes[1].set_yticklabels(labels)
     axes[1].set_xlabel("MAE")
@@ -1710,7 +1715,7 @@ def export_refined_angle_tolerance_summary(
     fig.suptitle("精细角度容差总览", fontsize=12, fontweight="semibold", color=TEXT_DARK)
     fig.tight_layout()
     png_path = output_file(f"{prefix}_overview.png")
-    fig.savefig(png_path, dpi=180)
+    save_publication_figure(fig, png_path)
     plt.close(fig)
     saved["overview_png"] = str(png_path)
     return saved
@@ -1947,14 +1952,8 @@ def export_overall_performance_table(
 
     labels = [str(row["title_cn"]) for row in rows]
     mae_vals = np.asarray([float(row["validation_mae"]) for row in rows], dtype=float)
-    angle_vals = np.asarray([
-        0.0 if row["angle_feature_shift_nm_at_max_test"] is None else abs(float(row["angle_feature_shift_nm_at_max_test"]))
-        for row in rows
-    ], dtype=float)
-    thickness_vals = np.asarray([
-        0.0 if row["most_sensitive_layer_feature_shift_nm"] is None else abs(float(row["most_sensitive_layer_feature_shift_nm"]))
-        for row in rows
-    ], dtype=float)
+    angle_vals = [None if row["angle_feature_shift_nm_at_max_test"] is None else abs(float(row["angle_feature_shift_nm_at_max_test"])) for row in rows]
+    thickness_vals = [None if row["most_sensitive_layer_feature_shift_nm"] is None else abs(float(row["most_sensitive_layer_feature_shift_nm"])) for row in rows]
     x = np.arange(len(labels), dtype=float)
 
     fig, axes = plt.subplots(1, 3, figsize=(14.0, 4.6))
@@ -1967,13 +1966,13 @@ def export_overall_performance_table(
     axes[0].set_title("验证误差", fontweight="semibold")
     axes[0].set_ylabel("MAE")
 
-    axes[1].bar(x, angle_vals, color=TARGET_GREEN, width=0.56)
+    plot_bars_with_missing(axes[1], x, angle_vals, color=TARGET_GREEN)
     axes[1].set_xticks(x)
     axes[1].set_xticklabels(labels, rotation=12, ha="right")
     axes[1].set_title("最大角度测试下特征偏移", fontweight="semibold")
     axes[1].set_ylabel("nm")
 
-    axes[2].bar(x, thickness_vals, color=ERR_GOLD, width=0.56)
+    plot_bars_with_missing(axes[2], x, thickness_vals, color=ERR_GOLD)
     axes[2].set_xticks(x)
     axes[2].set_xticklabels(labels, rotation=12, ha="right")
     axes[2].set_title("最敏感层厚度误差下特征偏移", fontweight="semibold")
@@ -1982,7 +1981,7 @@ def export_overall_performance_table(
     fig.suptitle("三类结构综合性能总览", fontsize=12, fontweight="semibold", color=TEXT_DARK)
     fig.tight_layout()
     png_path = output_file(f"{prefix}_overview.png")
-    fig.savefig(png_path, dpi=180)
+    save_publication_figure(fig, png_path)
     plt.close(fig)
     saved["overview_png"] = str(png_path)
     return saved
@@ -2358,14 +2357,8 @@ def export_performance_conclusions(
 
     labels = [str(row["title_cn"]) for row in rows]
     maes = np.asarray([float(row["mae"]) for row in rows], dtype=float)
-    max_steps = np.asarray(
-        [0.0 if row["max_stable_sampling_step_nm"] is None else float(row["max_stable_sampling_step_nm"]) for row in rows],
-        dtype=float,
-    )
-    noise_sigmas = np.asarray(
-        [0.0 if row["max_stable_noise_sigma"] is None else float(row["max_stable_noise_sigma"]) for row in rows],
-        dtype=float,
-    )
+    max_steps = [None if row["max_stable_sampling_step_nm"] is None else float(row["max_stable_sampling_step_nm"]) for row in rows]
+    noise_sigmas = [None if row["max_stable_noise_sigma"] is None else float(row["max_stable_noise_sigma"]) for row in rows]
     x = np.arange(len(labels), dtype=float)
 
     fig, axes = plt.subplots(1, 3, figsize=(14.0, 4.6))
@@ -2378,13 +2371,13 @@ def export_performance_conclusions(
     axes[0].set_title("验证误差水平", fontweight="semibold")
     axes[0].set_ylabel("MAE")
 
-    axes[1].bar(x, max_steps, color=REF_BLUE, width=0.56)
+    plot_bars_with_missing(axes[1], x, max_steps, color=REF_BLUE)
     axes[1].set_xticks(x)
     axes[1].set_xticklabels(labels, rotation=12, ha="right")
     axes[1].set_title("最大稳定采样步长", fontweight="semibold")
     axes[1].set_ylabel("nm")
 
-    axes[2].bar(x, noise_sigmas, color=ERR_GOLD, width=0.56)
+    plot_bars_with_missing(axes[2], x, noise_sigmas, color=ERR_GOLD)
     axes[2].set_xticks(x)
     axes[2].set_xticklabels(labels, rotation=12, ha="right")
     axes[2].set_title("最大稳定噪声标准差", fontweight="semibold")
@@ -2393,7 +2386,7 @@ def export_performance_conclusions(
     fig.suptitle("三类结构性能结论总览", fontsize=12, fontweight="semibold", color=TEXT_DARK)
     fig.tight_layout()
     png_path = output_file(f"{prefix}_overview.png")
-    fig.savefig(png_path, dpi=180)
+    save_publication_figure(fig, png_path)
     plt.close(fig)
     saved["overview_png"] = str(png_path)
     return saved
@@ -2455,26 +2448,34 @@ def export_sensitivity_stability_summary(
 
     labels = [str(row["title_cn"] or row["case_id"]) for row in case_rows]
     resolution_vals = [
-        np.nan if row["resolution"]["max_stable_sampling_step_nm"] is None else float(row["resolution"]["max_stable_sampling_step_nm"])
+        None if row["resolution"]["max_stable_sampling_step_nm"] is None else float(row["resolution"]["max_stable_sampling_step_nm"])
         for row in case_rows
     ]
     noise_vals = [
-        np.nan if row["noise"]["max_stable_noise_sigma"] is None else float(row["noise"]["max_stable_noise_sigma"])
+        None if row["noise"]["max_stable_noise_sigma"] is None else float(row["noise"]["max_stable_noise_sigma"])
         for row in case_rows
     ]
+    audit = build_figure_audit(
+        figure_id=f"{prefix}_overview",
+        title="敏感性稳定区间总览",
+        evidence_level="theory",
+        checks=[audit_missing_values(resolution_vals), audit_missing_values(noise_vals)],
+    )
+    audit_path = output_file(f"{prefix}_figure_audit.json")
+    saved["audit_json"] = write_figure_audit(audit_path, audit)
     x = np.arange(len(labels), dtype=float)
 
     fig, axes = plt.subplots(1, 2, figsize=(11.0, 4.4))
     for ax in axes:
         style_axis(ax)
 
-    axes[0].bar(x, np.nan_to_num(np.asarray(resolution_vals, dtype=float), nan=0.0), color=REF_BLUE, width=0.56)
+    plot_bars_with_missing(axes[0], x, resolution_vals, color=REF_BLUE)
     axes[0].set_xticks(x)
     axes[0].set_xticklabels(labels, rotation=12, ha="right")
     axes[0].set_title("最大稳定采样步长", fontweight="semibold")
     axes[0].set_ylabel("nm")
 
-    axes[1].bar(x, np.nan_to_num(np.asarray(noise_vals, dtype=float), nan=0.0), color=ERR_GOLD, width=0.56)
+    plot_bars_with_missing(axes[1], x, noise_vals, color=ERR_GOLD)
     axes[1].set_xticks(x)
     axes[1].set_xticklabels(labels, rotation=12, ha="right")
     axes[1].set_title("最大稳定噪声标准差", fontweight="semibold")
@@ -2483,7 +2484,7 @@ def export_sensitivity_stability_summary(
     fig.suptitle("三类结构稳定区间总览", fontsize=12, fontweight="semibold", color=TEXT_DARK)
     fig.tight_layout()
     png_path = output_file(f"{prefix}_overview.png")
-    fig.savefig(png_path, dpi=180)
+    save_publication_figure(fig, png_path)
     plt.close(fig)
     saved["overview_png"] = str(png_path)
     return saved

@@ -93,6 +93,31 @@ from .education import (
     simulate_report_design_real_materials,
 )
 from .io import LoadedCSV, SpectrumData, load_reflectance_spec, load_spectrum_csv, parse_loaded_csv, read_csv_once, read_reflectance_csv
+from .figure_audit import (
+    EVIDENCE_LEVELS,
+    audit_external_comparison,
+    audit_missing_values,
+    audit_rta_data,
+    audit_source_files,
+    build_figure_audit,
+    collect_figure_audits,
+    publication_scope,
+    write_audit_manifest,
+    write_figure_audit,
+)
+from .decision import (
+    METRIC_SCHEMAS,
+    build_decision_record,
+    compute_device_metrics,
+    export_decision_analysis,
+    infer_device_class,
+    normalize_metric,
+    pareto_front_indices,
+    pass_probability,
+    robust_interval,
+    sample_score_uncertainty,
+    score_device_metrics,
+)
 from .materials import (
     clear_material_cache,
     common_wavelength_window_um,
@@ -208,6 +233,27 @@ from .education_content import (
 )
 
 __all__ = [
+    "EVIDENCE_LEVELS",
+    "audit_external_comparison",
+    "audit_missing_values",
+    "audit_rta_data",
+    "audit_source_files",
+    "build_figure_audit",
+    "collect_figure_audits",
+    "publication_scope",
+    "write_audit_manifest",
+    "write_figure_audit",
+    "METRIC_SCHEMAS",
+    "build_decision_record",
+    "compute_device_metrics",
+    "export_decision_analysis",
+    "infer_device_class",
+    "normalize_metric",
+    "pareto_front_indices",
+    "pass_probability",
+    "robust_interval",
+    "sample_score_uncertainty",
+    "score_device_metrics",
     "LayerSpec",
     "REPORT_CHAPTER2_CASES",
     "REPORT_COMPARISON_FIGURES",

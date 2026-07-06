@@ -1,0 +1,8 @@
+graph TD
+    A["用户输入 (厚度, 折射率, 波长, 角度)"] --> B["API 接口 (api.py)"]
+    B --> C["材料加载与插值 (materials.py)"]
+    C --> D["NumPy 向量化计算内核 (education.py)"]
+    D --> E["计算结果 (R, T, A, 电场分布)"]
+    E --> F["结果数据导出 (CSV / JSON)"]
+    E --> G["Plotly 交互式可视化 (plotly_charts.py)"]
+    G --> H["HTML 交互网页与静态 PNG (outputs/ / docs/figures/)"]

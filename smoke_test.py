@@ -68,6 +68,14 @@ def main() -> None:
         [python, "run_teaching_demo.py", "--catalog"],
         [python, "run_guided_grating_demo.py"],
         [python, "run_material_library_demo.py", "--case", "single_ar"],
+        [
+            python,
+            "run_figure_audit_gate.py",
+            str(Path.home() / "thinfilm_outputs"),
+            "--output-dir",
+            str(ROOT / "outputs" / "smoke_figure_audit"),
+            "--require-audits",
+        ],
         [python, "run_case.py", "--list"],
         [python, "run_case.py", "--group", "frontier", "--case", "model_tree", "--", "--show"],
     ]

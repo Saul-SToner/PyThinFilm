@@ -27,6 +27,9 @@ from .materials import (
     material_complex_index,
 )
 from .paths import OUTPUT_DIR, output_file
+from .plot_logic import focused_power_limits, infer_rta_focus, padded_numeric_limits, rta_trace_styles
+from .plotting import MUTED, save_publication_figure
+from .figure_audit import audit_rta_data, build_figure_audit, write_figure_audit
 from ._shared import (
     MAIN_RED,
     TARGET_GREEN,
@@ -2079,6 +2082,15 @@ def export_pdrc_cooling_bundle(
     r_vals = np.asarray(result["R"], dtype=float)
     t_vals = np.asarray(result["T"], dtype=float)
     a_vals = np.asarray(result["A"], dtype=float)
+
+    audit = build_figure_audit(
+        figure_id=f"{prefix}_spectrum",
+        title=str(result.get("title_cn") or result.get("title_en") or prefix),
+        evidence_level="real_material_theory" if "real_material" in str(result.get("case_id", "")) else "theory",
+        checks=[audit_rta_data(lambda_um, r_vals, t_vals, a_vals, conservation_tolerance=1e-5)],
+    )
+    audit_path = output_file(f"{prefix}_figure_audit.json")
+    saved["audit_json"] = write_figure_audit(audit_path, audit)
     eps_vals = np.asarray(result["emissivity"], dtype=float)
     bands = [str(item) for item in result["band"]]
     metrics = result["metrics"]
@@ -2172,42 +2184,42 @@ def export_pdrc_cooling_bundle(
     saved["txt"] = str(txt_path)
 
     png_path = output_file(f"{prefix}_spectrum.png")
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12.5, 4.8), gridspec_kw={"width_ratios": [2.2, 1.0]})
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(6.4, 3.0), gridspec_kw={"width_ratios": [1.9, 1.0]})
     _style_teaching_axis(ax1)
     _style_teaching_axis(ax2)
-    ax1.axvspan(0.3, 2.5, color="#dbeafe", alpha=0.55, label="太阳波段")
-    ax1.axvspan(8.0, 13.0, color="#fee2e2", alpha=0.55, label="8-13 μm 大气窗口")
-    ax1.plot(lambda_um, r_vals, color=MAIN_RED, linewidth=2.2, label="R")
-    ax1.plot(lambda_um, a_vals, color=ABS_GOLD, linewidth=2.2, label="A≈ε")
-    ax1.plot(lambda_um, t_vals, color=TRANS_BLUE, linewidth=1.7, alpha=0.8, label="T")
+    ax1.axvspan(0.3, 2.5, color="#dbeafe", alpha=0.45, label="太阳波段 (0.3–2.5 μm)")
+    ax1.axvspan(8.0, 13.0, color="#fee2e2", alpha=0.45, label="大气窗口 (8–13 μm)")
+    ax1.plot(lambda_um, r_vals, color=MAIN_RED, linewidth=1.8, label="R (反射率)")
+    ax1.plot(lambda_um, a_vals, color=ABS_GOLD, linewidth=1.8, label="A (吸收率) ≈ ε")
+    ax1.plot(lambda_um, t_vals, color=TRANS_BLUE, linewidth=1.3, alpha=0.8, label="T (透射率)")
     ax1.set_xscale("log")
     ax1.set_xlim(0.3, 13.0)
     ax1.set_ylim(0.0, 1.02)
-    ax1.set_xlabel("波长 (μm)")
-    ax1.set_ylabel("R / T / A")
-    ax1.set_title("PDRC 宽波段光谱", fontweight="semibold")
-    ax1.legend(loc="best", fontsize=8, frameon=True, facecolor="white", edgecolor="#c9d2dc")
+    ax1.set_xlabel("波长 (μm)", fontsize=7.5)
+    ax1.set_ylabel("比值", fontsize=7.5)
+    ax1.set_title("PDRC 宽波段光谱", fontsize=8.0, fontweight="semibold")
+    ax1.legend(loc="lower left", fontsize=6.2, frameon=True, facecolor="white", edgecolor="#c9d2dc", framealpha=0.9)
 
-    labels = ["太阳吸收", "8-13μm发射", "冷却得分"]
+    labels = ["太阳吸收", "大气窗口发射", "冷却得分"]
     values = [
         float(metrics["A_solar_avg"]),
         float(metrics["epsilon_8_13_avg"]),
         float(metrics["cooling_score"]),
     ]
     colors = [MAIN_RED, TARGET_GREEN, ABS_GOLD]
-    ax2.bar(labels, values, color=colors, alpha=0.86)
-    ax2.axhline(0.15, color=MAIN_RED, linestyle=":", linewidth=1.4)
-    ax2.axhline(0.70, color=TARGET_GREEN, linestyle=":", linewidth=1.4)
+    bars = ax2.bar(labels, values, color=colors, alpha=0.86, width=0.55)
+    ax2.axhline(0.15, color=MAIN_RED, linestyle=":", linewidth=1.1, label="基本目标 R")
+    ax2.axhline(0.70, color=TARGET_GREEN, linestyle=":", linewidth=1.1, label="发射率目标")
     ax2.set_ylim(0.0, 1.02)
-    ax2.set_ylabel("指标值")
-    ax2.set_title("模块指标", fontweight="semibold")
-    ax2.tick_params(axis="x", rotation=20)
+    ax2.set_ylabel("指标值", fontsize=7.5)
+    ax2.set_title("调控指标", fontsize=8.0, fontweight="semibold")
+    ax2.tick_params(axis="x", labelsize=6.8, rotation=12)
     for idx, val in enumerate(values):
-        ax2.text(idx, min(1.0, val + 0.035), f"{val:.3f}", ha="center", va="bottom", fontsize=9, color=TEXT_DARK)
+        ax2.text(idx, min(1.0, val + 0.035), f"{val:.3f}", ha="center", va="bottom", fontsize=7.2, color=TEXT_DARK)
 
-    fig.suptitle("被动日间辐射冷却薄膜光谱调控模块", fontsize=13, fontweight="semibold", color=TEXT_DARK)
+    fig.suptitle("被动日间辐射冷却薄膜光谱调控", fontsize=9.2, fontweight="semibold", color=TEXT_DARK)
     fig.tight_layout()
-    fig.savefig(png_path, dpi=180, bbox_inches="tight")
+    save_publication_figure(fig, png_path)
     plt.close(fig)
     saved["png"] = str(png_path)
 
@@ -3101,18 +3113,28 @@ def _case_output_stem(result: Dict[str, Any], prefix: str = "teaching_case") -> 
     return f"{prefix}_{case_id}"
 
 
-def _main_curve_kind_for_case(result: Dict[str, Any]) -> str:
+def _main_curve_kind_for_case(
+    result: Dict[str, Any],
+    r_vals: Sequence[float] | None = None,
+    t_vals: Sequence[float] | None = None,
+    a_vals: Sequence[float] | None = None,
+) -> str:
     key = str(result.get("case_id") or result.get("design_type") or "").strip().lower()
-    if "fp_" in key or key in {"fp_filter", "narrowband_filter"}:
-        return "T"
-    return "R"
+    return infer_rta_focus(
+        [] if r_vals is None else r_vals,
+        [] if t_vals is None else t_vals,
+        [] if a_vals is None else a_vals,
+        context=key,
+    )
 
 
 def _style_teaching_axis(ax: plt.Axes) -> None:
     ax.set_facecolor(PANEL_BG)
-    ax.grid(True, alpha=0.35, color=GRID_COLOR, linewidth=0.8)
-    for spine in ax.spines.values():
-        spine.set_color("#c9d2dc")
+    ax.grid(False)
+    for side, spine in ax.spines.items():
+        spine.set_visible(side in {"left", "bottom"})
+        spine.set_color(TEXT_DARK)
+        spine.set_linewidth(0.8)
     ax.tick_params(colors=TEXT_DARK)
     ax.xaxis.label.set_color(TEXT_DARK)
     ax.yaxis.label.set_color(TEXT_DARK)
@@ -3123,23 +3145,39 @@ def _case_analysis_lines(result: Dict[str, Any]) -> list[str]:
     summary = result["summary"]
     lambda0_nm = float(result["lambda0_nm"])
     key = str(result.get("case_id") or result.get("design_type") or "").strip().lower()
+
+    r_center = float(summary['R_at_lambda0'])
+    t_center = float(summary['T_at_lambda0'])
+    a_center = float(summary['A_at_lambda0'])
+
     lines = [
-        f"中心波长 = {lambda0_nm:.1f} nm",
-        f"R@中心 = {float(summary['R_at_lambda0']):.4f}",
-        f"T@中心 = {float(summary['T_at_lambda0']):.4f}",
+        f"设计中心波长 = {lambda0_nm:.1f} nm",
+        f"中心波长反射率 (R) = {r_center*100:.2f}%",
+        f"中心波长透射率 (T) = {t_center*100:.2f}%",
     ]
     if "fp_" in key or key in {"fp_filter", "narrowband_filter"}:
         peak_wl = float(summary["T_max_wavelength_nm"])
-        lines.append(f"透射峰值 = {float(summary['T_max']):.4f}")
-        lines.append(f"峰位偏差 = {peak_wl - lambda0_nm:+.2f} nm")
+        t_max = float(summary['T_max'])
+        lines.append(f"极大透射率: {t_max*100:.2f}% (于 {peak_wl:.1f} nm)")
+        lines.append(f"共振峰波长偏差 = {peak_wl - lambda0_nm:+.2f} nm")
     elif "beamsplitter" in key:
         split_err = float(summary["R_at_lambda0"]) - 0.5
-        lines.append(f"A@中心 = {float(summary['A_at_lambda0']):.4f}")
-        lines.append(f"分束偏差 = {split_err:+.4f}")
+        lines.append(f"中心波长吸收率 (A) = {a_center*100:.2f}%")
+        lines.append(f"偏离 50/50 分束值 = {split_err*100:+.2f}%")
+    elif any(term in key for term in ("reflector", "mirror", "bragg", "quarter_wave_stack")):
+        peak_wl = float(summary["R_max_wavelength_nm"])
+        r_max = float(summary['R_max'])
+        lines.append(f"极大反射率: {r_max*100:.2f}% (于 {peak_wl:.1f} nm)")
+        lines.append(f"反射带中心波长偏差 = {peak_wl - lambda0_nm:+.2f} nm")
     else:
         valley_wl = float(summary["R_min_wavelength_nm"])
-        lines.append(f"最小反射率 = {float(summary['R_min']):.4f}")
-        lines.append(f"谷位偏差 = {valley_wl - lambda0_nm:+.2f} nm")
+        r_min = float(summary['R_min'])
+        lines.append(f"极小反射率: {r_min*100:.3f}% (于 {valley_wl:.1f} nm)")
+        lines.append(f"反射极小值波长偏差 = {valley_wl - lambda0_nm:+.2f} nm")
+    # B: Add A reference + energy conservation check for all cases
+    if "beamsplitter" not in key:  # beamsplitter branch already shows A above
+        lines.append(f"吸收率 (A) = {a_center*100:.2f}%  [参考]")
+    lines.append(f"能量守恒: R+T+A = {(r_center + t_center + a_center)*100:.1f}%")
     return lines
 
 
@@ -3179,6 +3217,28 @@ def export_report_case_outputs(
     r_vals = np.asarray(result["R"], dtype=float)
     t_vals = np.asarray(result["T"], dtype=float)
     a_vals = np.asarray(result["A"], dtype=float)
+
+    audit_focus = _main_curve_kind_for_case(result, r_vals, t_vals, a_vals)
+    audit_key = str(result.get("case_id") or result.get("design_type") or "").lower()
+    if audit_focus in {"T", "A"} or any(term in audit_key for term in ("reflector", "mirror", "bragg", "quarter_wave_stack")):
+        audit_feature_kind = "peak"
+        audit_feature_wavelength = float(wavelength_nm[int(np.argmax({"R": r_vals, "T": t_vals, "A": a_vals}[audit_focus]))])
+    else:
+        audit_feature_kind = "valley"
+        audit_feature_wavelength = float(wavelength_nm[int(np.argmin({"R": r_vals, "T": t_vals, "A": a_vals}[audit_focus]))])
+    audit = build_figure_audit(
+        figure_id=f"{stem}_main",
+        title=str(result.get("title_cn") or result.get("title_en") or stem),
+        evidence_level="theory",
+        checks=[audit_rta_data(
+            wavelength_nm, r_vals, t_vals, a_vals,
+            focus=audit_focus,
+            feature_kind=audit_feature_kind,
+            feature_wavelength=audit_feature_wavelength,
+        )],
+    )
+    audit_path = output_file(f"{stem}_figure_audit.json")
+    saved["audit_json"] = write_figure_audit(audit_path, audit)
 
     if save_csv:
         csv_path = output_file(f"{stem}_spectrum.csv")
@@ -3236,10 +3296,25 @@ def export_report_case_outputs(
         png_path = output_file(f"{stem}_RTA.png")
         fig, ax = plt.subplots(figsize=(8, 5))
         _style_teaching_axis(ax)
-        ax.plot(wavelength_nm, r_vals, label="R", linewidth=2.3, color=MAIN_RED)
-        ax.plot(wavelength_nm, t_vals, label="T", linewidth=2.0, color=TRANS_BLUE)
-        ax.plot(wavelength_nm, a_vals, label="A", linewidth=2.0, color=ABS_GOLD)
-        ax.axvline(float(result["lambda0_nm"]), linestyle=":", linewidth=1.4, color=TARGET_GREEN, alpha=0.9, label="lambda0")
+        main_kind = _main_curve_kind_for_case(result, r_vals, t_vals, a_vals)
+        curves = {"R": r_vals, "T": t_vals, "A": a_vals}
+        colors = {"R": MAIN_RED, "T": TRANS_BLUE, "A": ABS_GOLD}
+        line_styles = {"solid": "-", "dash": "--", "dot": ":"}
+        trace_styles = rta_trace_styles(main_kind, curves)
+        legend_labels = {"R": "R (反射率 Reflectance)", "T": "T (透射率 Transmittance)", "A": "A (吸收率 Absorptance)"}
+        for kind in ("R", "T", "A"):
+            style = trace_styles[kind]
+            ax.plot(
+                wavelength_nm,
+                curves[kind],
+                label=legend_labels[kind],
+                linewidth=float(style["linewidth"]),
+                alpha=float(style["alpha"]),
+                linestyle=line_styles[str(style["dash"])],
+                color=colors[kind],
+                zorder=3 if kind == main_kind else 2,
+            )
+        ax.axvline(float(result["lambda0_nm"]), linestyle=":", linewidth=1.4, color=TARGET_GREEN, alpha=0.9, label="$\lambda_0$ (设计中心波长)")
         title_label = (
             result.get("title_cn")
             or result.get("title_en")
@@ -3262,36 +3337,31 @@ def export_report_case_outputs(
             bbox={"boxstyle": "round,pad=0.35", "facecolor": "white", "alpha": 0.85, "edgecolor": "#cccccc"},
         )
         fig.tight_layout()
-        fig.savefig(png_path, dpi=180)
+        save_publication_figure(fig, png_path)
         plt.close(fig)
         saved["png"] = str(png_path)
 
-        main_kind = _main_curve_kind_for_case(result)
         main_vals = {"R": r_vals, "T": t_vals, "A": a_vals}[main_kind]
-        main_color = {"R": "#cc3f0c", "T": "#1f77b4", "A": "#2ca02c"}[main_kind]
+        main_color = {"R": MAIN_RED, "T": TRANS_BLUE, "A": ABS_GOLD}[main_kind]
         main_label = {"R": "反射率", "T": "透射率", "A": "吸收率"}[main_kind]
         peak_idx = int(np.argmax(main_vals))
         valley_idx = int(np.argmin(main_vals))
-        ymin = float(np.min(main_vals))
-        ymax = float(np.max(main_vals))
-        span = max(ymax - ymin, 1e-6)
-        pad = max(0.02, span * 0.12)
-        y0 = max(0.0, ymin - pad)
-        y1 = min(1.02, ymax + pad)
-        if y1 - y0 < 0.08:
-            mid = 0.5 * (y0 + y1)
-            y0 = max(0.0, mid - 0.04)
-            y1 = min(1.02, mid + 0.04)
+        case_key = str(result.get("case_id") or result.get("design_type") or "").lower()
+        feature_idx = peak_idx if main_kind in {"T", "A"} or any(
+            term in case_key for term in ("reflector", "mirror", "bragg", "quarter_wave_stack")
+        ) else valley_idx
+        y0, y1 = focused_power_limits(main_vals)
 
         main_png_path = output_file(f"{stem}_main.png")
         fig2, ax2 = plt.subplots(figsize=(8, 5))
         _style_teaching_axis(ax2)
-        ax2.plot(wavelength_nm, main_vals, linewidth=2.7, color=main_color, label=main_kind)
+        legend_labels = {"R": "R (反射率 Reflectance)", "T": "T (透射率 Transmittance)", "A": "A (吸收率 Absorptance)"}
+        ax2.plot(wavelength_nm, main_vals, linewidth=2.7, color=main_color, label=legend_labels[main_kind])
         ax2.fill_between(wavelength_nm, main_vals, color=main_color, alpha=0.10)
         ax2.axvline(float(result["lambda0_nm"]), linestyle=":", linewidth=1.4, color=TARGET_GREEN, alpha=0.9)
         ax2.scatter(
-            [float(wavelength_nm[valley_idx]), float(wavelength_nm[peak_idx])],
-            [float(main_vals[valley_idx]), float(main_vals[peak_idx])],
+            [float(wavelength_nm[feature_idx])],
+            [float(main_vals[feature_idx])],
             color=main_color,
             edgecolor="white",
             linewidth=1.0,
@@ -3307,6 +3377,48 @@ def export_report_case_outputs(
         else:
             ax2.set_xlim(*xlim)
         ax2.set_ylim(y0, y1)
+
+        # C: Overlay faint secondary curves on a right twin-axis.
+        # twinx is used so secondary curves remain visible even when the
+        # primary y-axis is zoomed in tightly around the main curve.
+        _sec_colors = {"R": MAIN_RED, "T": TRANS_BLUE, "A": ABS_GOLD}
+        _sec_ls     = {"R": "--",     "T": "--",        "A": ":"}
+        _sec_labels = {
+            "R": "R (反射率) [参考]",
+            "T": "T (透射率) [参考]",
+            "A": "A (吸收率) [参考]",
+        }
+        _sec_curves = [(k, {"R": r_vals, "T": t_vals, "A": a_vals}[k])
+                       for k in ("R", "T", "A") if k != main_kind]
+        _has_visible = any(float(np.max(np.abs(v))) > 0.005 for _, v in _sec_curves)
+        if _has_visible:
+            ax2_sec = ax2.twinx()
+            for _k, _v in _sec_curves:
+                _max_v = float(np.max(np.abs(_v)))
+                _alpha = 0.16 if _max_v < 0.02 else 0.30
+                ax2_sec.plot(
+                    wavelength_nm, _v,
+                    linewidth=0.85,
+                    alpha=_alpha,
+                    linestyle=_sec_ls[_k],
+                    color=_sec_colors[_k],
+                    label=_sec_labels[_k],
+                )
+            ax2_sec.set_ylim(-0.02, 1.08)
+            ax2_sec.set_ylabel("T / A  [参考]", fontsize=6.5, color="#aaaaaa")
+            ax2_sec.tick_params(axis="y", labelsize=5.5, colors="#cccccc")
+            for _sp, _obj in ax2_sec.spines.items():
+                if _sp == "right":
+                    _obj.set_linewidth(0.5)
+                    _obj.set_color("#dddddd")
+                else:
+                    _obj.set_visible(False)
+            ax2_sec.legend(
+                loc="upper left", fontsize=5.8, frameon=True,
+                facecolor="white", edgecolor="#eeeeee", framealpha=0.75,
+                borderpad=0.4, handlelength=1.4,
+            )
+
         ax2.text(
             0.985,
             0.97,
@@ -3318,7 +3430,7 @@ def export_report_case_outputs(
             bbox={"boxstyle": "round,pad=0.35", "facecolor": "white", "alpha": 0.85, "edgecolor": "#cccccc"},
         )
         fig2.tight_layout()
-        fig2.savefig(main_png_path, dpi=180)
+        save_publication_figure(fig2, main_png_path)
         plt.close(fig2)
         saved["main_png"] = str(main_png_path)
 
@@ -3339,31 +3451,37 @@ def export_report_case_outputs(
         ax3.set_ylabel("数值")
 
         key = str(result.get("case_id") or result.get("design_type") or "").strip().lower()
-        if "fp_" in key:
-            labels2 = ["中心波长", "透射峰位置", "偏差"]
+        if "fp_" in key or key in {"fp_filter", "narrowband_filter"}:
+            labels2 = ["设计 λ0", "透射峰位"]
             peak_wl = float(summary["T_max_wavelength_nm"])
-            values2 = [float(result["lambda0_nm"]), peak_wl, peak_wl - float(result["lambda0_nm"])]
-            colors2 = [TARGET_GREEN, TRANS_BLUE, "#8c564b"]
+            values2 = [float(result["lambda0_nm"]), peak_wl]
+            colors2 = [TARGET_GREEN, TRANS_BLUE]
+            delta = peak_wl - float(result["lambda0_nm"])
             ax4.bar(labels2, values2, color=colors2, width=0.58)
             ax4.set_title("峰位对齐", fontweight="semibold")
             ax4.set_ylabel("nm")
         else:
-            labels2 = ["中心波长", "反射谷位置", "偏差"]
+            labels2 = ["设计 λ0", "反射谷位"]
             valley_wl = float(summary["R_min_wavelength_nm"])
-            values2 = [float(result["lambda0_nm"]), valley_wl, valley_wl - float(result["lambda0_nm"])]
-            colors2 = [TARGET_GREEN, MAIN_RED, "#8c564b"]
-            if "high_reflector" in key or "beamsplitter" in key:
-                labels2 = ["中心波长", "反射峰位置", "偏差"]
+            values2 = [float(result["lambda0_nm"]), valley_wl]
+            colors2 = [TARGET_GREEN, MAIN_RED]
+            delta = valley_wl - float(result["lambda0_nm"])
+            if any(term in key for term in ("reflector", "mirror", "bragg", "quarter_wave_stack", "beamsplitter")):
+                labels2 = ["设计 λ0", "反射峰位"]
                 peak_wl = float(summary["R_max_wavelength_nm"])
-                values2 = [float(result["lambda0_nm"]), peak_wl, peak_wl - float(result["lambda0_nm"])]
-                colors2 = [TARGET_GREEN, MAIN_RED, "#8c564b"]
+                values2 = [float(result["lambda0_nm"]), peak_wl]
+                colors2 = [TARGET_GREEN, MAIN_RED]
+                delta = peak_wl - float(result["lambda0_nm"])
             ax4.bar(labels2, values2, color=colors2, width=0.58)
             ax4.set_title("谱线对齐", fontweight="semibold")
             ax4.set_ylabel("nm")
 
+        ax4.set_ylim(*padded_numeric_limits(values2, min_span=20.0))
+        ax4.text(0.98, 0.96, f"Δλ = {delta:+.2f} nm", transform=ax4.transAxes, ha="right", va="top", color=MUTED)
+
         fig3.suptitle(f"{title_label} | 分析图", fontsize=12, fontweight="semibold", color=TEXT_DARK)
         fig3.tight_layout()
-        fig3.savefig(analysis_png_path, dpi=180)
+        save_publication_figure(fig3, analysis_png_path)
         plt.close(fig3)
         saved["analysis_png"] = str(analysis_png_path)
 
@@ -3422,7 +3540,7 @@ def _export_comparison_plot(
 
     fig, ax = plt.subplots(figsize=(8, 5))
     _style_teaching_axis(ax)
-    palette = [MAIN_RED, TRANS_BLUE, "#2f855a", "#9467bd", "#8c564b", "#17becf"]
+    palette = [MAIN_RED, TRANS_BLUE, "#77D7D1", "#7C6CCF", "#B64342", "#A8A8A8"]
     y_all: List[np.ndarray] = []
     center_values: List[float] = []
     peak_positions: List[float] = []
@@ -3457,7 +3575,7 @@ def _export_comparison_plot(
     ax.set_ylim(max(0.0, y_min - pad), min(1.02, y_max + pad))
     ax.legend(loc="lower left", frameon=True, facecolor="white", edgecolor="#c9d2dc")
     fig.tight_layout()
-    fig.savefig(png_path, dpi=180)
+    save_publication_figure(fig, png_path)
     plt.close(fig)
 
     fig2, axes = plt.subplots(1, 3, figsize=(12, 4.2))
@@ -3487,7 +3605,7 @@ def _export_comparison_plot(
 
     fig2.suptitle(f"{title} | 分析图", fontsize=12, fontweight="semibold", color=TEXT_DARK)
     fig2.tight_layout()
-    fig2.savefig(analysis_png_path, dpi=180)
+    save_publication_figure(fig2, analysis_png_path)
     plt.close(fig2)
 
     return {"csv": str(csv_path), "png": str(png_path), "analysis_png": str(analysis_png_path)}

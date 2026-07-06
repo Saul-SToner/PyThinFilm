@@ -20,12 +20,13 @@ import numpy as np
 from matplotlib.font_manager import FontProperties
 
 from thinfilm import compare_teaching_case_to_reference, export_porous_double_ar_sensitivity_bundle, export_teaching_validation_result
+from thinfilm.plotting import BLUE, CYAN, INK, RED, apply_plot_style, save_publication_figure, style_axis
 
 
-MAIN_RED = "#c94f2d"
-REF_BLUE = "#1d4ed8"
-TARGET_GREEN = "#0f766e"
-TEXT_DARK = "#223046"
+MAIN_RED = BLUE
+REF_BLUE = CYAN
+TARGET_GREEN = RED
+TEXT_DARK = INK
 GRID_COLOR = "#d7dde5"
 PANEL_BG = "#f7f8fb"
 CN_FONT_CANDIDATES = (
@@ -43,14 +44,7 @@ def _cn_font() -> FontProperties | None:
 
 
 def _style_axis(ax: plt.Axes) -> None:
-    ax.set_facecolor(PANEL_BG)
-    ax.grid(True, alpha=0.35, color=GRID_COLOR, linewidth=0.8)
-    for spine in ax.spines.values():
-        spine.set_color("#c9d2dc")
-    ax.tick_params(colors=TEXT_DARK)
-    ax.xaxis.label.set_color(TEXT_DARK)
-    ax.yaxis.label.set_color(TEXT_DARK)
-    ax.title.set_color(TEXT_DARK)
+    style_axis(ax)
 
 
 def _set_axis_labels_cn(ax: plt.Axes, *, title: str, xlabel: str, ylabel: str) -> None:
@@ -180,7 +174,7 @@ def export_theta_bundle(
     _set_axis_labels_cn(ax, title="低反谷位置漂移", xlabel="入射角 (deg)", ylabel="最低反射率波长 (nm)")
 
     png_path = _output_file(f"{prefix}_theta.png")
-    fig.savefig(png_path, dpi=180, bbox_inches="tight")
+    save_publication_figure(fig, png_path)
     plt.close(fig)
     saved["png"] = str(png_path)
     return saved

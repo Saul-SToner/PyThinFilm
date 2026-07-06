@@ -4,9 +4,10 @@ import json
 from typing import Any, Dict, List
 
 import matplotlib.pyplot as plt
+import numpy as np
 
 from .paths import output_file
-from .plotting import BLUE, GREEN, INK, MUTED, PAPER, PANEL, RED, style_axis
+from .plotting import BLUE, GREEN, INK, MUTED, PAPER, PANEL, RED, save_publication_figure, style_axis
 
 
 TEACHING_CASE_EXPANSION_ROADMAP: List[Dict[str, Any]] = [
@@ -440,7 +441,7 @@ def _export_frontier_model_tree_png(roadmap: Dict[str, Any], *, prefix: str) -> 
     )
 
     modules = roadmap["modules"]
-    y_positions = [0.58, 0.25]
+    y_positions = np.linspace(0.67, 0.23, max(len(modules), 1))
     for module, y in zip(modules, y_positions):
         module_color = _status_color(str(module["status"]))
         _draw_box(
@@ -455,7 +456,7 @@ def _export_frontier_model_tree_png(roadmap: Dict[str, Any], *, prefix: str) -> 
             fontsize=9.4,
         )
         stages = list(module["stages"])
-        stage_xs = [0.33, 0.56, 0.79]
+        stage_xs = np.linspace(0.33, 0.79, max(len(stages), 1))
         for idx, (stage, sx) in enumerate(zip(stages, stage_xs)):
             stage_color = _status_color(str(stage["status"]))
             _draw_box(
@@ -486,7 +487,7 @@ def _export_frontier_model_tree_png(roadmap: Dict[str, Any], *, prefix: str) -> 
         ax.text(lx + 0.022, 0.085, label, va="center", ha="left", fontsize=9, color=INK)
         lx += 0.21
 
-    fig.savefig(png_path, dpi=200, bbox_inches="tight")
+    save_publication_figure(fig, png_path)
     plt.close(fig)
     return str(png_path)
 
@@ -504,7 +505,7 @@ def _export_teaching_expansion_tree_png(roadmap: Dict[str, Any], *, prefix: str)
     ax.text(0.5, 0.895, str(roadmap["summary_cn"]), ha="center", va="center", fontsize=10.5, color=MUTED)
 
     groups = roadmap["groups"]
-    y_positions = [0.67, 0.43, 0.19]
+    y_positions = np.linspace(0.70, 0.18, max(len(groups), 1))
     for group, y in zip(groups, y_positions):
         _draw_box(
             ax,
@@ -517,7 +518,8 @@ def _export_teaching_expansion_tree_png(roadmap: Dict[str, Any], *, prefix: str)
             color=BLUE,
             fontsize=9.3,
         )
-        cases = list(group["cases"])[:4]
+        all_cases = list(group["cases"])
+        cases = all_cases[:4]
         if not cases:
             continue
         x0 = 0.29
@@ -539,8 +541,10 @@ def _export_teaching_expansion_tree_png(roadmap: Dict[str, Any], *, prefix: str)
                 _draw_arrow(ax, (0.225, y + 0.075), (x, y + 0.075))
             else:
                 _draw_arrow(ax, (x0 + (idx - 1) * gap + 0.13, y + 0.075), (x, y + 0.075))
+        if len(all_cases) > len(cases):
+            ax.text(0.95, y + 0.075, f"+{len(all_cases) - len(cases)} 项", ha="right", va="center", fontsize=8.5, color=MUTED)
 
-    fig.savefig(png_path, dpi=200, bbox_inches="tight")
+    save_publication_figure(fig, png_path)
     plt.close(fig)
     return str(png_path)
 

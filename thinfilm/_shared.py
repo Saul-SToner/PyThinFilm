@@ -19,13 +19,18 @@ from .plotting import style_axis as _plotting_style_axis
 # Color constants (report-style palette)
 # ---------------------------------------------------------------------------
 
-MAIN_RED = "#c94f2d"
-TARGET_GREEN = "#0f766e"
-TRANS_BLUE = "#1d4ed8"
-ABS_GOLD = "#b7791f"
-GRID_COLOR = "#d7dde5"
-TEXT_DARK = "#223046"
-PANEL_BG = "#f7f8fb"
+COLOR_REFLECTANCE = "#0F4D92"    # reflectance / primary response (Blue)
+COLOR_TRANSMITTANCE = "#42949E"  # transmittance (Teal)
+COLOR_ABSORPTANCE = "#7C6CCF"    # absorptance / emissivity (Purple)
+COLOR_CALLOUT = "#B64342"        # target and callout accent (Red)
+
+MAIN_RED = COLOR_REFLECTANCE
+TARGET_GREEN = COLOR_CALLOUT
+TRANS_BLUE = COLOR_TRANSMITTANCE
+ABS_GOLD = COLOR_ABSORPTANCE
+GRID_COLOR = "#E6E6E6"
+TEXT_DARK = "#272727"
+PANEL_BG = "#FFFFFF"
 
 # Aliases for modules that used different names for the same values
 REF_BLUE = TRANS_BLUE
@@ -35,7 +40,7 @@ ERR_GOLD = ABS_GOLD
 # DPI constant
 # ---------------------------------------------------------------------------
 
-DEFAULT_FIGURE_DPI = 180
+DEFAULT_FIGURE_DPI = 300
 
 
 # ---------------------------------------------------------------------------
@@ -44,6 +49,7 @@ DEFAULT_FIGURE_DPI = 180
 
 _FONT_LIST = [
     "Microsoft YaHei",
+    "Arial",
     "SimHei",
     "Noto Sans CJK SC",
     "Arial Unicode MS",
@@ -57,6 +63,9 @@ def apply_font_defaults() -> None:
     """Set matplotlib font defaults for Chinese + Latin labels."""
     plt.rcParams["font.sans-serif"] = _FONT_LIST
     plt.rcParams["axes.unicode_minus"] = False
+    plt.rcParams["svg.fonttype"] = "none"
+    plt.rcParams["pdf.fonttype"] = 42
+    plt.rcParams["ps.fonttype"] = 42
 
 
 def style_axis(ax: plt.Axes, *, grid: bool = True) -> None:

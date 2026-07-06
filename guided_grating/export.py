@@ -7,6 +7,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from thinfilm.paths import output_file
+from thinfilm.plot_logic import focused_power_limits, rta_trace_styles
+from thinfilm.plotting import save_publication_figure
+from thinfilm.figure_audit import audit_rta_data, build_figure_audit, write_figure_audit
 from thinfilm._shared import (
     MAIN_RED,
     TARGET_GREEN,
@@ -56,6 +59,21 @@ def export_guided_grating_result(
     a_vals = np.asarray(result["A"], dtype=float)
     summary = summarize_guided_grating_spectrum(result)
 
+    evidence_level = "placeholder" if bool(result.get("is_placeholder", False)) else "approximation"
+    figure_audit = build_figure_audit(
+        figure_id=f"{stem}_main",
+        title=f"光栅波导反射率 | {sample_id}",
+        evidence_level=evidence_level,
+        checks=[audit_rta_data(
+            wl, r_vals, t_vals, a_vals,
+            focus="R", feature_kind="peak",
+            feature_wavelength=float(summary["peak_wavelength_nm"]),
+            conservation_tolerance=1e-5,
+        )],
+    )
+    audit_path = output_file(f"{stem}_figure_audit.json")
+    saved["audit_json"] = write_figure_audit(audit_path, figure_audit)
+
     if save_csv:
         csv_path = output_file(f"{stem}_spectrum.csv")
         with open(csv_path, "w", encoding="utf-8-sig") as f:
@@ -101,9 +119,22 @@ def export_guided_grating_result(
         png_path = output_file(f"{stem}_RTA.png")
         fig, ax = plt.subplots(figsize=(8, 5))
         style_axis(ax)
-        ax.plot(wl, r_vals, label="R", linewidth=2.4, color=MAIN_RED)
-        ax.plot(wl, t_vals, label="T", linewidth=2.0, color=TRANS_BLUE)
-        ax.plot(wl, a_vals, label="A", linewidth=2.0, color=ABS_GOLD)
+        curves = {"R": r_vals, "T": t_vals, "A": a_vals}
+        colors = {"R": MAIN_RED, "T": TRANS_BLUE, "A": ABS_GOLD}
+        line_styles = {"solid": "-", "dash": "--", "dot": ":"}
+        trace_styles = rta_trace_styles("R", curves)
+        for kind in ("R", "T", "A"):
+            style = trace_styles[kind]
+            ax.plot(
+                wl,
+                curves[kind],
+                label=kind,
+                linewidth=float(style["linewidth"]),
+                alpha=float(style["alpha"]),
+                linestyle=line_styles[str(style["dash"])],
+                color=colors[kind],
+                zorder=3 if kind == "R" else 2,
+            )
         ax.axvline(summary["peak_wavelength_nm"], linestyle="--", linewidth=1.3, color="#555555", alpha=0.85, label="峰位")
         if target_wavelength_nm is not None:
             ax.axvline(float(target_wavelength_nm), linestyle=":", linewidth=1.5, color=TARGET_GREEN, alpha=0.95, label="目标波长")
@@ -124,7 +155,7 @@ def export_guided_grating_result(
             bbox={"boxstyle": "round,pad=0.35", "facecolor": "white", "alpha": 0.85, "edgecolor": "#cccccc"},
         )
         fig.tight_layout()
-        fig.savefig(png_path, dpi=180)
+        save_publication_figure(fig, png_path)
         plt.close(fig)
         saved["png"] = str(png_path)
 
@@ -146,12 +177,7 @@ def export_guided_grating_result(
                 alpha=0.12,
                 linewidth=0,
             )
-        ymin = max(0.0, summary["min_reflectance"] - 0.05)
-        ymax = min(1.02, summary["peak_reflectance"] + 0.05)
-        if ymax - ymin < 0.08:
-            mid = 0.5 * (ymax + ymin)
-            ymin = max(0.0, mid - 0.04)
-            ymax = min(1.02, mid + 0.04)
+        ymin, ymax = focused_power_limits(r_vals)
         ax2.scatter(
             [summary["peak_wavelength_nm"]],
             [summary["peak_reflectance"]],
@@ -177,12 +203,11 @@ def export_guided_grating_result(
             bbox={"boxstyle": "round,pad=0.35", "facecolor": "white", "alpha": 0.85, "edgecolor": "#cccccc"},
         )
         fig2.tight_layout()
-        fig2.savefig(main_png, dpi=180)
+        save_publication_figure(fig2, main_png)
         plt.close(fig2)
         saved["main_png"] = str(main_png)
 
     return saved
-
 
 def export_guided_grating_sweep_summary(
     bundle_summary: Dict[str, Any],
@@ -264,10 +289,13 @@ def export_guided_grating_sweep_summary(
         rpeak_vals = np.asarray([float(row["peak_reflectance"]) for row in period_rows], dtype=float)
         best_x = float(best.get("period_nm", x_vals[0]))
 
-        fig, axes = plt.subplots(2, 2, figsize=(10, 7))
-        ax1, ax2, ax3, ax4 = axes.ravel()
+        fig = plt.figure(figsize=(7.2, 4.6), constrained_layout=True)
+        gs = fig.add_gridspec(2, 3, width_ratios=[1.25, 1.25, 1.0])
+        ax1 = fig.add_subplot(gs[:, :2])
+        ax2 = fig.add_subplot(gs[0, 2])
+        ax3 = fig.add_subplot(gs[1, 2])
 
-        for ax in (ax1, ax2, ax3, ax4):
+        for ax in (ax1, ax2, ax3):
             style_axis(ax)
             ax.axvline(best_x, linestyle=":", color="#64748b", linewidth=1.2, alpha=0.75)
 
@@ -284,21 +312,14 @@ def export_guided_grating_sweep_summary(
         ax2.set_xlabel(sweep_col)
         ax2.set_ylabel("nm")
 
-        ax3.plot(x_vals, fwhm_vals, marker="o", linewidth=2.2, color="#8c564b")
-        ax3.scatter([best_x], [float(best.get("fwhm_nm", fwhm_vals[0]))], color="#8c564b", edgecolor="white", s=50, zorder=5)
+        ax3.plot(x_vals, fwhm_vals, marker="o", linewidth=2.2, color=ABS_GOLD)
+        ax3.scatter([best_x], [float(best.get("fwhm_nm", fwhm_vals[0]))], color=ABS_GOLD, edgecolor="white", s=50, zorder=5)
         ax3.set_title("半高全宽")
         ax3.set_xlabel(sweep_col)
         ax3.set_ylabel("nm")
 
-        ax4.plot(x_vals, rpeak_vals, marker="o", linewidth=2.2, color="#9467bd")
-        ax4.scatter([best_x], [float(best.get("peak_reflectance", rpeak_vals[0]))], color="#9467bd", edgecolor="white", s=50, zorder=5)
-        ax4.set_title("峰值反射率")
-        ax4.set_xlabel(sweep_col)
-        ax4.set_ylabel("峰值R")
-
-        fig.suptitle("光栅波导扫描误差分析", fontsize=12, fontweight="semibold", color=TEXT_DARK)
-        fig.tight_layout()
-        fig.savefig(analysis_png, dpi=180)
+        fig.suptitle("光栅近似扫描：目标峰位与稳健性", fontsize=10, fontweight="semibold", color=TEXT_DARK)
+        save_publication_figure(fig, analysis_png)
         plt.close(fig)
         saved["analysis_png"] = str(analysis_png)
 

@@ -19,7 +19,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from .paths import output_file
-from .plotting import AMBER, BLUE, CYAN, GREEN, INK, MUTED, RED, annotate_point, apply_plot_style, style_axis, style_colorbar
+from .plotting import AMBER, BLUE, CYAN, GREEN, INK, MUTED, RED, annotate_point, apply_plot_style, save_publication_figure, style_axis, style_colorbar
+from .figure_audit import audit_source_files, build_figure_audit, write_figure_audit
 
 
 _NUMBER_RE = re.compile(r"^[\s]*([+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[Ee][+-]?\d+)?)")
@@ -509,13 +510,13 @@ def _make_ir_summary_plot(path: Path, rows: Sequence[dict[str, Any]], parameter_
     fig, ax = plt.subplots(figsize=(8.4, 5.2))
     style_axis(ax)
     ax.plot(xs, [float(row["epsilon_8_13_avg"]) for row in rows], "-o", color=GREEN, lw=2.2, ms=4, label="8-13 μm 平均吸收/发射率")
-    ax.plot(xs, [float(row["A_min_8_13"]) for row in rows], "--", color=MUTED, lw=1.4, label="8-13 μm 最小吸收率")
+    ax.plot(xs, [float(row["A_min_8_13"]) for row in rows], "--", color=MUTED, lw=1.25, alpha=0.65, label="窗口内最小 A")
     if "A_at_8p9um" in rows[0]:
-        ax.plot(xs, [float(row["A_at_8p9um"]) for row in rows], "-s", color=BLUE, ms=3.5, label="8.9 μm 处 A")
+        ax.plot(xs, [float(row["A_at_8p9um"]) for row in rows], ":", color=BLUE, lw=1.0, alpha=0.42, label="A(8.9 μm)")
     if "A_at_10um" in rows[0]:
-        ax.plot(xs, [float(row["A_at_10um"]) for row in rows], "-^", color=AMBER, ms=3.5, label="10 μm 处 A")
+        ax.plot(xs, [float(row["A_at_10um"]) for row in rows], ":", color=AMBER, lw=1.0, alpha=0.42, label="A(10 μm)")
     if "A_at_12um" in rows[0]:
-        ax.plot(xs, [float(row["A_at_12um"]) for row in rows], "-d", color=CYAN, ms=3.5, label="12 μm 处 A")
+        ax.plot(xs, [float(row["A_at_12um"]) for row in rows], ":", color=CYAN, lw=1.0, alpha=0.42, label="A(12 μm)")
     best = max(rows, key=lambda row: float(row["epsilon_8_13_avg"]))
     ax.axhline(0.70, color=MUTED, lw=1.1, alpha=0.7, linestyle=":", label="目标 0.70")
     ax.axvline(float(best[parameter_label]), color=RED, lw=1.2, alpha=0.85, linestyle="--", label=f"最佳 {float(best[parameter_label]):.0f} nm")
@@ -524,7 +525,7 @@ def _make_ir_summary_plot(path: Path, rows: Sequence[dict[str, Any]], parameter_
     ax.set_title("PDRC 红外窗口扫描")
     ax.legend(loc="best")
     fig.tight_layout()
-    fig.savefig(path, dpi=160, bbox_inches="tight")
+    save_publication_figure(fig, path)
     plt.close(fig)
 
 
@@ -535,21 +536,21 @@ def _make_final_metrics_plot(path: Path, rows: Sequence[dict[str, Any]], paramet
     xs = [float(row[parameter_label]) for row in rows]
     fig, ax = plt.subplots(figsize=(8.2, 5.2))
     style_axis(ax)
-    ax.plot(xs, [float(row["A_solar_avg"]) for row in rows], "-o", color=AMBER, lw=2.0, label="太阳平均吸收率")
+    ax.plot(xs, [float(row["A_solar_avg"]) for row in rows], "-", color=AMBER, lw=1.2, alpha=0.48, label="太阳算术平均 A（辅助）")
     if "A_solar_weighted" in rows[0]:
-        ax.plot(xs, [float(row["A_solar_weighted"]) for row in rows], "--o", color=RED, lw=2.0, label="太阳加权吸收率")
+        ax.plot(xs, [float(row["A_solar_weighted"]) for row in rows], "-o", color=RED, lw=2.3, ms=4, label="太阳加权吸收率")
     ax.plot(xs, [float(row["epsilon_8_13_avg"]) for row in rows], "-s", color=GREEN, lw=2.1, label="8-13 μm 平均发射率")
-    ax.plot(xs, [float(row["cooling_score"]) for row in rows], "-^", color=BLUE, lw=1.8, label="冷却得分")
+    ax.plot(xs, [float(row["cooling_score"]) for row in rows], "-", color=BLUE, lw=1.1, alpha=0.45, label="未加权冷却得分（辅助）")
     if "cooling_score_weighted" in rows[0]:
-        ax.plot(xs, [float(row["cooling_score_weighted"]) for row in rows], "--^", color=CYAN, lw=1.9, label="加权冷却得分")
-    ax.axhline(0.15, color=RED, lw=1, alpha=0.45, linestyle=":")
-    ax.axhline(0.70, color=GREEN, lw=1, alpha=0.45, linestyle=":")
+        ax.plot(xs, [float(row["cooling_score_weighted"]) for row in rows], "-^", color=CYAN, lw=2.2, ms=4, label="加权冷却得分")
+    ax.axhline(0.15, color=RED, lw=1, alpha=0.45, linestyle=":", label="太阳吸收阈值 0.15")
+    ax.axhline(0.70, color=GREEN, lw=1, alpha=0.45, linestyle=":", label="红外发射阈值 0.70")
     ax.set_xlabel(parameter_label)
     ax.set_ylabel("指标值")
     ax.set_title("PDRC 候选结构指标")
     ax.legend(loc="best")
     fig.tight_layout()
-    fig.savefig(path, dpi=160, bbox_inches="tight")
+    save_publication_figure(fig, path)
     plt.close(fig)
 
 
@@ -585,7 +586,7 @@ def _make_two_parameter_scatter_plot(
     cbar = fig.colorbar(scatter, ax=ax, label=_metric_label_cn(metric))
     style_colorbar(cbar)
     fig.tight_layout()
-    fig.savefig(path, dpi=160, bbox_inches="tight")
+    save_publication_figure(fig, path)
     plt.close(fig)
 
 
@@ -637,8 +638,9 @@ def _make_two_parameter_heatmap_plot(
         edgecolors="white",
         linewidths=0.9,
     )
-    for row in rows:
-        ax.text(float(row[x_label]), float(row[y_label]), f"{float(row[metric]):.3f}", ha="center", va="center", fontsize=7.5, color="white")
+    if len(rows) <= 36:
+        for row in rows:
+            ax.text(float(row[x_label]), float(row[y_label]), f"{float(row[metric]):.3f}", ha="center", va="center", fontsize=7.5, color="white")
     best = max(rows, key=lambda row: float(row[metric]))
     ax.scatter([float(best[x_label])], [float(best[y_label])], marker="*", s=260, c=RED, edgecolors="white", linewidths=1.0)
     annotate_point(ax, float(best[x_label]), float(best[y_label]), f"最佳\n{float(best[metric]):.3f}")
@@ -648,7 +650,7 @@ def _make_two_parameter_heatmap_plot(
     cbar = fig.colorbar(image, ax=ax, label=_metric_label_cn(metric))
     style_colorbar(cbar)
     fig.tight_layout()
-    fig.savefig(path, dpi=190, bbox_inches="tight")
+    save_publication_figure(fig, path)
     plt.close(fig)
 
 
@@ -657,13 +659,15 @@ def _make_final_dashboard_plot(path: Path, rows: Sequence[dict[str, Any]], param
         return
     apply_plot_style()
     x_label, y_label = parameter_labels[0], parameter_labels[1]
-    fig, axes = plt.subplots(2, 2, figsize=(13.0, 9.2), constrained_layout=True)
+    fig = plt.figure(figsize=(7.2, 5.4), constrained_layout=True)
+    gs = fig.add_gridspec(2, 3, width_ratios=[1.25, 1.25, 1.0])
+    axes = [fig.add_subplot(gs[:, :2]), fig.add_subplot(gs[0, 2]), fig.add_subplot(gs[1, 2])]
     metric_specs = [
         ("cooling_score_weighted", "加权综合冷却得分", "viridis"),
         ("epsilon_8_13_avg", "8-13 μm 平均发射率", "YlGn"),
         ("A_solar_weighted", "太阳加权吸收率", "YlOrRd_r"),
     ]
-    for ax, (metric, title, cmap) in zip(axes.flat[:3], metric_specs):
+    for ax, (metric, title, cmap) in zip(axes, metric_specs):
         style_axis(ax, grid=False)
         xs, ys, grid = _grid_from_rows(rows, parameter_labels, metric)
         image = ax.imshow(
@@ -676,7 +680,8 @@ def _make_final_dashboard_plot(path: Path, rows: Sequence[dict[str, Any]], param
         )
         for row in rows:
             ax.scatter(float(row[x_label]), float(row[y_label]), s=50, facecolors="none", edgecolors="white", linewidths=0.8)
-            ax.text(float(row[x_label]), float(row[y_label]), f"{float(row[metric]):.3f}", ha="center", va="center", fontsize=7.3, color="white")
+            if len(rows) <= 36:
+                ax.text(float(row[x_label]), float(row[y_label]), f"{float(row[metric]):.3f}", ha="center", va="center", fontsize=7.3, color="white")
         best = min(rows, key=lambda row: float(row[metric])) if metric == "A_solar_weighted" else max(rows, key=lambda row: float(row[metric]))
         ax.scatter([float(best[x_label])], [float(best[y_label])], marker="*", s=230, c=RED, edgecolors="white", linewidths=1.0)
         ax.set_xlabel(x_label)
@@ -685,22 +690,8 @@ def _make_final_dashboard_plot(path: Path, rows: Sequence[dict[str, Any]], param
         cbar = fig.colorbar(image, ax=ax, label=_metric_label_cn(metric))
         style_colorbar(cbar)
 
-    ax_rank = axes.flat[3]
-    style_axis(ax_rank)
-    ranked = sorted(rows, key=lambda row: float(row["cooling_score_weighted"]), reverse=True)
-    labels = [f"{float(row[x_label]):.0f}/{float(row[y_label]):.0f}" for row in ranked]
-    values = [float(row["cooling_score_weighted"]) for row in ranked]
-    colors = [GREEN if idx == 0 else BLUE for idx in range(len(ranked))]
-    ax_rank.bar(range(len(values)), values, color=colors, alpha=0.9)
-    ax_rank.set_xticks(range(len(labels)))
-    ax_rank.set_xticklabels(labels, rotation=35, ha="right")
-    ax_rank.set_ylim(max(0.0, min(values) - 0.02), min(1.0, max(values) + 0.02))
-    ax_rank.set_ylabel("加权冷却得分")
-    ax_rank.set_title("候选排序")
-    for idx, val in enumerate(values):
-        ax_rank.text(idx, val + 0.002, f"{val:.3f}", ha="center", va="bottom", fontsize=8, color=INK)
-    fig.suptitle("PDRC 候选结构指标地图", fontsize=15, fontweight="semibold", color=INK)
-    fig.savefig(path, dpi=190, bbox_inches="tight")
+    fig.suptitle("PDRC 候选结构：综合得分与约束分解", fontsize=10, fontweight="semibold", color=INK)
+    save_publication_figure(fig, path)
     plt.close(fig)
 
 
@@ -863,6 +854,21 @@ def export_pdrc_comsol_candidate_bundle(
             _make_final_dashboard_plot(dashboard_plot, final_rows, parameter_labels)
             saved["final_dashboard_png"] = str(dashboard_plot)
         saved["final_metrics_png"] = str(metrics_plot)
+
+    source_files = [str(Path(path)) for path in ir_csv_files]
+    if solar_csv_file is not None:
+        source_files.append(str(Path(solar_csv_file)))
+    if solar_weight_csv is not None:
+        source_files.append(str(Path(solar_weight_csv)))
+    audit = build_figure_audit(
+        figure_id=f"{prefix}_candidate_maps",
+        title="PDRC COMSOL 候选结构指标地图",
+        evidence_level="external_validation",
+        checks=[audit_source_files(source_files)],
+        source_files=source_files,
+    )
+    audit_path = output_file(f"{prefix}_figure_audit.json")
+    saved["audit_json"] = write_figure_audit(audit_path, audit)
 
     manifest_path = output_file(f"{prefix}_manifest.json")
     with manifest_path.open("w", encoding="utf-8") as f:

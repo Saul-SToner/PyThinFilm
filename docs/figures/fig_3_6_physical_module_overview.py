@@ -35,6 +35,7 @@ mpl.rcParams.update(
         "font.size": 8.0,
         "text.color": INK,
         "svg.fonttype": "none",
+        "pdf.fonttype": 42,
         "axes.unicode_minus": False,
         "figure.facecolor": "white",
         "savefig.facecolor": "white",
@@ -291,6 +292,7 @@ def draw():
 
     fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
     fig.savefig(STEM.with_suffix(".svg"), format="svg", bbox_inches=None)
+    fig.savefig(STEM.with_suffix(".pdf"), format="pdf", bbox_inches=None)
     fig.savefig(STEM.with_suffix(".png"), format="png", dpi=300, bbox_inches=None)
     plt.close(fig)
 

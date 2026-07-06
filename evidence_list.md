@@ -49,7 +49,7 @@
 | **图 4-14**| `docs/figures/fig_4_14_tamm_phase.png` | `~/thinfilm_outputs/tamm_1d_phase_dspacer13_dW40_220_corrected_screen_cn.png` | `run_case.py --group tamm --case reflection_phase_screen` | 是 | 否 |
 | **图 4-15**| `docs/figures/fig_4_15_pdrc_spectrum.png` | `~/thinfilm_outputs/pdrc_real_materials_valid_spectrum_cn.png` | `run_case.py --group pdrc --case cooling_bundle` | 是 | 否 |
 | **图 4-16**| `docs/figures/fig_4_16_emt_polarization.png` | `~/thinfilm_outputs/guided_grating_demo_minimal_branch_case_RTA.png` | `run_guided_grating_demo.py` | 是 | 否 |
-| **图 4-17**| `docs/figures/fig_4_17_comsol_csv_compare.png` | `~/thinfilm_outputs/guided_grating_spectrum_approx_compare_cn.png` | `run_case.py --group guided_grating --case demo` | 是 | 否 |
+| **图 4-17（已退役，不进入正文）** | `docs/figures/fig_4_17_comsol_csv_compare.png` | 占位近似图，不是可追溯 COMSOL 数据 | 待提供真实外部 CSV 后再生成“同轴光谱 + 残差”图 | 否 | 否 |
 | **图 10-1**| `docs/figures/fig_3_3_pytest_270_passed.png` | 对应图 3-3 的完整 pytest 单元测试终端大图 | `py -m pytest tests/ -v` | 否 | 是 (手工截图) |
 
 ---

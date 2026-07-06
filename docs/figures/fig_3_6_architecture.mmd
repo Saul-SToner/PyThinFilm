@@ -1,0 +1,47 @@
+graph TD
+    subgraph UserEntrance ["用户入口层"]
+        run_case["run_case.py (多案例综合入口)"]
+        run_teach["run_teaching_demo.py (教学仿真主入口)"]
+        run_mat["run_material_library_demo.py (材料库对比入口)"]
+        run_grating["run_guided_grating_demo.py (等效周期演示)"]
+        examples["examples/applications/ (工程应用脚本)"]
+    end
+
+    subgraph CasesApp ["案例与应用层"]
+        teaching["教学基础案例 (单层AR/高反膜/FP腔)"]
+        mat_demo["材料库色散案例 (常数折射率 vs 色散吸收)"]
+        app_cases["工程案例 (太阳能增透/WDM/激光高反/手机镜头/智能窗户)"]
+        tamm_pdrc["物理拓展案例 (Tamm 界面态相位相加/PDRC制冷)"]
+        grating_cases["亚波长偏振分析案例 (零阶各向异性)"]
+    end
+
+    subgraph CoreCalc ["核心计算层"]
+        tmm_core["TMM 矩阵计算内核 (NumPy向量化)"]
+        field_dist["一维腔内场分布递推模块"]
+        emt_approx["EMT 亚波长等效折射率近似 (guided_grating/rcwa.py)"]
+        csv_extract["外部 CSV 滤波与物理量特征提取 (guided_grating/comsol_io.py)"]
+    end
+
+    subgraph DataMaterial ["数据与材料层"]
+        real_nk["data/real_nk/ (色散 nk 物理常数库)"]
+        comsol_csv["COMSOL CSV (外部全波离散计算数据)"]
+        manifest["材料 manifest 配置与系统参数说明字典"]
+    end
+
+    subgraph VisualOutput ["可视化与输出层"]
+        plotly_html["Plotly HTML (浏览器无级交互光谱曲线)"]
+        static_png["静态 PNG 证据材料 (docs/figures/)"]
+        data_outputs["仿真分析 CSV / 指标 JSON 归档 (docs/evidence/)"]
+    end
+
+    subgraph ValidationTest ["验证与测试层"]
+        pytest_tests["pytest 单元测试套件 (tests/ 目录 270 个用例)"]
+        smoke_test["smoke_test.py (全功能管道冒烟自检)"]
+        evidence_list["evidence_list.md (证据清单)"]
+    end
+
+    UserEntrance --> CasesApp
+    CasesApp --> CoreCalc
+    CoreCalc --> DataMaterial
+    CoreCalc --> VisualOutput
+    CoreCalc --> ValidationTest

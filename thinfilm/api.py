@@ -20,9 +20,11 @@ from .education import (
 from .materials import (
     common_wavelength_window_um,
     export_real_material_library,
+    get_material_roles_for_design as _get_material_roles_for_design,
     list_real_materials,
     load_real_material,
     material_complex_index,
+    material_display_info,
     material_nk_at,
     sample_real_materials,
 )
@@ -502,3 +504,149 @@ def export_teaching_expansion_validation_bundle_from_template(
 ) -> Dict[str, Any]:
     """Run expansion-case validation directly from a filled JSON/CSV template file."""
     return export_teaching_expansion_validation_bundle_from_file(template_file, **kwargs)
+
+
+# ---------------------------------------------------------------------------
+# Material selection module  (APP-facing)
+# ---------------------------------------------------------------------------
+
+def list_materials_for_app() -> list[dict]:
+    """Return a JSON-serialisable catalog of every real material in the library.
+
+    Each entry contains:
+    - ``id``             : canonical material ID used in ``material_selections``
+    - ``display_name``   : Chinese display name (for dropdown / list labels)
+    - ``display_name_en``: English display name
+    - ``category``       : 介质 / 半导体 / 金属 / 气体
+    - ``suitable_roles`` : list of layer-role keys this material can fill
+    - ``lambda_min_nm``  : lower bound of valid wavelength range (nm)
+    - ``lambda_max_nm``  : upper bound of valid wavelength range (nm)
+    - ``n_at_550nm``     : real part of refractive index at 550 nm (UI preview)
+    - ``k_at_550nm``     : imaginary part (extinction coefficient) at 550 nm
+
+    Example usage (APP frontend)::
+
+        catalog = list_materials_for_app()
+        # Show only materials suitable for the low-index role
+        low_options = [m for m in catalog if "n_low" in m["suitable_roles"]]
+    """
+    return material_display_info()
+
+
+def get_material_roles_for_design(design_type: str) -> dict:
+    """Return the material-role picker schema for one design type.
+
+    Tells the APP frontend which layer roles exist in this design, what
+    materials are eligible for each role, which roles are user-selectable
+    vs. locked, and the recommended default material.
+
+    Parameters
+    ----------
+    design_type:
+        One of the standard teaching design IDs, e.g. ``"single_ar"``,
+        ``"high_reflector"``, ``"fp_filter"``.
+
+    Returns
+    -------
+    dict with keys:
+
+    - ``design_type`` : echoed back (normalised to lowercase)
+    - ``roles``       : dict mapping role key → role descriptor, each with
+
+      - ``label``   : Chinese human-readable label
+      - ``options`` : list of eligible material IDs
+      - ``default`` : recommended default material ID
+      - ``locked``  : bool — if True the APP should not expose this to the user
+
+    Example::
+
+        schema = get_material_roles_for_design("single_ar")
+        # schema["roles"]["n_low"]["options"] == ["MgF2", "SiO2", "Al2O3"]
+    """
+    return _get_material_roles_for_design(design_type)
+
+
+def simulate_with_material_selection(
+    design_type: str,
+    material_selections: Dict[str, str],
+    *,
+    lambda0_nm: float = 550.0,
+    wavelengths_nm=None,
+    warn_range: bool = True,
+    **kwargs: Any,
+) -> Dict[str, Any]:
+    """Run a TMM simulation using real dispersive materials chosen by the user.
+
+    This is the unified APP entry point that bridges the user-facing material
+    picker (names like ``"TiO2"``, ``"MgF2"``) with the internal
+    ``simulate_report_design_real_materials`` engine.
+
+    Parameters
+    ----------
+    design_type:
+        Teaching design ID, e.g. ``"single_ar"``, ``"high_reflector"``.
+    material_selections:
+        Dict mapping layer-role keys to material IDs chosen by the user.
+        Only the roles the user actually changed need to be present; unlisted
+        roles fall back to the engine defaults.
+
+        Example::
+
+            {"n_low": "MgF2", "n_high": "TiO2"}
+
+    lambda0_nm:
+        Design centre wavelength in nm (default 550 nm).
+    wavelengths_nm:
+        Optional explicit wavelength grid.  When *None* the engine
+        automatically restricts the grid to the overlapping valid range of
+        the selected materials.
+    warn_range:
+        When *True* (default), print a warning if any selected material's
+        valid wavelength range does not cover ``lambda0_nm``.
+    **kwargs:
+        Forwarded verbatim to ``simulate_report_design_real_materials``
+        (e.g. ``theta_deg``, ``pol``, ``n_periods``).
+
+    Returns
+    -------
+    dict — same structure as ``simulate_teaching_design``, extended with:
+
+    - ``material_model`` : ``"real_nk"``
+    - ``material_map``   : the resolved material mapping that was used
+    - ``design_indices_at_lambda0`` : n/k for each role at the design wavelength
+
+    Example::
+
+        result = simulate_with_material_selection(
+            "single_ar",
+            {"n_low": "MgF2"},
+            lambda0_nm=550.0,
+        )
+        print(result["summary"])
+    """
+    # Range warning
+    if warn_range:
+        all_info = {row["id"]: row for row in material_display_info()}
+        for role, mat_id in material_selections.items():
+            info = all_info.get(mat_id)
+            if info is None:
+                continue
+            lo = info["lambda_min_nm"]
+            hi = info["lambda_max_nm"]
+            if not (lo <= lambda0_nm <= hi):
+                import warnings
+                warnings.warn(
+                    f"材料 {mat_id} 的有效波长范围为 {lo:.0f}–{hi:.0f} nm，"
+                    f"设计波长 {lambda0_nm:.1f} nm 超出范围，"
+                    f"结果将使用外推值，物理精度可能下降。",
+                    UserWarning,
+                    stacklevel=2,
+                )
+
+    return simulate_report_design_real_materials(
+        design_type=design_type,
+        material_map=material_selections,
+        wavelengths_nm=wavelengths_nm,
+        lambda0_nm=lambda0_nm,
+        **kwargs,
+    )
