@@ -117,3 +117,16 @@ class TestSimulateWithMaterialSelection:
     def test_empty_selection_uses_defaults(self):
         result = simulate_with_material_selection("single_ar",{},lambda0_nm=550.0,warn_range=False)
         assert "R" in result and "T" in result
+    def test_figure_explanations_present(self):
+        from thinfilm.api import simulate_teaching_case
+        result = simulate_teaching_case("single_ar")
+        assert "figure_explanations" in result
+        expl = result["figure_explanations"]
+        assert "rta_title" in expl
+        assert "rta_desc" in expl
+        assert "analysis_title" in expl
+        assert "analysis_desc" in expl
+        # Check that AR description is generated
+        assert "增透" in expl["rta_desc"]
+        assert "能量守恒" in expl["analysis_desc"]
+

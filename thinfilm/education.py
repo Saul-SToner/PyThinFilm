@@ -2559,6 +2559,7 @@ def simulate_report_design(
             "T_max_wavelength_nm": float(spectrum["wavelength_nm"][peak_t_idx]),
         },
     }
+    result["figure_explanations"] = generate_case_figure_explanations(result)
     return result
 
 
@@ -2722,6 +2723,7 @@ def simulate_report_design_real_materials(
         }
         for role, index in design_role_indices.items()
     }
+    result["figure_explanations"] = generate_case_figure_explanations(result)
     return result
 
 
@@ -3092,6 +3094,7 @@ def simulate_report_case(
     result["case_id"] = key
     result["title_cn"] = item["title_cn"]
     result["title_en"] = item["title_en"]
+    result["figure_explanations"] = generate_case_figure_explanations(result)
     return result
 
 
@@ -3181,6 +3184,80 @@ def _case_analysis_lines(result: Dict[str, Any]) -> list[str]:
     return lines
 
 
+def generate_case_figure_explanations(result: Dict[str, Any]) -> Dict[str, str]:
+    """Generate physically rigorous and layperson-friendly figure annotations."""
+    key = str(result.get("case_id") or result.get("design_type") or "").strip().lower()
+    lambda0_nm = float(result.get("lambda0_nm", 550.0))
+    summary = result.get("summary", {})
+
+    # 1. RTA spectrum explanation
+    rta_title = "光谱响应曲线图 (RTA Spectrum)"
+    if "beamsplitter" in key:
+        rta_desc = (
+            f"该光谱图展示了中性分束镜在不同波长下的反射率（R，蓝色）、透射率（T，青色）与吸收率（A，紫色）。"
+            f"设计目标是在设计波长（{lambda0_nm:.1f} nm）处，使反射率与透射率尽量对半分流（即各占约 50%）。"
+            f"曲线整体较为平坦，确保入射的白光或宽带光不会因为分束产生严重的偏色。"
+        )
+    elif "ar" in key or "antireflection" in key:
+        rta_desc = (
+            f"该光谱图展示了增透（减反射）膜层在可见光波段内的宏观光学表现。"
+            f"反射率（R，蓝色）在设计中心波长 {lambda0_nm:.1f} nm 处降到极低值，"
+            f"而透射率（T，青色）相应地提升到极高值，从而将绝大部分入射光能量导向透射方向，起到了高效增透的效果。"
+        )
+    elif any(term in key for term in ("reflector", "mirror", "bragg", "quarter_wave_stack")):
+        rta_desc = (
+            f"该光谱图展示了高反射镜（分布式布拉格反射镜 DBR）的宏观反射禁带。"
+            f"在设计中心波长 {lambda0_nm:.1f} nm 附近，多层高低折射率反射界面的相长干涉叠加，"
+            f"形成了一个宽阔且平坦的高反射区域（反射率 R 接近 100%）。该高反射区域的宽度在物理上被称为反射停带宽度。"
+        )
+    elif "fp_" in key or "filter" in key:
+        rta_desc = (
+            f"该光谱图展示了窄带滤光片的光谱特征。"
+            f"在设计中心波长 {lambda0_nm:.1f} nm 处，出现了一个极其陡峭且对称的透射共振峰（透射率 T 接近 100%），"
+            f"而在共振峰两侧的截止区，透射率迅速降至 0%，从而实现了极窄频带波长的精准选择与过滤。"
+        )
+    else:
+        rta_desc = (
+            f"该光谱图展示了薄膜器件在工作波段内反射率（R）、透射率（T）与吸收率（A）的光谱表现。"
+            f"设计聚焦于满足中心波长 {lambda0_nm:.1f} nm 处的反射极值或特定能量分流指标。"
+        )
+
+    # 2. Analysis plot explanation
+    analysis_title = "微观物理分析图 (Physical Analysis)"
+    if "fp_" in key or "filter" in key:
+        analysis_title = "微观一维电场驻波分布分析图"
+        analysis_desc = (
+            f"此图展示了在共振透射波长下，入射电磁波在薄膜各层介质内部的空间电场强度局域分布 |E(z)|^2（以入射场强为 1 进行归一化）。"
+            f"可以清晰看到，在低折射率的半波长谐振腔（Spacer 层）中心处出现了极陡峭的电场局域化尖峰，场强被放大了数倍甚至数十倍。"
+            f"这从微观上揭示了光学共振腔依靠局部驻波极大增强以实现相长干涉完全透射的物理机制。"
+        )
+    else:
+        analysis_title = "设计指标能量分配与谱线对齐评估条形图"
+        r_at = float(summary.get("R_at_lambda0", 0.0)) * 100
+        t_at = float(summary.get("T_at_lambda0", 0.0)) * 100
+        a_at = float(summary.get("A_at_lambda0", 0.0)) * 100
+        
+        if any(term in key for term in ("reflector", "mirror", "bragg", "quarter_wave_stack")):
+            delta_wl = float(summary.get("R_max_wavelength_nm", lambda0_nm)) - lambda0_nm
+            feature_name = "反射峰"
+        else:
+            delta_wl = float(summary.get("R_min_wavelength_nm", lambda0_nm)) - lambda0_nm
+            feature_name = "反射谷"
+            
+        analysis_desc = (
+            f"左图（中心波长指标）评估了在目标设计波长 {lambda0_nm:.1f} nm 处的能量精确分配：反射率 R = {r_at:.2f}%，透射率 T = {t_at:.2f}%，吸收率 A = {a_at:.2f}%，体现了能量守恒。"
+            f"右图（谱线对齐）对比了设计的中心波长与计算得到的实际{feature_name}位置（两者波长差为 Δλ = {delta_wl:+.2f} nm）。"
+            f"该差值越接近 0 nm，表明该器件抗材料色散漂移的性能越优异，镀膜厚度工艺控制精度越高。"
+        )
+
+    return {
+        "rta_title": rta_title,
+        "rta_desc": rta_desc,
+        "analysis_title": analysis_title,
+        "analysis_desc": analysis_desc
+    }
+
+
 def _default_wavelength_grid_for_design(
     design_type: str,
     lambda0_nm: float,
@@ -3260,6 +3337,7 @@ def export_report_case_outputs(
             "lambda0_nm": float(result["lambda0_nm"]),
             "layers": result["layers"],
             "summary": result["summary"],
+            "figure_explanations": result.get("figure_explanations", {}),
         }
         with open(json_path, "w", encoding="utf-8") as f:
             json.dump(payload, f, ensure_ascii=False, indent=2)
@@ -3288,6 +3366,16 @@ def export_report_case_outputs(
                 f"  {layer['name']}: n={layer['n_real']:.6f}+{layer['n_imag']:.6f}j, "
                 f"d={layer['thickness_nm']:.6f} nm"
             )
+        expl = result.get("figure_explanations", {})
+        if expl:
+            lines.extend([
+                "",
+                "figure_explanations:",
+                f"  rta_title      = {expl.get('rta_title', '')}",
+                f"  rta_desc       = {expl.get('rta_desc', '')}",
+                f"  analysis_title = {expl.get('analysis_title', '')}",
+                f"  analysis_desc  = {expl.get('analysis_desc', '')}",
+            ])
         with open(txt_path, "w", encoding="utf-8") as f:
             f.write("\n".join(lines) + "\n")
         saved["txt"] = str(txt_path)
