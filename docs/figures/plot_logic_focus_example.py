@@ -85,8 +85,6 @@ def draw() -> None:
 
     fig.suptitle("自适应 R/T/A 作图逻辑示例（合成数据，非仿真结果）", fontsize=10.5, fontweight="semibold", color="#263238")
     fig.savefig(OUT.with_suffix(".png"), dpi=300)
-    fig.savefig(OUT.with_suffix(".svg"))
-    fig.savefig(OUT.with_suffix(".pdf"))
     plt.close(fig)
 
 

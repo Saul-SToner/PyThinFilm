@@ -24,8 +24,7 @@
 - Maximum journal width: 7.2 in (approximately 183 mm).
 - White background; top and right spines removed; grids omitted unless numerically necessary.
 - Final text is 7–9 pt; panel labels are bold lowercase letters.
-- SVG is the editable primary output; PDF and 300 dpi PNG are generated beside it.
-- SVG text remains editable (`svg.fonttype = none`); PDF uses TrueType (`pdf.fonttype = 42`).
+- 每张图仅导出 300 dpi PNG，避免同一图产生多种格式副本。
 - Every quantitative output retains its CSV/JSON source and figure-audit record.
 
 ## Reviewer-risk controls

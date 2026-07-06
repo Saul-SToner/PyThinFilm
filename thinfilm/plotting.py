@@ -118,7 +118,7 @@ def save_publication_figure(
     add_labels: bool = True,
     close: bool = False,
 ) -> dict[str, str]:
-    """Save editable SVG, PDF, and PNG from one Python-rendered figure."""
+    """Save one publication-ready PNG from a Python-rendered figure."""
     path = Path(png_path)
     base = path.with_suffix("")
     base.parent.mkdir(parents=True, exist_ok=True)
@@ -129,13 +129,7 @@ def save_publication_figure(
             fig.set_size_inches(max_width_in, min(height * scale, 7.8), forward=True)
     if add_labels:
         add_panel_labels(fig)
-    outputs = {
-        "svg": str(base.with_suffix(".svg")),
-        "pdf": str(base.with_suffix(".pdf")),
-        "png": str(base.with_suffix(".png")),
-    }
-    fig.savefig(outputs["svg"], bbox_inches="tight")
-    fig.savefig(outputs["pdf"], bbox_inches="tight")
+    outputs = {"png": str(base.with_suffix(".png"))}
     fig.savefig(outputs["png"], dpi=dpi, bbox_inches="tight")
     if close:
         plt.close(fig)
