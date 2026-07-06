@@ -1,0 +1,14 @@
+lambda_um,n,k,material,source
+0.2000,0.9000,1.2100,Cu,Johnson and Christy 1972
+0.3000,1.2400,1.8000,Cu,Johnson and Christy 1972
+0.4000,1.2700,2.0500,Cu,Johnson and Christy 1972
+0.5000,0.9700,2.6200,Cu,Johnson and Christy 1972
+0.5500,0.7300,2.6400,Cu,Johnson and Christy 1972
+0.6000,0.2800,3.0900,Cu,Johnson and Christy 1972
+0.7000,0.2100,4.1000,Cu,Johnson and Christy 1972
+0.8000,0.2400,5.0400,Cu,Johnson and Christy 1972
+0.9000,0.2600,5.9200,Cu,Johnson and Christy 1972
+1.0000,0.2800,6.7800,Cu,Johnson and Christy 1972
+1.2000,0.3500,8.4100,Cu,Johnson and Christy 1972
+1.5000,0.4900,10.8200,Cu,Johnson and Christy 1972
+2.0000,0.8100,14.7000,Cu,Johnson and Christy 1972

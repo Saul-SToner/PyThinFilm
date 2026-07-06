@@ -56,6 +56,16 @@ MATERIAL_ALIASES = {
     "si": "Si",
     "silicon": "Si",
     "air": "Air",
+    "n-bk7": "N-BK7",
+    "bk7": "N-BK7",
+    "ta2o5": "Ta2O5",
+    "zro2": "ZrO2",
+    "al": "Al",
+    "aluminum": "Al",
+    "cu": "Cu",
+    "copper": "Cu",
+    "cr": "Cr",
+    "chromium": "Cr",
 }
 
 
@@ -456,8 +466,50 @@ _MATERIAL_DISPLAY_META: dict[str, dict[str, Any]] = {
         "category": "金属",
     },
     "Au": {
-        "display_name": "Au（金，金属宽带高反衬底）",
+        "display_name": "Au（金，金属极化高反膜/基底）",
         "display_name_en": "Au (Gold)",
+        "suitable_roles": ["n_substrate"],
+        "locked_roles": [],
+        "category": "金属",
+    },
+    "N-BK7": {
+        "display_name": "N-BK7（肖特冕牌光学玻璃，最常用透镜基底）",
+        "display_name_en": "N-BK7 (Schott Optical Glass)",
+        "suitable_roles": ["n_substrate"],
+        "locked_roles": [],
+        "category": "介质",
+    },
+    "Ta2O5": {
+        "display_name": "Ta₂O₅（五氧化二钽，高指数高强度激光膜）",
+        "display_name_en": "Ta₂O₅ (Tantalum Pentoxide)",
+        "suitable_roles": ["n_high", "n_high_2"],
+        "locked_roles": [],
+        "category": "介质",
+    },
+    "ZrO2": {
+        "display_name": "ZrO₂（二氧化锆，常用中高折射率过渡层）",
+        "display_name_en": "ZrO₂ (Zirconia)",
+        "suitable_roles": ["n_high", "n_mid"],
+        "locked_roles": [],
+        "category": "介质",
+    },
+    "Al": {
+        "display_name": "Al（铝，紫外-可见-红外全波段反射镜）",
+        "display_name_en": "Al (Aluminum)",
+        "suitable_roles": ["n_substrate"],
+        "locked_roles": [],
+        "category": "金属",
+    },
+    "Cu": {
+        "display_name": "Cu（铜，红外高功率反射膜）",
+        "display_name_en": "Cu (Copper)",
+        "suitable_roles": ["n_substrate"],
+        "locked_roles": [],
+        "category": "金属",
+    },
+    "Cr": {
+        "display_name": "Cr（铬，金属吸收层与粘结过渡层）",
+        "display_name_en": "Cr (Chromium)",
         "suitable_roles": ["n_substrate"],
         "locked_roles": [],
         "category": "金属",
@@ -514,7 +566,7 @@ def material_display_info() -> list[dict[str, Any]]:
         canonical_material_name(str(m["material"])): m for m in manifest
     }
 
-    ordered_ids = ["Air", "SiO2", "MgF2", "Al2O3", "TiO2", "Si", "Ag", "Au"]
+    ordered_ids = ["Air", "SiO2", "MgF2", "Al2O3", "Ta2O5", "ZrO2", "TiO2", "Si", "N-BK7", "Ag", "Au", "Al", "Cu", "Cr"]
 
     for mat_id in ordered_ids:
         meta = _MATERIAL_DISPLAY_META.get(mat_id, {})

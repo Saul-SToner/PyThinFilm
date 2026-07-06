@@ -68,5 +68,65 @@
     "lambda_min_um": 0.2066,
     "lambda_max_um": 0.8266,
     "type": "tabulated nk"
+  },
+  {
+    "file": "data\\real_nk\\N-BK7_Schott.csv",
+    "material": "N-BK7",
+    "source": "Schott 2015 catalog",
+    "url": "https://refractiveindex.info",
+    "rows": 221,
+    "lambda_min_um": 0.3,
+    "lambda_max_um": 2.5,
+    "type": "formula 1"
+  },
+  {
+    "file": "data\\real_nk\\Ta2O5_Wood.csv",
+    "material": "Ta2O5",
+    "source": "Wood 2013",
+    "url": "https://refractiveindex.info",
+    "rows": 166,
+    "lambda_min_um": 0.35,
+    "lambda_max_um": 2.0,
+    "type": "formula 1"
+  },
+  {
+    "file": "data\\real_nk\\ZrO2_Wood.csv",
+    "material": "ZrO2",
+    "source": "Wood 2013",
+    "url": "https://refractiveindex.info",
+    "rows": 166,
+    "lambda_min_um": 0.35,
+    "lambda_max_um": 2.0,
+    "type": "formula 1"
+  },
+  {
+    "file": "data\\real_nk\\Al_McPeak.csv",
+    "material": "Al",
+    "source": "McPeak 2015",
+    "url": "https://refractiveindex.info",
+    "rows": 13,
+    "lambda_min_um": 0.2,
+    "lambda_max_um": 2.0,
+    "type": "tabulated nk"
+  },
+  {
+    "file": "data\\real_nk\\Cu_Johnson.csv",
+    "material": "Cu",
+    "source": "Johnson and Christy 1972",
+    "url": "https://refractiveindex.info",
+    "rows": 13,
+    "lambda_min_um": 0.2,
+    "lambda_max_um": 2.0,
+    "type": "tabulated nk"
+  },
+  {
+    "file": "data\\real_nk\\Cr_Johnson.csv",
+    "material": "Cr",
+    "source": "Johnson and Christy 1974",
+    "url": "https://refractiveindex.info",
+    "rows": 13,
+    "lambda_min_um": 0.25,
+    "lambda_max_um": 2.0,
+    "type": "tabulated nk"
   }
 ]
