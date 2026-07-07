@@ -58,7 +58,7 @@ from functools import lru_cache
 def _get_report_chapter2_cases() -> Dict[str, Dict[str, Any]]:
     return {
     "quarter_wave_single_layer": {
-        "title_cn": "1/4波长单层膜",
+        "title_cn": "1/4波长单层减反射膜",
         "title_en": "Quarter-Wave Single Layer",
         "design_type": "quarter_wave_single_layer",
         "default_params": {
@@ -71,7 +71,7 @@ def _get_report_chapter2_cases() -> Dict[str, Dict[str, Any]]:
         },
     },
     "half_wave_single_layer": {
-        "title_cn": "1/2波长单层膜",
+        "title_cn": "1/2波长单层相位膜(虚设层)",
         "title_en": "Half-Wave Single Layer",
         "design_type": "half_wave_single_layer",
         "default_params": {
@@ -84,7 +84,7 @@ def _get_report_chapter2_cases() -> Dict[str, Dict[str, Any]]:
         },
     },
     "single_ar": {
-        "title_cn": "单层减反射膜",
+        "title_cn": "单层减反射膜(任意参数)",
         "title_en": "Single-Layer Anti-Reflection",
         "design_type": "single_ar",
         "default_params": {
@@ -97,7 +97,7 @@ def _get_report_chapter2_cases() -> Dict[str, Dict[str, Any]]:
         },
     },
     "porous_sio2_layer": {
-        "title_cn": "多孔二氧化硅膜层",
+        "title_cn": "多孔二氧化硅减反结构(低折射率多孔介质单层增透膜)",
         "title_en": "Porous Silica Layer",
         "design_type": "single_ar",
         "default_params": {
@@ -110,7 +110,7 @@ def _get_report_chapter2_cases() -> Dict[str, Dict[str, Any]]:
         },
     },
     "porous_double_ar": {
-        "title_cn": "多孔二氧化硅双层减反结构",
+        "title_cn": "多孔双层减反膜(多孔介质双层增透膜)",
         "title_en": "Porous Silica Double-Layer AR",
         "design_type": "porous_double_ar",
         "default_params": {
@@ -124,7 +124,7 @@ def _get_report_chapter2_cases() -> Dict[str, Dict[str, Any]]:
         },
     },
     "moth_eye_effective_gradient": {
-        "title_cn": "蛾眼结构（等效渐变层）",
+        "title_cn": "蛾眼等效渐变层减反膜",
         "title_en": "Moth-Eye Effective Gradient",
         "design_type": "moth_eye_effective_gradient",
         "default_params": {
@@ -143,7 +143,7 @@ def _get_report_chapter2_cases() -> Dict[str, Dict[str, Any]]:
         },
     },
     "double_ar": {
-        "title_cn": "双层减反射膜",
+        "title_cn": "双层减反射膜(任意参数)",
         "title_en": "Double-Layer Anti-Reflection",
         "design_type": "double_ar",
         "default_params": {
@@ -157,7 +157,7 @@ def _get_report_chapter2_cases() -> Dict[str, Dict[str, Any]]:
         },
     },
     "quarter_wave_double_layer": {
-        "title_cn": "1/4波长双层膜系",
+        "title_cn": "四分之一波长双层减反膜(V形增透膜)",
         "title_en": "Quarter-Wave Double Layer",
         "design_type": "quarter_wave_double_layer",
         "default_params": {
@@ -171,7 +171,7 @@ def _get_report_chapter2_cases() -> Dict[str, Dict[str, Any]]:
         },
     },
     "triple_ar": {
-        "title_cn": "三层减反射膜",
+        "title_cn": "三层渐变折射率减反膜",
         "title_en": "Triple-Layer Anti-Reflection",
         "design_type": "triple_ar",
         "default_params": {
@@ -303,7 +303,7 @@ def _get_report_chapter2_cases() -> Dict[str, Dict[str, Any]]:
     "rugate_filter": {
         "summary_cn": "采用连续折射率调制近似的皱褶滤光片，用于展示渐变周期结构的反射带形成。",
         "summary_en": "A rugate filter approximated by continuous index modulation, showing stop-band formation in graded periodic structures.",
-        "title_cn": "皱褶滤光片",
+        "title_cn": "Rugate(褶皱)渐变折射率滤光片",
         "title_en": "Rugate Filter",
         "design_type": "rugate_filter",
         "default_params": {
@@ -317,14 +317,14 @@ def _get_report_chapter2_cases() -> Dict[str, Dict[str, Any]]:
             "periods": 8,
             "total_layers": 80,
         },
-        "headline_cn": "皱褶滤光片",
+        "headline_cn": "Rugate(褶皱)渐变折射率滤光片",
         "headline_en": "Rugate Filter",
         "card_tag_cn": "高级扩展",
         "card_tag_en": "Advanced Extension",
         "main_curve": "R",
     },
     "neutral_beamsplitter": {
-        "title_cn": "中性分束膜",
+        "title_cn": "中性分束薄膜",
         "title_en": "Neutral Beam Splitter",
         "design_type": "neutral_beamsplitter",
         "default_params": {
@@ -1124,9 +1124,20 @@ def reflection_phase_radians(result: Dict[str, Any], *, unwrap: bool = True) -> 
     np.ndarray
         Phase in radians, same shape as ``result["wavelength_nm"]``.
     """
-    phase = np.angle(np.asarray(result["r_complex"], dtype=complex))
-    if unwrap:
-        phase = np.unwrap(phase)
+    r = np.asarray(result["r_complex"], dtype=complex)
+    wls = np.asarray(result["wavelength_nm"], dtype=float)
+    if len(wls) > 1 and np.any(np.diff(wls) < 0):
+        sort_idx = np.argsort(wls)
+        r_sorted = r[sort_idx]
+        phase_sorted = np.angle(r_sorted)
+        if unwrap:
+            phase_sorted = np.unwrap(phase_sorted)
+        phase = np.zeros_like(phase_sorted)
+        phase[sort_idx] = phase_sorted
+    else:
+        phase = np.angle(r)
+        if unwrap:
+            phase = np.unwrap(phase)
     return phase
 
 
@@ -1240,7 +1251,7 @@ def _material_or_constant_index_array(
     return np.asarray(
         material_complex_index(
             material,
-            wavelengths_nm.tolist(),
+            wavelengths_nm,
             allow_extrapolate=allow_extrapolate,
         ),
         dtype=complex,
@@ -1742,7 +1753,11 @@ def _band_average(x_values: np.ndarray, y_values: np.ndarray, lower: float, uppe
     mask = (x_values >= float(lower)) & (x_values <= float(upper))
     if int(np.count_nonzero(mask)) < 2:
         return float("nan")
-    return float(np.trapezoid(y_values[mask], x_values[mask]) / (float(upper) - float(lower)))
+    try:
+        integral = np.trapezoid(y_values[mask], x_values[mask])
+    except AttributeError:
+        integral = np.trapz(y_values[mask], x_values[mask])
+    return float(integral / (float(upper) - float(lower)))
 
 
 def _normalize_pdrc_wavelength_grid(wavelengths_um: Sequence[float] | None) -> np.ndarray:
@@ -2618,10 +2633,23 @@ def _summary_from_spectrum(spectrum: Dict[str, np.ndarray], lambda0_nm: float) -
     peak_r_idx = int(np.argmax(spectrum["R"]))
     valley_r_idx = int(np.argmin(spectrum["R"]))
     peak_t_idx = int(np.argmax(spectrum["T"]))
+    
+    wls = np.asarray(spectrum["wavelength_nm"], dtype=float)
+    r_vals = np.asarray(spectrum["R"], dtype=float)
+    t_vals = np.asarray(spectrum["T"], dtype=float)
+    a_vals = np.asarray(spectrum["A"], dtype=float)
+    
+    if len(wls) > 1 and np.any(np.diff(wls) < 0):
+        sort_idx = np.argsort(wls)
+        wls = wls[sort_idx]
+        r_vals = r_vals[sort_idx]
+        t_vals = t_vals[sort_idx]
+        a_vals = a_vals[sort_idx]
+        
     return {
-        "R_at_lambda0": float(np.interp(float(lambda0_nm), spectrum["wavelength_nm"], spectrum["R"])),
-        "T_at_lambda0": float(np.interp(float(lambda0_nm), spectrum["wavelength_nm"], spectrum["T"])),
-        "A_at_lambda0": float(np.interp(float(lambda0_nm), spectrum["wavelength_nm"], spectrum["A"])),
+        "R_at_lambda0": float(np.interp(float(lambda0_nm), wls, r_vals)),
+        "T_at_lambda0": float(np.interp(float(lambda0_nm), wls, t_vals)),
+        "A_at_lambda0": float(np.interp(float(lambda0_nm), wls, a_vals)),
         "R_min": float(np.min(spectrum["R"])),
         "R_min_wavelength_nm": float(spectrum["wavelength_nm"][valley_r_idx]),
         "R_max": float(np.max(spectrum["R"])),
