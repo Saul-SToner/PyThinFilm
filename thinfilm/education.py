@@ -3432,16 +3432,7 @@ def export_report_case_outputs(
         ax.set_xlim(float(np.min(wavelength_nm)), float(np.max(wavelength_nm)))
         ax.set_ylim(0.0, max(1.02, float(np.max([np.max(r_vals), np.max(t_vals), np.max(a_vals)])) * 1.05))
         ax.legend(loc="lower left", frameon=True, facecolor="white", edgecolor="#c9d2dc")
-        ax.text(
-            0.985,
-            0.97,
-            "\n".join(_case_analysis_lines(result)),
-            transform=ax.transAxes,
-            ha="right",
-            va="top",
-            fontsize=9,
-            bbox={"boxstyle": "round,pad=0.35", "facecolor": "white", "alpha": 0.85, "edgecolor": "#cccccc"},
-        )
+        # Textbox overlay removed.
         fig.tight_layout()
         save_publication_figure(fig, png_path)
         plt.close(fig)
@@ -3528,16 +3519,7 @@ def export_report_case_outputs(
                 borderpad=0.4, handlelength=1.4,
             )
 
-        ax2.text(
-            0.985,
-            0.97,
-            "\n".join(_case_analysis_lines(result)),
-            transform=ax2.transAxes,
-            ha="right",
-            va="top",
-            fontsize=9,
-            bbox={"boxstyle": "round,pad=0.35", "facecolor": "white", "alpha": 0.85, "edgecolor": "#cccccc"},
-        )
+        # Textbox overlay removed.
         fig2.tight_layout()
         save_publication_figure(fig2, main_png_path)
         plt.close(fig2)
