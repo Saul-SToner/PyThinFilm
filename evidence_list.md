@@ -36,8 +36,7 @@
 | **图 4-1** | `docs/figures/fig_4_1_single_ar.png` | `~/thinfilm_outputs/teaching_case_single_ar_main.png` | `run_teaching_demo.py --case single_ar` | 是 | 否 |
 | **图 4-2** | `docs/figures/fig_4_2_high_reflector.png` | `~/thinfilm_outputs/teaching_case_high_reflector_main.png` | `run_teaching_demo.py --case high_reflector` | 是 | 否 |
 | **图 4-3** | `docs/figures/fig_4_3_fp_filter.png` | `~/thinfilm_outputs/teaching_case_fp_filter_main.png` | `run_teaching_demo.py --case fp_filter` | 是 | 否 |
-| **图 4-4** | `docs/figures/fig_4_4_te_tm_compare.png` | `~/thinfilm_outputs/teaching_compare_fp_double_angles.png` | `run_case.py --group teaching --case metrics_bundle` | 是 | 否 |
-| **图 4-5** | `docs/figures/fig_4_5_fp_field.png` | `~/thinfilm_outputs/teaching_case_fp_filter_analysis.png` | `run_teaching_demo.py --case fp_filter` | 是 | 否 |
+| **图 4-4** | `docs/figures/fig_4_4_te_tm_compare.png` | `~/thinfilm_outputs/teaching_compare_te_tm_compare.png` | `run_teaching_demo.py --report` | 是 | 否 |
 | **图 4-6** | `docs/figures/fig_4_6_material_library.png` | `~/thinfilm_outputs/real_material_library_demo_cn_overview.png` | `run_material_library_demo.py` | 是 | 否 |
 | **图 4-7** | `docs/figures/fig_4_7_si_real_nk_compare.png` | `~/thinfilm_outputs/real_material_library_demo_cn_single_ar_real_nk_single_ar_real_nk_main.png` | `run_material_library_demo.py` | 是 | 否 |
 | **图 4-8** | `docs/figures/fig_4_8_tio2_real_nk_bragg.png` | `~/thinfilm_outputs/real_material_library_demo_bragg_reflector_real_nk_bragg_reflector_real_nk_main.png` | `run_material_library_demo.py` | 是 | 否 |

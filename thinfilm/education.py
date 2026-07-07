@@ -375,6 +375,11 @@ REPORT_COMPARISON_FIGURES: Dict[str, Dict[str, Any]] = {
         "title_en": "Neutral Beam Splitter | Different Center Wavelengths",
         "ylabel": "R",
     },
+    "te_tm_compare": {
+        "title_cn": "单层减反膜斜入射 TE/TM 偏振对比",
+        "title_en": "Single-Layer AR | TE vs TM at 45 deg",
+        "ylabel": "R",
+    },
 }
 
 REPORT_COMPARISON_UI_META: Dict[str, Dict[str, Any]] = {
@@ -455,6 +460,19 @@ REPORT_COMPARISON_UI_META: Dict[str, Dict[str, Any]] = {
         "sweep_label_cn": "中心波长",
         "sweep_label_en": "Center Wavelength",
         "related_case_ids": ["neutral_beamsplitter"],
+    },
+    "te_tm_compare": {
+        "headline_cn": "单层减反膜偏振对比",
+        "headline_en": "Single-Layer AR Polarization Sweep",
+        "card_tag_cn": "参数对比",
+        "card_tag_en": "Parameter Sweep",
+        "summary_cn": "比较单层 MgF2 减反膜在 45° 斜入射下 TE 和 TM 偏振反射率的变化特征。",
+        "summary_en": "Compare TE and TM polarizations of a single-layer AR coating at 45 deg incidence.",
+        "series_count": 2,
+        "sweep_parameter": "pol",
+        "sweep_label_cn": "偏振极化",
+        "sweep_label_en": "Polarization",
+        "related_case_ids": ["single_ar"],
     },
 }
 
@@ -3847,6 +3865,36 @@ def export_report_comparison_figures(
         ylabel="R",
         wavelength_nm=wl,
         series={label: result["R"] for label, result in beamsplitter_results.items()},
+        lambda0_nm=550.0,
+    )
+
+    # TE vs TM comparison at 45 degrees for single_ar.
+    te_results = simulate_report_design(
+        "single_ar",
+        lambda0_nm=550.0,
+        theta_deg=45.0,
+        pol="s",
+        n_low=1.38,
+        n_substrate=1.52,
+    )
+    tm_results = simulate_report_design(
+        "single_ar",
+        lambda0_nm=550.0,
+        theta_deg=45.0,
+        pol="p",
+        n_low=1.38,
+        n_substrate=1.52,
+    )
+    wl_te = te_results["wavelength_nm"]
+    exported["te_tm_compare"] = _export_comparison_plot(
+        filename_stem=f"{prefix}_te_tm_compare",
+        title="单层减反膜 @ 45°斜入射 | TE vs TM 偏振对比",
+        ylabel="R",
+        wavelength_nm=wl_te,
+        series={
+            "TE 偏振 (s-pol)": te_results["R"],
+            "TM 偏振 (p-pol)": tm_results["R"],
+        },
         lambda0_nm=550.0,
     )
 
