@@ -3474,7 +3474,10 @@ def export_report_case_outputs(
             s=36,
             zorder=3,
         )
-        ax2.set_title(f"{title_label} | {main_label}", fontweight="semibold")
+        ax2.set_title(
+            f"{title_label} | {main_label} | 入射角={float(result['theta_deg']):g}° | 偏振={result['pol']}",
+            fontweight="semibold",
+        )
         ax2.set_xlabel("波长 (nm)")
         ax2.set_ylabel(main_kind)
         xlim = _main_plot_xlim_for_case(result)
