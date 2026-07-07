@@ -3420,7 +3420,7 @@ def export_report_case_outputs(
                 color=colors[kind],
                 zorder=3 if kind == main_kind else 2,
             )
-        ax.axvline(float(result["lambda0_nm"]), linestyle=":", linewidth=1.4, color=TARGET_GREEN, alpha=0.9, label="$\lambda_0$ (设计中心波长)")
+        ax.axvline(float(result["lambda0_nm"]), linestyle=":", linewidth=1.4, color=TARGET_GREEN, alpha=0.9, label=r"$\lambda_0$ (设计中心波长)")
         title_label = (
             result.get("title_cn")
             or result.get("title_en")
