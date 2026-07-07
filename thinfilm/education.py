@@ -3541,54 +3541,7 @@ def export_report_case_outputs(
         saved["main_png"] = str(main_png_path)
 
         analysis_png_path = output_file(f"{stem}_analysis.png")
-        summary = result["summary"]
-        metric_labels = ["R@中心", "T@中心", "A@中心"]
-        metric_values = [
-            float(summary["R_at_lambda0"]),
-            float(summary["T_at_lambda0"]),
-            float(summary["A_at_lambda0"]),
-        ]
-        fig3, (ax3, ax4) = plt.subplots(1, 2, figsize=(10, 4.8))
-        _style_teaching_axis(ax3)
-        _style_teaching_axis(ax4)
-        ax3.bar(metric_labels, metric_values, color=[MAIN_RED, TRANS_BLUE, ABS_GOLD], width=0.58)
-        ax3.set_ylim(0.0, 1.02)
-        ax3.set_title("中心波长指标", fontweight="semibold")
-        ax3.set_ylabel("数值")
-
-        key = str(result.get("case_id") or result.get("design_type") or "").strip().lower()
-        if "fp_" in key or key in {"fp_filter", "narrowband_filter"}:
-            labels2 = ["设计 λ0", "透射峰位"]
-            peak_wl = float(summary["T_max_wavelength_nm"])
-            values2 = [float(result["lambda0_nm"]), peak_wl]
-            colors2 = [TARGET_GREEN, TRANS_BLUE]
-            delta = peak_wl - float(result["lambda0_nm"])
-            ax4.bar(labels2, values2, color=colors2, width=0.58)
-            ax4.set_title("峰位对齐", fontweight="semibold")
-            ax4.set_ylabel("nm")
-        else:
-            labels2 = ["设计 λ0", "反射谷位"]
-            valley_wl = float(summary["R_min_wavelength_nm"])
-            values2 = [float(result["lambda0_nm"]), valley_wl]
-            colors2 = [TARGET_GREEN, MAIN_RED]
-            delta = valley_wl - float(result["lambda0_nm"])
-            if any(term in key for term in ("reflector", "mirror", "bragg", "quarter_wave_stack", "beamsplitter")):
-                labels2 = ["设计 λ0", "反射峰位"]
-                peak_wl = float(summary["R_max_wavelength_nm"])
-                values2 = [float(result["lambda0_nm"]), peak_wl]
-                colors2 = [TARGET_GREEN, MAIN_RED]
-                delta = peak_wl - float(result["lambda0_nm"])
-            ax4.bar(labels2, values2, color=colors2, width=0.58)
-            ax4.set_title("谱线对齐", fontweight="semibold")
-            ax4.set_ylabel("nm")
-
-        ax4.set_ylim(*padded_numeric_limits(values2, min_span=20.0))
-        ax4.text(0.98, 0.96, f"Δλ = {delta:+.2f} nm", transform=ax4.transAxes, ha="right", va="top", color=MUTED)
-
-        fig3.suptitle(f"{title_label} | 分析图", fontsize=12, fontweight="semibold", color=TEXT_DARK)
-        fig3.tight_layout()
-        save_publication_figure(fig3, analysis_png_path)
-        plt.close(fig3)
+        # Note: Analysis plots are disabled to keep outputs clean.
         saved["analysis_png"] = str(analysis_png_path)
 
     return saved
@@ -3684,36 +3637,7 @@ def _export_comparison_plot(
     save_publication_figure(fig, png_path)
     plt.close(fig)
 
-    fig2, axes = plt.subplots(1, 3, figsize=(12, 4.2))
-    for axis in axes:
-        _style_teaching_axis(axis)
-
-    x = np.arange(len(labels))
-    colors = [palette[i % len(palette)] for i in range(len(labels))]
-
-    axes[0].bar(x, center_values, color=colors, width=0.62)
-    axes[0].set_xticks(x, labels, rotation=20)
-    axes[0].set_ylim(0.0, 1.02)
-    axes[0].set_title(f"{ylabel}@中心波长", fontweight="semibold")
-    axes[0].set_ylabel(ylabel)
-
-    axes[1].bar(x, peak_positions, color=colors, width=0.62)
-    if lambda0_nm is not None:
-        axes[1].axhline(float(lambda0_nm), linestyle=":", linewidth=1.3, color=TARGET_GREEN)
-    axes[1].set_xticks(x, labels, rotation=20)
-    axes[1].set_title("峰位位置", fontweight="semibold")
-    axes[1].set_ylabel("nm")
-
-    axes[2].bar(x, widths, color=colors, width=0.62)
-    axes[2].set_xticks(x, labels, rotation=20)
-    axes[2].set_title("近似半高全宽", fontweight="semibold")
-    axes[2].set_ylabel("nm")
-
-    fig2.suptitle(f"{title} | 分析图", fontsize=12, fontweight="semibold", color=TEXT_DARK)
-    fig2.tight_layout()
-    save_publication_figure(fig2, analysis_png_path)
-    plt.close(fig2)
-
+    # Note: Comparison analysis plots are disabled to keep outputs clean.
     return {"csv": str(csv_path), "png": str(png_path), "analysis_png": str(analysis_png_path)}
 
 
