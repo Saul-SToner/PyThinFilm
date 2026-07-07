@@ -140,7 +140,7 @@ def export_guided_grating_result(
             ax.axvline(float(target_wavelength_nm), linestyle=":", linewidth=1.5, color=TARGET_GREEN, alpha=0.95, label="目标波长")
         ax.set_title(f"光栅波导谱线 | {sample_id}", fontweight="semibold")
         ax.set_xlabel("波长 (nm)")
-        ax.set_ylabel("功率")
+        ax.set_ylabel("反射率 / 透射率 / 吸收率")
         ax.set_xlim(float(wl[0]), float(wl[-1]))
         ax.set_ylim(0.0, 1.02)
         ax.legend(loc="lower left", frameon=True, facecolor="white", edgecolor="#c9d2dc")

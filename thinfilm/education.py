@@ -3428,7 +3428,7 @@ def export_report_case_outputs(
         )
         ax.set_title(f"{title_label} | 入射角={float(result['theta_deg']):g}° | 偏振={result['pol']}", fontweight="semibold")
         ax.set_xlabel("波长 (nm)")
-        ax.set_ylabel("功率")
+        ax.set_ylabel("反射率 / 透射率 / 吸收率")
         ax.set_xlim(float(np.min(wavelength_nm)), float(np.max(wavelength_nm)))
         ax.set_ylim(0.0, max(1.02, float(np.max([np.max(r_vals), np.max(t_vals), np.max(a_vals)])) * 1.05))
         ax.legend(loc="lower left", frameon=True, facecolor="white", edgecolor="#c9d2dc")
