@@ -144,16 +144,7 @@ def export_guided_grating_result(
         ax.set_xlim(float(wl[0]), float(wl[-1]))
         ax.set_ylim(0.0, 1.02)
         ax.legend(loc="lower left", frameon=True, facecolor="white", edgecolor="#c9d2dc")
-        ax.text(
-            0.985,
-            0.97,
-            "\n".join(_analysis_lines(summary, target_wavelength_nm)),
-            transform=ax.transAxes,
-            ha="right",
-            va="top",
-            fontsize=9,
-            bbox={"boxstyle": "round,pad=0.35", "facecolor": "white", "alpha": 0.85, "edgecolor": "#cccccc"},
-        )
+        # Textbox overlay removed.
         fig.tight_layout()
         save_publication_figure(fig, png_path)
         plt.close(fig)
@@ -192,16 +183,7 @@ def export_guided_grating_result(
         ax2.set_ylabel("R")
         ax2.set_xlim(float(wl[0]), float(wl[-1]))
         ax2.set_ylim(ymin, ymax)
-        ax2.text(
-            0.985,
-            0.97,
-            "\n".join(_analysis_lines(summary, target_wavelength_nm)),
-            transform=ax2.transAxes,
-            ha="right",
-            va="top",
-            fontsize=9,
-            bbox={"boxstyle": "round,pad=0.35", "facecolor": "white", "alpha": 0.85, "edgecolor": "#cccccc"},
-        )
+        # Textbox overlay removed.
         fig2.tight_layout()
         save_publication_figure(fig2, main_png)
         plt.close(fig2)
