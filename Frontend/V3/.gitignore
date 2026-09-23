@@ -1,0 +1,148 @@
+# =========================
+# Node / Electron / Vite
+# =========================
+
+node_modules/
+dist/
+dist-electron/
+out/
+build/
+release/
+.vite/
+
+# Vite env files
+.env
+.env.*
+!.env.example
+
+# npm / pnpm / yarn logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Package manager caches
+.pnpm-store/
+.yarn/
+.cache/
+
+
+# =========================
+# Electron Builder / Forge
+# =========================
+
+*.asar
+*.asar.unpacked/
+*.blockmap
+*.exe
+*.msi
+*.dmg
+*.AppImage
+*.deb
+*.rpm
+*.zip
+*.7z
+*.tar.gz
+
+# 注意：如果你想把最终安装包纳入版本管理，可以删掉上面这些安装包后缀
+
+
+# =========================
+# Python / FastAPI Backend
+# =========================
+
+__pycache__/
+*.py[cod]
+*$py.class
+
+.venv/
+venv/
+env/
+ENV/
+
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+
+# Python build outputs
+build/
+dist/
+*.spec
+
+!frontend/build/
+!frontend/build/logo.png
+!frontend/build/icon.ico
+
+
+# =========================
+# Generated simulation outputs
+# =========================
+
+outputs/
+output/
+results/
+result/
+figures/
+plots/
+temp/
+tmp/
+*.log
+
+# 如果你的仿真结果需要提交到仓库，删掉上面对应目录
+
+
+# =========================
+# IDE / Editor
+# =========================
+
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+
+# =========================
+# OS files
+# =========================
+
+.DS_Store
+Thumbs.db
+desktop.ini
+
+
+# =========================
+# TypeScript
+# =========================
+
+*.tsbuildinfo
+
+
+# =========================
+# Test / Coverage
+# =========================
+
+coverage/
+test-results/
+playwright-report/
+
+
+# =========================
+# Local config / secrets
+# =========================
+
+*.local
+*.secret
+secrets/
+config.local.*

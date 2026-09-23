@@ -1,0 +1,15 @@
+material_id,display_name_zh,display_name_en,category,suitable_roles,locked_roles,lambda_min_nm,lambda_max_nm,n_at_550nm,k_at_550nm
+Air,Air（空气/真空）,Air / Vacuum,气体,n_incident,n_incident,100.0,100000.0,1.0,0.0
+SiO2,SiO₂（二氧化硅 / 熔融石英）,SiO₂ (Fused Silica),介质,n_low;n_substrate,,210.0,6700.0,1.4599,0.0
+MgF2,MgF₂（氟化镁，最低折射率增透层）,MgF₂ (Magnesium Fluoride),介质,n_low,,200.0,7000.0,1.3785,0.0
+Al2O3,Al₂O₃（氧化铝）,Al₂O₃ (Alumina),介质,n_low;n_mid,,200.0,5000.0,1.7704,0.0
+Ta2O5,Ta₂O₅（五氧化二钽，高指数高强度激光膜）,Ta₂O₅ (Tantalum Pentoxide),介质,n_high;n_high_2,,350.0,2000.0,2.1189,0.0
+ZrO2,ZrO₂（二氧化锆，常用中高折射率过渡层）,ZrO₂ (Zirconia),介质,n_high;n_mid,,350.0,2000.0,2.0481,0.0
+TiO2,TiO₂（二氧化钛，高折射率层）,TiO₂ (Titanium Dioxide),介质,n_high;n_high_2,,430.0,1530.0,2.6479,0.0
+Si,Si（硅，近红外高折射率半导体）,Si (Silicon),半导体,n_high;n_high_2,,206.6,826.6,4.087,0.040882
+N-BK7,N-BK7（肖特冕牌光学玻璃，最常用透镜基底）,N-BK7 (Schott Optical Glass),介质,n_substrate,,300.0,2500.0,1.5185,0.0
+Ag,Ag（银，金属宽带高反衬底）,Ag (Silver),金属,n_substrate,,187.9,1937.0,0.0596,3.597367
+Au,Au（金，金属极化高反膜/基底）,Au (Gold),金属,n_substrate,,187.9,1937.0,0.4241,2.472051
+Al,Al（铝，紫外-可见-红外全波段反射镜）,Al (Aluminum),金属,n_substrate,,200.0,2000.0,0.96,6.7
+Cu,Cu（铜，红外高功率反射膜）,Cu (Copper),金属,n_substrate,,200.0,2000.0,0.73,2.64
+Cr,Cr（铬，金属吸收层与粘结过渡层）,Cr (Chromium),金属,n_substrate,,250.0,2000.0,2.38,2.95

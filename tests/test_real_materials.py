@@ -79,7 +79,7 @@ class TestMaterialInterpolation:
 
     def test_extrapolation_rejected(self):
         with pytest.raises(ValueError):
-            material_nk_at("SiO2", 10.0)  # Outside range
+            material_nk_at("SiO2", 10.0, out_of_range_policy="error")  # Outside range
 
     def test_extrapolation_allowed(self):
         n, k = material_nk_at("SiO2", 10.0, allow_extrapolate=True)

@@ -1,3 +1,5 @@
+import matplotlib
+matplotlib.use('Agg')
 from pathlib import Path
 
 import matplotlib.pyplot as plt

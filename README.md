@@ -20,10 +20,10 @@
 2. **计算核心**：
    - `thinfilm/education.py`：基于一维多层薄膜特征矩阵算法（TMM），利用 NumPy 向量化广播机制求解。
    - `thinfilm/materials.py`：管理实测光学常数数据库并提供线性插值与缓存机制。
-   - `guided_grating/rcwa.py`：实现针对亚波长光栅的零阶极化等效介质近似（EMT）模型。
+   - `guided_grating/emt.py`：实现针对亚波长光栅的零阶极化等效介质近似（EMT）模型。
    - `guided_grating/comsol_io.py`：提供外部全波电磁散射仿真数据的读取与半高全宽（FWHM）、品质因子 $Q$ 等指标提取器。
 3. **可视化渲染**：调用 Plotly 导出高清晰度交互式 HTML 页面及静态 PNG 图表。
-4. **物理自检层**：包含由 270 个测试用例构成的 pytest 自动化测试套件与 `smoke_test.py` 自检脚本。
+4. **物理自检层**：包含由 310 个测试用例构成的 pytest 自动化测试套件与 `smoke_test.py` 自检脚本。
 
 ---
 
@@ -64,7 +64,9 @@
 ![平台底层物理方程与模块实现映射图](docs/figures/fig_2_3_physics_mapping.png)
 
 ### 4. 明确的技术物理边界声明
-- **关于 RCWA 求解器限制**：`guided_grating/rcwa.py` 文件名沿用了早期开发阶段的模块命名。当前 v0.2.1 版本中，该模块仅实现针对一维周期性亚波长光栅的**零阶极化等效介质近似（EMT）**，用于快速计算 TE/TM 偏振的零阶等效折射率，**不对应严格/完整的 RCWA（傅里叶空间特征值解算）算法，本身不承担周期光栅的高阶全波散射求解**。
+- **关于光栅等效介质近似 (EMT) 限制**：`guided_grating/emt.py` 实现了针对一维周期性亚波长光栅的**零阶极化等效介质近似（EMT）**，用于快速计算 TE/TM 偏振的零阶等效折射率并简化为各向异性等效单层膜。**本平台在计算层目前不做高阶衍射波的全波散射或严格傅里叶特征值求解。未完成的高阶特征值求解代码已移入 `archive/experimental_rcwa/` 以供将来拓展研究**。
+
+- **专用求解器适配层**：`thinfilm/solvers/` 提供可选的 `rcwa`、`GeneralTmm`、`WPTherml` 后端探测与适配。当前 V3 后端环境已安装 `rcwa==1.0.48`，可用于光栅真实 RCWA 试算；其余后端保持可选，不会影响默认 `tmmcore` 路径。
 - **关于外部数据比对**：`comsol_io.py` 仅作为外部 COMSOL 仿真结果（CSV 格式）的特征提取（FWHM、品质因子 $Q$ 等指标）与复验比对接口。**平台本身不是全波数值求解器，不提供且不替代 COMSOL 内部的网格离散与空间偏微分方程求解机制**。
 - **关于软件状态声明**：平台定位为轻量级计算物理展示与教学工具。**仓库中不包含且不提供独立运行的 GUI 或 App 桌面客户端，亦不代表 App 已经完成。当前不依赖任何 GitHub Actions 持续集成自动化部署工具**。
 
@@ -153,11 +155,11 @@ PyThinFilm/
 │   ├── validation.py            # 理论 vs 外部 CSV 误差分析
 │   └── plotly_charts.py         # 交互式可视化 Plotly 渲染器
 ├── guided_grating/              # 光栅波导拓展研究支线
-│   ├── rcwa.py                  # 亚波长周期光栅零阶极化等效介质近似 (EMT)
+│   ├── emt.py                   # 亚波长周期光栅零阶极化等效介质近似 (EMT)
 │   └── comsol_io.py             # 外部 COMSOL 扫描 CSV 解析与指标提取
 ├── cases/                       # Tamm/PDRC等专题及高级脚本运行文件夹
 ├── examples/                    # 经典教学及5个工程应用示范案例
-├── tests/                       # 由 270 个测试用例构成的测试套件
+├── tests/                       # 由 310 个测试用例构成的测试套件
 ├── docs/                        # 文档、流程图与测试日志存放目录
 │   ├── figures/                 # 5 张流程图及案例输出图
 │   └── evidence/                # 冒烟自检与 pytest 运行证据日志

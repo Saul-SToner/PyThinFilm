@@ -1,0 +1,111 @@
+{
+  "name": "thinfilm-desktop-app",
+  "version": "2.0.1",
+  "private": true,
+  "main": "dist-electron/main.js",
+  "scripts": {
+    "dev": "concurrently -k \"npm:dev:backend\" \"npm:dev:renderer\" \"npm:dev:electron\"",
+    "dev:backend": "cd ..\\backend && ..\\.venv\\Scripts\\python.exe -m uvicorn app.main:app --host 0.0.0.0 --port 8122 --reload",
+    "dev:renderer": "vite --host 0.0.0.0",
+    "dev:electron": "wait-on tcp:8122 http://127.0.0.1:5173 && tsc -p tsconfig.electron.json && cross-env VITE_DEV_SERVER_URL=http://127.0.0.1:5173 electron .",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.electron.json --noEmit",
+    "build": "tsc --noEmit && vite build && tsc -p tsconfig.electron.json",
+    "build:backend": "..\\.venv\\Scripts\\python.exe -m PyInstaller pythonfilm-backend.spec --clean --noconfirm --distpath backend-dist --workpath backend-build",
+    "dist": "npm run build:backend && npm run build && electron-builder --win",
+    "dist:temporary-ai-key": "cross-env THINFILM_EMBED_AI_ENV=1 npm run dist",
+    "preview": "vite preview --host 0.0.0.0"
+  },
+  "build": {
+    "appId": "com.local.thinfilm.desktop",
+    "productName": "PythonFilm",
+    "artifactName": "${productName}-${version}-${arch}.${ext}",
+    "asar": true,
+    "afterPack": "tools/embed-ai-env.cjs",
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "backend-dist/thinfilm-backend",
+        "to": "backend"
+      },
+      {
+        "from": "src/assets/materials/app_materials_metadata.csv",
+        "to": "materials/app_materials_metadata.csv"
+      },
+      {
+        "from": "tools/tmmcore_bridge.mjs",
+        "to": "tmmcore/tmmcore_bridge.mjs"
+      },
+      {
+        "from": "node_modules/tmmcore",
+        "to": "tmmcore/node_modules/tmmcore"
+      },
+      {
+        "from": "tools/port-preflight.ps1",
+        "to": "port-preflight.ps1"
+      }
+    ],
+    "directories": {
+      "output": "release"
+    },
+    "win": {
+      "icon": "build/icon.ico",
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "nsis": {
+      "artifactName": "${productName}-Setup-${version}-${arch}.${ext}",
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "PythonFilm"
+    },
+    "portable": {
+      "artifactName": "${productName}-Portable-${version}-${arch}.${ext}"
+    }
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "^6.0.3",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.1",
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
+    "katex": "^0.16.47",
+    "lucide-react": "^0.468.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-markdown": "^10.1.0",
+    "react-resizable-panels": "^2.1.4",
+    "recharts": "^3.9.2",
+    "rehype-katex": "^7.0.1",
+    "remark-gfm": "^4.0.1",
+    "remark-math": "^6.0.0",
+    "tailwind-merge": "^2.4.0",
+    "tailwindcss-animate": "^1.0.7",
+    "three": "^0.180.0",
+    "tmmcore": "0.4.0",
+    "wait-on": "^7.2.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.2",
+    "@types/node": "^20.14.10",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@types/three": "^0.180.0",
+    "autoprefixer": "^10.4.19",
+    "electron": "^43.1.0",
+    "electron-builder": "^26.15.3",
+    "postcss": "^8.4.39",
+    "tailwindcss": "^4.3.2",
+    "typescript": "^5.5.3",
+    "vite": "^8.1.3"
+  }
+}

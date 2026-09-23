@@ -1,0 +1,8 @@
+{
+  "incident_material_id": "Air",
+  "substrate_material_id": "N-BK7",
+  "layers": [{"material_id": "MgF2", "thickness_nm": 99.75, "enabled": true}],
+  "probe_wavelength_nm": 550,
+  "spectrum": {"start_nm": 500, "stop_nm": 600, "points": 101},
+  "system_template": "single_lens_imaging"
+}

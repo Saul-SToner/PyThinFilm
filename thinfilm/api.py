@@ -72,6 +72,7 @@ from .validation import (
     export_teaching_expansion_validation_template_bundle,
     load_teaching_expansion_validation_mapping,
 )
+from .custom_stack import simulate_custom_stack
 
 
 def simulate_teaching_design(

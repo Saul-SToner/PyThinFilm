@@ -1,0 +1,153 @@
+{
+  "schema_version": "1.0.0",
+  "case_id": "advanced_ar_bundle",
+  "title": "高级增透膜计算束",
+  "source_commit": "2b7bb0c07489e8bda983a862e7fbfc1bb973fe32",
+  "source_file": "cases/advanced_ar/run_advanced_ar_bundle.py",
+  "source_symbol": "build_advanced_ar_validation_cases",
+  "generated_at": "2026-08-02T15:11:09.463593",
+  "calculation_source": "python_external_csv_analysis",
+  "evidence_status": "READY_EXTERNAL",
+  "summary_cards": [
+    {
+      "label": "验证子案例",
+      "value": 5,
+      "unit": "",
+      "note": ""
+    },
+    {
+      "label": "最小 MAE",
+      "value": 3.022513979106676e-07,
+      "unit": "",
+      "note": ""
+    },
+    {
+      "label": "最大 MAE",
+      "value": 0.00425861649670855,
+      "unit": "",
+      "note": ""
+    },
+    {
+      "label": "参考来源",
+      "value": "COMSOL",
+      "unit": "",
+      "note": ""
+    }
+  ],
+  "series": [
+    {
+      "label": "子案例 MAE",
+      "x": [
+        1.0,
+        2.0,
+        3.0,
+        4.0,
+        5.0
+      ],
+      "y": [
+        0.0002206474,
+        0.0004599171,
+        3.023e-07,
+        0.0010603767,
+        0.0042586165
+      ],
+      "x_label": "子案例序号",
+      "y_label": "MAE",
+      "color": "#6f879b"
+    }
+  ],
+  "table": {
+    "columns": [
+      "case_id",
+      "reference",
+      "points",
+      "mae",
+      "rmse",
+      "lambda0_error"
+    ],
+    "rows": [
+      [
+        "single_ar",
+        "AR_MgF2_BK7G18_550nm_theta0.csv",
+        600,
+        0.0002206473604976089,
+        0.0002213788637783994,
+        0.00024060085672472122
+      ],
+      [
+        "porous_sio2_layer",
+        "porous.csv",
+        600,
+        0.000459917103212156,
+        0.00046149110234427993,
+        0.0005012887563218818
+      ],
+      [
+        "porous_double_ar",
+        "New.csv",
+        600,
+        3.022513979106676e-07,
+        7.04422650867085e-07,
+        -5.443029948224695e-09
+      ],
+      [
+        "moth_eye_effective_gradient",
+        "Rugate2.csv",
+        600,
+        0.0010603767153102342,
+        0.0012738090395674766,
+        0.0021637233622464514
+      ],
+      [
+        "moth_eye_effective_gradient",
+        "moth_eye_2D_trapezoid_P200_H300_Wtop40_Wbottom180_Glass_550nm_theta0_comsol.csv",
+        600,
+        0.00425861649670855,
+        0.004785365838920869,
+        -0.002257001583013781
+      ]
+    ]
+  },
+  "limitations": [
+    "该入口是五项 Python—COMSOL 验证总览，不把不同结构拼接成一个 Three.js 膜堆。"
+  ],
+  "external_data_provenance": [
+    {
+      "role": "single_ar",
+      "file_name": "AR_MgF2_BK7G18_550nm_theta0.csv",
+      "status": "AVAILABLE",
+      "size_bytes": 107015,
+      "sha256": "e72dbc0290ff61030b446c3c4620e52ba1246045c4571901e7cf397de6122a31"
+    },
+    {
+      "role": "porous",
+      "file_name": "porous.csv",
+      "status": "AVAILABLE",
+      "size_bytes": 106985,
+      "sha256": "0c563375995f39763efb357656a537477231a2f7b4a184a80c1961c0d1806db9"
+    },
+    {
+      "role": "porous_double",
+      "file_name": "New.csv",
+      "status": "AVAILABLE",
+      "size_bytes": 195361,
+      "sha256": "1cd54f72c16bf97cafcb2fe5410a21ed73170192da9f22b3875f1fb0730db3aa"
+    },
+    {
+      "role": "moth_eye_effective",
+      "file_name": "Rugate2.csv",
+      "status": "AVAILABLE",
+      "size_bytes": 107157,
+      "sha256": "9eb2d9e46e6bb87f344cf83c735d93ad1b33738e85962f30c9469d42404a987e"
+    },
+    {
+      "role": "moth_eye_2d",
+      "file_name": "moth_eye_2D_trapezoid_P200_H300_Wtop40_Wbottom180_Glass_550nm_theta0_comsol.csv",
+      "status": "AVAILABLE",
+      "size_bytes": 53785,
+      "sha256": "9865c69eb6e69f6e81e6e5f446c07d479c703c7539f433061f6bcf270bea59b4"
+    }
+  ],
+  "evidence_hash": "dd71f992494651ba",
+  "result_hash": "8cf52a78407ffea5"
+}

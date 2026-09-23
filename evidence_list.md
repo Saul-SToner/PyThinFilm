@@ -14,7 +14,7 @@
 
 ### 2. Pytest 单元测试日志 (docs/evidence/pytest_log.txt)
 * **执行命令**：`py -m pytest tests/ -v`
-* **自检状态**：全部 270 个单元用例执行成功，运行日志已保存到 `docs/evidence/pytest_log.txt`。
+* **自检状态**：全部 314 个单元用例执行成功，运行日志已保存到 `docs/evidence/pytest_log.txt`。
 
 ---
 
@@ -29,7 +29,7 @@
 | **图 2-3** | `docs/figures/fig_2_3_physics_mapping.png` | `docs/figures/fig_2_3_physics_mapping.mmd` | N/A (Mermaid 编译生成) | 否 (流程示意图) | 否 |
 | **图 3-1** | `docs/figures/fig_3_1_repo_structure.png` | 项目工作区目录树 | N/A (本地仓库目录) | 否 | 是 (手工截图) |
 | **图 3-2** | `docs/figures/fig_3_2_dataflow.png` | `docs/figures/fig_3_2_dataflow.mmd` | N/A (Mermaid 编译生成) | 否 (流程示意图) | 否 |
-| **图 3-3** | `docs/figures/fig_3_3_pytest_270_passed.png` | pytest 终端运行汇总面板 | `py -m pytest tests/ -v` | 否 | 是 (手工截图) |
+| **图 3-3** | `docs/figures/fig_3_3_pytest_314_passed.png` | pytest 终端运行汇总面板 | `py -m pytest tests/ -v` | 否 | 是 (手工截图) |
 | **图 3-4** | `docs/figures/fig_3_4_smoke_test_passed.png` | smoke_test 终端自检通过面板 | `py smoke_test.py` | 否 | 是 (手工截图) |
 | **图 3-5** | `docs/figures/fig_3_5_test_flow.png` | `docs/figures/fig_3_5_test_flow.mmd` | N/A (Mermaid 编译生成) | 否 (流程示意图) | 否 |
 | **图 3-6** | `docs/figures/fig_3_6_physical_module_overview.png` | `docs/figures/fig_3_6_physical_module_overview.mmd` | N/A (Mermaid 编译生成) | 否 (流程示意图) | 否 |
@@ -49,7 +49,7 @@
 | **图 4-15**| `docs/figures/fig_4_15_pdrc_spectrum.png` | `~/thinfilm_outputs/pdrc_real_materials_valid_spectrum_cn.png` | `run_case.py --group pdrc --case cooling_bundle` | 是 | 否 |
 | **图 4-16**| `docs/figures/fig_4_16_emt_polarization.png` | `~/thinfilm_outputs/guided_grating_demo_minimal_branch_case_RTA.png` | `run_guided_grating_demo.py` | 是 | 否 |
 | **图 4-17（已退役，不进入正文）** | `docs/figures/fig_4_17_comsol_csv_compare.png` | 占位近似图，不是可追溯 COMSOL 数据 | 待提供真实外部 CSV 后再生成“同轴光谱 + 残差”图 | 否 | 否 |
-| **图 10-1**| `docs/figures/fig_3_3_pytest_270_passed.png` | 对应图 3-3 的完整 pytest 单元测试终端大图 | `py -m pytest tests/ -v` | 否 | 是 (手工截图) |
+| **图 10-1**| `docs/figures/fig_3_3_pytest_314_passed.png` | 对应图 3-3 的完整 pytest 单元测试终端大图 | `py -m pytest tests/ -v` | 否 | 是 (手工截图) |
 
 ---
 

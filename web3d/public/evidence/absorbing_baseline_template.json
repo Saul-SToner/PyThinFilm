@@ -1,0 +1,76 @@
+{
+  "schema_version": "1.0.0",
+  "case_id": "absorbing_baseline_template",
+  "title": "吸收表面基线模板",
+  "source_commit": "2b7bb0c07489e8bda983a862e7fbfc1bb973fe32",
+  "source_file": "cases/absorbing_surface/run_absorbing_surface_baseline_template.py",
+  "source_symbol": "export_absorbing_surface_baseline_reference_template",
+  "generated_at": "2026-08-02T15:11:09.048763",
+  "calculation_source": "python_template_export",
+  "evidence_status": "TEMPLATE_ONLY",
+  "summary_cards": [
+    {
+      "label": "中心波长",
+      "value": 550,
+      "unit": "nm",
+      "note": ""
+    },
+    {
+      "label": "模板状态",
+      "value": "等待用户绑定",
+      "unit": "",
+      "note": ""
+    },
+    {
+      "label": "建议量",
+      "value": "R / T / A",
+      "unit": "",
+      "note": ""
+    },
+    {
+      "label": "几何要求",
+      "value": "同材料同厚度平面基准",
+      "unit": "",
+      "note": ""
+    }
+  ],
+  "series": [],
+  "table": {
+    "columns": [
+      "required_column",
+      "meaning"
+    ],
+    "rows": [
+      [
+        "lam/1[nm] (1)",
+        "波长"
+      ],
+      [
+        "abs(ewfd.S11)^2 (1)",
+        "R"
+      ],
+      [
+        "abs(ewfd.S21)^2 (1)",
+        "T"
+      ],
+      [
+        "1-R-T",
+        "A"
+      ]
+    ]
+  },
+  "limitations": [
+    "这是输入模板而不是一个独立物理仿真结果；页面不会绘制虚构光谱。"
+  ],
+  "external_data_provenance": [
+    {
+      "role": "available_baseline_example",
+      "file_name": "2D periodic quasi-random rough absorbing surface(basic).csv",
+      "status": "AVAILABLE",
+      "size_bytes": 53728,
+      "sha256": "005f2d68b2db0bc26cf204fc1d2a9d414f2900690c57ec4d4945d383ce1481e1"
+    }
+  ],
+  "evidence_hash": "9835a5fcf3cb7c48",
+  "result_hash": "7fc025f029499f8d"
+}

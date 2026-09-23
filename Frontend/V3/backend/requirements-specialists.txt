@@ -1,0 +1,4 @@
+# Optional specialist backends. Install only when the corresponding cases are used.
+rcwa==1.0.48
+GeneralTmm==1.3.1
+wptherml==1.1.1

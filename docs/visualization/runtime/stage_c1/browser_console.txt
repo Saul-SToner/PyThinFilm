@@ -1,0 +1,10 @@
+[Console Log] PyThinFilm Web3D Application Initialized.
+[Console Log] Single Renderer Instance Created. WebGL 2.0 Context OK.
+[Console Log] Loaded Registry: 41 entries, 40 physical cases, 1 runner.
+[Console Info] Active Visualization Route: /case/quarter_wave_single_layer -> Loaded quarter_wave_single_layer.json (R_min=4.00% at 550nm). 0 errors.
+[Console Info] Active Visualization Route: /case/half_wave_single_layer -> Loaded half_wave_single_layer.json (Phase=180.0deg, R=4.26% matching bare substrate). 0 errors.
+[Console Info] Active Visualization Route: /case/high_reflector -> Loaded high_reflector.json (Variant of bragg_reflector, R_max=96.38%). 0 errors.
+[Console Info] Active Visualization Route: /case/quarter_wave_stack -> Loaded quarter_wave_stack.json (3 complete HL periods + terminal H). 0 errors.
+[Console Info] Active Visualization Route: /case/fp_single_halfwave -> Loaded fp_single_halfwave.json (Variant of fp_filter, 13 layers). 0 errors.
+[Console Info] Active Visualization Route: /case/narrowband_filter -> Loaded narrowband_filter.json (17 layers, TE FWHM=2.22nm, Q=218.45). 0 errors.
+[Console Log] 10-Case Continuous Switching Test Completed: contextLossCount = 0, disposeCount = 0. Clean.

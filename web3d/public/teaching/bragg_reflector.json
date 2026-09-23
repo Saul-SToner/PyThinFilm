@@ -1,0 +1,96 @@
+{
+  "schema_version": "1.0.0",
+  "case_id": "bragg_reflector",
+  "audience": {"primary": "UNDERGRADUATE", "advanced_content": true},
+  "teaching_modes": ["FREE_EXPLORATION", "GUIDED_LEARNING"],
+  "teaching_title": "布拉格反射镜：多界面相长",
+  "problem_statement": "单个界面的反射有限。交替排列高、低折射率四分之一波层，可让多个界面的反射在一段波长范围内相长叠加，形成高反射阻带。",
+  "focus_labels": ["观察层：H/L 周期", "峰值：498 nm", "观察量：R 与阻带"],
+  "learning_objectives": [
+    "识别七层 H/L 交替结构和周期性",
+    "区分单个反射峰与连续高反阻带",
+    "比较阻带内外的正式反射率和示意波",
+    "理解 45° 入射下 TE/TM 阻带宽度和峰值不同"
+  ],
+  "context_callout": {
+    "title": "当前为 45° 斜入射",
+    "text": "膜厚按正入射 QWOT 设计且未做 45° 补偿。TE 的 R≥0.7 阻带约为 410–630 nm，TM 约为 454–550 nm。"
+  },
+  "formal_context": {
+    "incidence_angle_deg": 45,
+    "layer_count": 7,
+    "peak_wavelength_nm": 498,
+    "te_peak_r": 0.963766,
+    "tm_peak_r": 0.791552,
+    "te_stopband_nm": [410, 630],
+    "tm_stopband_nm": [454, 550],
+    "te_r_700": 0.042736
+  },
+  "guided_steps": [
+    {
+      "id": "identify_periodic_stack",
+      "title": "识别 H/L 周期结构",
+      "instruction": "选中第一层 H，再沿膜层列表确认 H/L/H/L/H/L/H 的交替层序。",
+      "action": {"type": "select_layer", "layer_index": 0, "label": "选中第一层 H"},
+      "expected_observation": "七层从 H 开始并以 H 结束。H 层 n=2.15、厚 63.9535 nm；L 层 n=1.38、厚 99.6377 nm。",
+      "evidence_fields": ["layers[0]", "layers[1]", "layers.length"]
+    },
+    {
+      "id": "inside_stopband",
+      "title": "进入 TE 高反阻带",
+      "instruction": "设为 TE、498 nm，读取正式 R/T。",
+      "action": {"type": "set_state", "polarization": "TE", "wavelength_nm": 498, "label": "TE · 498 nm"},
+      "expected_observation": "TE 反射率达到 96.3766%，透射被显著抑制；反射示意波占主导，但高反结论来自正式 R。",
+      "evidence_fields": ["stopband_metrics.TE.selected_segment.max_R", "stopband_metrics.TE.selected_segment.wavelength_at_max_R_nm"]
+    },
+    {
+      "id": "outside_stopband",
+      "title": "移到阻带外",
+      "instruction": "保持 TE，切换到 700 nm。",
+      "action": {"type": "set_state", "polarization": "TE", "wavelength_nm": 700, "label": "TE · 700 nm"},
+      "expected_observation": "700 nm 时 TE 的 R=4.2736%，透射重新占主导。这证明高反来自有限阻带，而不是所有波长都高反。",
+      "evidence_fields": ["wavelength_nm", "TE.R", "TE.T"]
+    },
+    {
+      "id": "polarization_split",
+      "title": "比较 TM 阻带",
+      "instruction": "切换到 TM 并回到 498 nm。",
+      "action": {"type": "set_state", "polarization": "TM", "wavelength_nm": 498, "label": "TM · 498 nm"},
+      "expected_observation": "TM 在 498 nm 的峰值 R=79.1552%，低于 TE；正式 TM 阻带也更窄。这是斜入射光学导纳差异的结果。",
+      "evidence_fields": ["stopband_metrics.TM.selected_segment"]
+    },
+    {
+      "id": "bragg_quiz",
+      "title": "小结判断",
+      "instruction": "选择阻带形成的主要原因。",
+      "action": {
+        "type": "quiz",
+        "question": "为什么七层膜会形成高反射带？",
+        "options": [
+          {"id": "metal", "label": "因为所有膜层都被当作金属", "correct": false},
+          {"id": "constructive", "label": "因为周期 H/L 界面的反射在目标波段满足近似相长叠加", "correct": true},
+          {"id": "thick", "label": "因为三维方块画得很厚", "correct": false}
+        ],
+        "correct_feedback": "正确：周期层的相位关系使多界面反射在阻带内相长叠加。",
+        "incorrect_feedback": "请以 H/L 周期、光学厚度和正式阻带为证据重新判断。"
+      },
+      "expected_observation": "阻带是一段连续波长区间；498 nm 是当前正式峰值，不等于阻带只有一个波长。",
+      "evidence_fields": ["stopband_metrics.TE", "design_specification"]
+    }
+  ],
+  "common_misconceptions": [
+    "高反膜不是因为某一层单独反射很强，而是多界面相干叠加。",
+    "498 nm 是峰值位置，不是完整阻带宽度。",
+    "TE/TM 在当前 45° 条件下不能假定相同。",
+    "视觉厚度映射不能用于判断四分之一波条件。"
+  ],
+  "model_boundaries": [
+    "七层均来自正式 Python TMM 结果，平面、均匀、无损。",
+    "当前膜厚按正入射 QWOT 设计，未针对 45° 重新补偿。",
+    "正弦线是由 R/T 驱动的教学示意，不是膜内场叠加图。"
+  ],
+  "formula_sections": [
+    {"title": "布拉格中心条件", "formula": "λ_B ≈ 2(n_H d_H cosθ_H + n_L d_L cosθ_L)", "explanation": "一个 H/L 周期的往返相位决定中心反射波段；斜入射时膜内角度会改变中心位置。"},
+    {"title": "无损能量关系", "formula": "R + T = 1，A = 0", "explanation": "阻带内 T 降低并转化为 R 增强，而不是材料吸收。"}
+  ]
+}

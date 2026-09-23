@@ -971,8 +971,9 @@ def _multilayer_rt_spectrum_scalar(
 ) -> Dict[str, np.ndarray]:
     """Scalar (per-wavelength loop) TMM reference implementation."""
     wavelengths_nm = np.asarray(wavelengths_nm, dtype=float).ravel()
-    n0 = complex(n_incident)
-    ns = complex(n_substrate)
+    # Conjugate refractive index for TMM math consistency under e^{-iwt} convention
+    n0 = np.conj(complex(n_incident))
+    ns = np.conj(complex(n_substrate))
     theta0_deg = float(theta0_deg)
 
     r_vals: List[complex] = []
@@ -980,6 +981,9 @@ def _multilayer_rt_spectrum_scalar(
     r_power: List[float] = []
     t_power: List[float] = []
     a_power: List[float] = []
+    a_display_vals: List[float] = []
+    residues: List[float] = []
+    excess_vals: List[float] = []
 
     cos_theta0 = _cos_theta_in_layer(n0, n0, theta0_deg)
     cos_thetas = _cos_theta_in_layer(n0, ns, theta0_deg)
@@ -991,7 +995,7 @@ def _multilayer_rt_spectrum_scalar(
         m_total = np.eye(2, dtype=complex)
 
         for layer in layers:
-            n_layer = complex(layer.n)
+            n_layer = np.conj(complex(layer.n))
             d_m = float(layer.thickness_nm) * 1e-9
             cos_theta_layer = _cos_theta_in_layer(n0, n_layer, theta0_deg)
             q_layer = _q_admittance(n_layer, cos_theta_layer, pol)
@@ -1007,14 +1011,40 @@ def _multilayer_rt_spectrum_scalar(
         r_abs2 = float(np.abs(r) ** 2)
         t_abs2 = float(np.abs(t) ** 2)
         t_scale = np.real(qs / q0)
-        t_val = float(max(0.0, t_abs2 * t_scale))
-        a_val = float(max(0.0, 1.0 - r_abs2 - t_val))
+        t_val = float(t_abs2 * t_scale)
 
-        r_vals.append(r)
-        t_vals.append(t)
+        all_layers_lossless = all(np.abs(np.imag(layer.n)) < 1e-12 for layer in layers)
+        is_lossless = (
+            np.abs(np.imag(n0)) < 1e-12 and
+            np.abs(np.imag(ns)) < 1e-12 and
+            all_layers_lossless
+        )
+
+        if is_lossless:
+            a_val = 0.0
+            a_display = 0.0
+        else:
+            a_val = float(1.0 - r_abs2 - t_val)
+            a_display = float(max(0.0, a_val))
+
+        residue = float(abs(r_abs2 + t_val + a_display - 1.0))
+        excess = float(max(0.0, r_abs2 + t_val - 1.0))
+        if residue > 1e-5:
+            import warnings
+            warnings.warn(
+                f"Numerical energy conservation residue {residue:.4e} exceeds limit of 1e-5.",
+                UserWarning
+            )
+
+        # Conjugate back for external outputs compatibility
+        r_vals.append(np.conj(r))
+        t_vals.append(np.conj(t))
         r_power.append(r_abs2)
         t_power.append(t_val)
         a_power.append(a_val)
+        a_display_vals.append(a_display)
+        residues.append(residue)
+        excess_vals.append(excess)
 
     return {
         "wavelength_nm": wavelengths_nm.astype(float),
@@ -1023,6 +1053,9 @@ def _multilayer_rt_spectrum_scalar(
         "R": np.asarray(r_power, dtype=float),
         "T": np.asarray(t_power, dtype=float),
         "A": np.asarray(a_power, dtype=float),
+        "A_display": np.asarray(a_display_vals, dtype=float),
+        "energy_residue": np.asarray(residues, dtype=float),
+        "energy_excess": np.asarray(excess_vals, dtype=float),
     }
 
 
@@ -1043,8 +1076,9 @@ def multilayer_rt_spectrum(
     N = len(wavelengths_nm)
     lam_m = wavelengths_nm * 1e-9  # shape (N,)
 
-    n0 = complex(n_incident)
-    ns = complex(n_substrate)
+    # Conjugate refractive index for TMM math consistency under e^{-iwt} convention
+    n0 = np.conj(complex(n_incident))
+    ns = np.conj(complex(n_substrate))
     theta0_deg_f = float(theta0_deg)
 
     # Pre-compute incident/substrate quantities (wavelength-independent)
@@ -1061,7 +1095,7 @@ def multilayer_rt_spectrum(
 
     # Layer loop (typically 3-21 iterations — cheap compared to wavelength count)
     for layer in layers:
-        n_layer = complex(layer.n)
+        n_layer = np.conj(complex(layer.n))
         d_m = float(layer.thickness_nm) * 1e-9
         cos_theta_layer = _cos_theta_in_layer(n0, n_layer, theta0_deg_f)
         q_layer = _q_admittance(n_layer, cos_theta_layer, pol)
@@ -1093,18 +1127,53 @@ def multilayer_rt_spectrum(
     r_complex = (q0 - y_in) / (q0 + y_in)
     t_complex = (2.0 * q0) / (q0 * b_val + c_val)
 
-    R = np.abs(r_complex) ** 2
+    R_raw = np.abs(r_complex) ** 2
     t_scale = float(np.real(qs / q0))
-    T = np.maximum(0.0, np.abs(t_complex) ** 2 * t_scale)
-    A = np.maximum(0.0, 1.0 - R - T)
+    T_raw = np.abs(t_complex) ** 2 * t_scale
+
+    # Identify if system is physically lossless
+    all_layers_lossless = True
+    for layer in layers:
+        if np.abs(np.imag(layer.n)) > 1e-12:
+            all_layers_lossless = False
+            break
+
+    is_lossless = (
+        np.abs(np.imag(n0)) < 1e-12 and
+        np.abs(np.imag(ns)) < 1e-12 and
+        all_layers_lossless
+    )
+
+    if is_lossless:
+        A_raw = np.zeros_like(R_raw)
+        A_display = np.zeros_like(R_raw)
+    else:
+        A_raw = 1.0 - R_raw - T_raw
+        A_display = np.maximum(0.0, A_raw)
+
+    residue = np.abs(R_raw + T_raw + A_display - 1.0)
+    excess = np.maximum(0.0, R_raw + T_raw - 1.0)
+
+    # Warning if residue is unphysically large
+    max_res = np.max(residue)
+    if max_res > 1e-5:
+        import warnings
+        warnings.warn(
+            f"Numerical energy conservation residue {max_res:.4e} exceeds limit of 1e-5. "
+            f"Please check physical parameters for gain or numerical instability.",
+            UserWarning
+        )
 
     return {
         "wavelength_nm": wavelengths_nm.astype(float),
-        "r_complex": r_complex.astype(complex),
-        "t_complex": t_complex.astype(complex),
-        "R": R.astype(float),
-        "T": T.astype(float),
-        "A": A.astype(float),
+        "r_complex": np.conj(r_complex).astype(complex),
+        "t_complex": np.conj(t_complex).astype(complex),
+        "R": R_raw.astype(float),
+        "T": T_raw.astype(float),
+        "A": A_raw.astype(float),
+        "A_display": A_display.astype(float),
+        "energy_residue": residue.astype(float),
+        "energy_excess": excess.astype(float),
     }
 
 
@@ -1171,16 +1240,17 @@ def phase_difference(
     delta = phi_left - phi_right
     # Wrap to (−π, π]
     return (delta + np.pi) % (2.0 * np.pi) - np.pi
-
-
 def _material_or_constant_index(
     role: str,
     wavelength_nm: float,
     material_map: Dict[str, Any],
     fallback: complex,
     *,
-    allow_extrapolate: bool,
+    out_of_range_policy: str = "clip",
+    allow_extrapolate: bool | None = None,
 ) -> complex:
+    if allow_extrapolate is not None:
+        out_of_range_policy = "clip" if allow_extrapolate else "error"
     value = material_map.get(role)
     if value is None:
         return complex(fallback)
@@ -1194,7 +1264,7 @@ def _material_or_constant_index(
             material_complex_index(
                 material,
                 float(wavelength_nm),
-                allow_extrapolate=allow_extrapolate,
+                out_of_range_policy=out_of_range_policy,
             )
         )
     )
@@ -1237,9 +1307,12 @@ def _material_or_constant_index_array(
     material_map: Dict[str, Any],
     fallback: complex,
     *,
-    allow_extrapolate: bool,
+    out_of_range_policy: str = "clip",
+    allow_extrapolate: bool | None = None,
 ) -> np.ndarray:
     """Return refractive index array of shape (N,) for all wavelengths at once."""
+    if allow_extrapolate is not None:
+        out_of_range_policy = "clip" if allow_extrapolate else "error"
     value = material_map.get(role)
     if value is None:
         return np.full(len(wavelengths_nm), complex(fallback), dtype=complex)
@@ -1252,7 +1325,7 @@ def _material_or_constant_index_array(
         material_complex_index(
             material,
             wavelengths_nm,
-            allow_extrapolate=allow_extrapolate,
+            out_of_range_policy=out_of_range_policy,
         ),
         dtype=complex,
     )
@@ -1267,25 +1340,33 @@ def multilayer_rt_spectrum_real_materials(
     role_fallback_indices: Dict[str, complex],
     theta0_deg: float = 0.0,
     pol: str = "p",
-    allow_extrapolate: bool = False,
+    out_of_range_policy: str = "clip",
+    allow_extrapolate: bool | None = None,
 ) -> Dict[str, np.ndarray]:
     """Characteristic-matrix spectrum with wavelength-dependent material n/k.
 
     Loads all material n(k) arrays once, constructs wavelength-dependent
     layer indices, and calls the vectorized TMM kernel in a single pass.
     """
+    if allow_extrapolate is not None:
+        out_of_range_policy = "clip" if allow_extrapolate else "error"
+
     wavelengths_nm = np.asarray(wavelengths_nm, dtype=float).ravel()
     N = len(wavelengths_nm)
     lam_m = wavelengths_nm * 1e-9
 
     n0 = _material_or_constant_index_array(
         "n_incident", wavelengths_nm, material_map,
-        role_fallback_indices["n_incident"], allow_extrapolate=allow_extrapolate,
+        role_fallback_indices["n_incident"], out_of_range_policy=out_of_range_policy,
     )
     ns = _material_or_constant_index_array(
         "n_substrate", wavelengths_nm, material_map,
-        role_fallback_indices["n_substrate"], allow_extrapolate=allow_extrapolate,
+        role_fallback_indices["n_substrate"], out_of_range_policy=out_of_range_policy,
     )
+
+    # Conjugate refractive index arrays for TMM math consistency under e^{-iwt} convention
+    n0 = np.conj(n0)
+    ns = np.conj(ns)
 
     # Pre-compute incident/substrate quantities per wavelength
     sin_theta0 = np.sin(np.deg2rad(float(theta0_deg)))
@@ -1311,6 +1392,8 @@ def multilayer_rt_spectrum_real_materials(
     M10 = np.zeros(N, dtype=complex)
     M11 = np.ones(N, dtype=complex)
 
+    any_layer_lossy = np.zeros(N, dtype=bool)
+
     for layer in layers:
         role = _layer_role_for_material_map(layer.name, design_type)
         if role is None:
@@ -1319,9 +1402,11 @@ def multilayer_rt_spectrum_real_materials(
             n_layer = _material_or_constant_index_array(
                 role, wavelengths_nm, material_map,
                 role_fallback_indices.get(role, complex(layer.n)),
-                allow_extrapolate=allow_extrapolate,
+                out_of_range_policy=out_of_range_policy,
             )
 
+        n_layer = np.conj(n_layer)
+        any_layer_lossy = any_layer_lossy | (np.abs(np.imag(n_layer)) > 1e-12)
         d_m = float(layer.thickness_nm) * 1e-9
 
         # Per-wavelength cos_theta and q for this layer
@@ -1357,18 +1442,46 @@ def multilayer_rt_spectrum_real_materials(
     r_complex = (q0_arr - y_in) / (q0_arr + y_in)
     t_complex = (2.0 * q0_arr) / (q0_arr * b_val + c_val)
 
-    R = np.abs(r_complex) ** 2
+    R_raw = np.abs(r_complex) ** 2
     t_scale = np.real(qs_arr / q0_arr)
-    T = np.maximum(0.0, np.abs(t_complex) ** 2 * t_scale)
-    A = np.maximum(0.0, 1.0 - R - T)
+    T_raw = np.abs(t_complex) ** 2 * t_scale
+
+    is_lossless = (
+        (np.abs(np.imag(n0)) < 1e-12) &
+        (np.abs(np.imag(ns)) < 1e-12) &
+        (~any_layer_lossy)
+    )
+
+    if N > 0:
+        A_raw = np.where(is_lossless, 0.0, 1.0 - R_raw - T_raw)
+        A_display = np.where(is_lossless, 0.0, np.maximum(0.0, A_raw))
+    else:
+        A_raw = np.array([], dtype=float)
+        A_display = np.array([], dtype=float)
+
+    residue = np.abs(R_raw + T_raw + A_display - 1.0)
+    excess = np.maximum(0.0, R_raw + T_raw - 1.0)
+
+    # Warning if residue is unphysically large
+    max_res = np.max(residue) if len(residue) > 0 else 0.0
+    if max_res > 1e-5:
+        import warnings
+        warnings.warn(
+            f"Numerical energy conservation residue {max_res:.4e} exceeds limit of 1e-5. "
+            f"Please check physical parameters for gain or numerical instability.",
+            UserWarning
+        )
 
     return {
         "wavelength_nm": wavelengths_nm.astype(float),
-        "r_complex": r_complex.astype(complex),
-        "t_complex": t_complex.astype(complex),
-        "R": R.astype(float),
-        "T": T.astype(float),
-        "A": A.astype(float),
+        "r_complex": np.conj(r_complex).astype(complex),
+        "t_complex": np.conj(t_complex).astype(complex),
+        "R": R_raw.astype(float),
+        "T": T_raw.astype(float),
+        "A": A_raw.astype(float),
+        "A_display": A_display.astype(float),
+        "energy_residue": residue.astype(float),
+        "energy_excess": excess.astype(float),
     }
 
 
@@ -1467,6 +1580,25 @@ def build_fp_single_halfwave_layers(
         right_mirror.append(LayerSpec("H", n_high, d_h))
 
     return left_mirror + spacer + right_mirror
+
+
+def build_narrowband_filter_layers(
+    lambda0_nm: float = 550.0,
+    n_high: complex = 2.15,
+    n_low: complex = 1.38,
+    periods: int = 4,
+    spacer_kind: str = "L",
+) -> List[LayerSpec]:
+    """Build the canonical 17-layer narrowband filter: (HL)^4 C (LH)^4.
+
+    Default periods=4 gives 4 HL pairs on each side of the cavity spacer,
+    yielding 17 total layers and ~3x narrower linewidth compared to the
+    13-layer fp_single_halfwave (periods=3).
+    """
+    return build_fp_single_halfwave_layers(
+        lambda0_nm=lambda0_nm, n_high=n_high, n_low=n_low, periods=periods, spacer_kind=spacer_kind
+    )
+
 
 
 def build_fp_double_halfwave_layers(
@@ -1956,7 +2088,8 @@ def simulate_pdrc_multilayer_cooling_real_materials(
     theta_deg: float = 0.0,
     pol: str = "p",
     ag_thickness_nm: float = 500.0,
-    allow_extrapolate: bool = False,
+    out_of_range_policy: str = "clip",
+    allow_extrapolate: bool | None = None,
 ) -> Dict[str, Any]:
     """Simulate PDRC multilayer using real-material n(k) data.
 
@@ -1964,6 +2097,9 @@ def simulate_pdrc_multilayer_cooling_real_materials(
     wavelength-dependent optical constants from ``data/real_nk/`` CSV files.
     The vectorized TMM kernel processes all wavelengths in a single pass.
     """
+    if allow_extrapolate is not None:
+        out_of_range_policy = "clip" if allow_extrapolate else "error"
+
     from .materials import material_complex_index
 
     lambda_um = _normalize_pdrc_wavelength_grid(wavelengths_um)
@@ -2003,13 +2139,13 @@ def simulate_pdrc_multilayer_cooling_real_materials(
         material = str(layer["material"])
         n_arr = material_complex_index(
             material, (lambda_um * 1000.0).tolist(),
-            allow_extrapolate=allow_extrapolate,
+            out_of_range_policy=out_of_range_policy,
         )
-        layer_n_arrays.append(np.asarray(n_arr, dtype=complex))
+        layer_n_arrays.append(np.conj(np.asarray(n_arr, dtype=complex)))
 
     # Vectorized TMM: compute per-wavelength n(k) for incident/substrate
-    n_incident_arr = np.ones(len(lambda_um), dtype=complex)
-    n_substrate_arr = np.full(len(lambda_um), 1.52 + 0j, dtype=complex)
+    n_incident_arr = np.conj(np.ones(len(lambda_um), dtype=complex))
+    n_substrate_arr = np.conj(np.full(len(lambda_um), 1.52 + 0j, dtype=complex))
 
     # Use the scalar TMM for each wavelength with proper dispersive n(k)
     wavelengths_nm = lambda_um * 1000.0
@@ -2083,7 +2219,7 @@ def simulate_pdrc_multilayer_cooling_real_materials(
 
     return _pdrc_compute_metrics(
         lambda_um, r_arr, t_arr, a_arr,
-        r_complex, t_complex, stack,
+        np.conj(r_complex), np.conj(t_complex), stack,
         variant=variant, theta_deg=theta_deg, pol=pol,
         case_id="pdrc_multilayer_cooling_real_materials",
         title_cn="被动日间辐射冷却薄膜（真实材料色散）",
@@ -2664,7 +2800,8 @@ def simulate_report_design_real_materials(
     *,
     material_map: Dict[str, Any] | None = None,
     wavelengths_nm: Sequence[float] | None = None,
-    allow_extrapolate: bool = False,
+    out_of_range_policy: str = "clip",
+    allow_extrapolate: bool | None = None,
     **kwargs: Any,
 ) -> Dict[str, Any]:
     """Run a teaching TMM case with wavelength-dependent real n/k data.
@@ -2673,6 +2810,9 @@ def simulate_report_design_real_materials(
     index at the design wavelength.  The spectrum is then evaluated with
     interpolated ``n(lambda), k(lambda)`` values for every wavelength point.
     """
+    if allow_extrapolate is not None:
+        out_of_range_policy = "clip" if allow_extrapolate else "error"
+
     key = str(design_type).strip().lower()
     lambda0_nm = float(kwargs.get("lambda0_nm", 550.0))
     merged_material_map: Dict[str, Any] = _default_real_material_map_for_design(key)
@@ -2708,7 +2848,7 @@ def simulate_report_design_real_materials(
             lambda0_nm,
             merged_material_map,
             fallback,
-            allow_extrapolate=allow_extrapolate,
+            out_of_range_policy=out_of_range_policy,
         )
         for role, fallback in role_defaults.items()
     }
@@ -2750,7 +2890,7 @@ def simulate_report_design_real_materials(
         role_fallback_indices=design_role_indices,
         theta0_deg=float(design_kwargs.get("theta_deg", 0.0)),
         pol=str(design_kwargs.get("pol", "p")),
-        allow_extrapolate=allow_extrapolate,
+        out_of_range_policy=out_of_range_policy,
     )
 
     result = dict(constant_design)
@@ -3475,7 +3615,7 @@ def export_report_case_outputs(
         feature_idx = peak_idx if main_kind in {"T", "A"} or any(
             term in case_key for term in ("reflector", "mirror", "bragg", "quarter_wave_stack")
         ) else valley_idx
-        y0, y1 = focused_power_limits(main_vals)
+        y0, y1 = focused_power_limits(main_vals, min_span=0.02)
 
         main_png_path = output_file(f"{stem}_main.png")
         fig2, ax2 = plt.subplots(figsize=(8, 5))
@@ -3506,48 +3646,7 @@ def export_report_case_outputs(
             ax2.set_xlim(*xlim)
         ax2.set_ylim(y0, y1)
 
-        # C: Overlay faint secondary curves on a right twin-axis.
-        # twinx is used so secondary curves remain visible even when the
-        # primary y-axis is zoomed in tightly around the main curve.
-        _sec_colors = {"R": MAIN_RED, "T": TRANS_BLUE, "A": ABS_GOLD}
-        _sec_ls     = {"R": "--",     "T": "--",        "A": ":"}
-        _sec_labels = {
-            "R": "R (反射率) [参考]",
-            "T": "T (透射率) [参考]",
-            "A": "A (吸收率) [参考]",
-        }
-        _sec_curves = [(k, {"R": r_vals, "T": t_vals, "A": a_vals}[k])
-                       for k in ("R", "T", "A") if k != main_kind]
-        _has_visible = any(float(np.max(np.abs(v))) > 0.005 for _, v in _sec_curves)
-        if _has_visible:
-            ax2_sec = ax2.twinx()
-            for _k, _v in _sec_curves:
-                _max_v = float(np.max(np.abs(_v)))
-                _alpha = 0.16 if _max_v < 0.02 else 0.30
-                ax2_sec.plot(
-                    wavelength_nm, _v,
-                    linewidth=0.85,
-                    alpha=_alpha,
-                    linestyle=_sec_ls[_k],
-                    color=_sec_colors[_k],
-                    label=_sec_labels[_k],
-                )
-            ax2_sec.set_ylim(-0.02, 1.08)
-            ax2_sec.set_ylabel("T / A  [参考]", fontsize=6.5, color="#aaaaaa")
-            ax2_sec.tick_params(axis="y", labelsize=5.5, colors="#cccccc")
-            for _sp, _obj in ax2_sec.spines.items():
-                if _sp == "right":
-                    _obj.set_linewidth(0.5)
-                    _obj.set_color("#dddddd")
-                else:
-                    _obj.set_visible(False)
-            ax2_sec.legend(
-                loc="upper left", fontsize=5.8, frameon=True,
-                facecolor="white", edgecolor="#eeeeee", framealpha=0.75,
-                borderpad=0.4, handlelength=1.4,
-            )
-
-        # Textbox overlay removed.
+        ax2.legend(loc="best", frameon=False)
         fig2.tight_layout()
         save_publication_figure(fig2, main_png_path)
         plt.close(fig2)

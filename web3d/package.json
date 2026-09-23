@@ -1,0 +1,30 @@
+{
+  "name": "pythinfilm-web3d",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "sync-registry": "node scripts/sync-registry.mjs",
+    "predev": "npm run sync-registry",
+    "dev": "vite",
+    "dev:solar": "vite --open /apps/solar-ar/",
+    "dev:wdm": "vite --open /apps/wdm-filter/",
+    "dev:laser": "vite --open /apps/laser-mirror/",
+    "dev:phone": "vite --open /apps/phone-lens-ar/",
+    "prebuild": "npm run sync-registry",
+    "build": "vite build",
+    "preview": "vite preview",
+    "pretest": "npm run sync-registry",
+    "test": "vitest run",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "three": "^0.170.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.62.0",
+    "jsdom": "^30.0.0",
+    "vite": "^5.4.10",
+    "vitest": "^2.1.4"
+  }
+}

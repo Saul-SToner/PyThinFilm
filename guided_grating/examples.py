@@ -11,7 +11,7 @@ from .comsol_io import (
 )
 from .export import export_guided_grating_result, export_guided_grating_sweep_summary
 from .models import GuidedGratingSpec, GratingSweepConfig
-from .rcwa import GratingLayer, rcwa_1d
+from .emt import GratingLayer, rcwa_1d
 from .solver import simulate_guided_grating_placeholder
 from .spectra import summarize_guided_grating_spectrum, summarize_lambda_period_sweep
 

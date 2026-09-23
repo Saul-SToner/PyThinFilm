@@ -4355,3 +4355,389 @@ def export_tamm_interface_window_scan_collection(
     plt.close(fig)
     saved["png"] = str(png_path)
     return saved
+
+
+def validate_fresnel_equations(n1: float = 1.0, n2: float = 1.52) -> Dict[str, Any]:
+    """Compare numerical TMM results at a single boundary against analytical Fresnel equations."""
+    angles_deg = np.linspace(0.0, 89.0, 90)
+    theta1 = np.deg2rad(angles_deg)
+    
+    # Snell's Law
+    sin_theta2 = (n1 * np.sin(theta1)) / n2
+    cos_theta2 = np.sqrt(1.0 - sin_theta2**2 + 0j)
+    cos_theta1 = np.cos(theta1)
+    
+    # Analytical Fresnel coefficients
+    r_s = (n1 * cos_theta1 - n2 * cos_theta2) / (n1 * cos_theta1 + n2 * cos_theta2)
+    r_p = (n2 * cos_theta1 - n1 * cos_theta2) / (n2 * cos_theta1 + n1 * cos_theta2)
+    R_s_analytic = np.abs(r_s)**2
+    R_p_analytic = np.abs(r_p)**2
+    
+    # TMM (empty layer list represents a single interface)
+    from .education import LayerSpec, multilayer_rt_spectrum
+    dummy_layers: list[LayerSpec] = []
+    
+    R_s_tmm = []
+    R_p_tmm = []
+    for theta in angles_deg:
+        res_s = multilayer_rt_spectrum([550.0], dummy_layers, n_incident=n1, n_substrate=n2, theta0_deg=theta, pol="s")
+        res_p = multilayer_rt_spectrum([550.0], dummy_layers, n_incident=n1, n_substrate=n2, theta0_deg=theta, pol="p")
+        R_s_tmm.append(res_s["R"][0])
+        R_p_tmm.append(res_p["R"][0])
+        
+    R_s_tmm = np.array(R_s_tmm)
+    R_p_tmm = np.array(R_p_tmm)
+    
+    diff_s = np.max(np.abs(R_s_tmm - R_s_analytic))
+    diff_p = np.max(np.abs(R_p_tmm - R_p_analytic))
+    
+    return {
+        "angles_deg": angles_deg,
+        "R_s_analytic": R_s_analytic,
+        "R_p_analytic": R_p_analytic,
+        "R_s_tmm": R_s_tmm,
+        "R_p_tmm": R_p_tmm,
+        "max_diff_s": float(diff_s),
+        "max_diff_p": float(diff_p),
+        "is_valid": float(diff_s) < 1e-12 and float(diff_p) < 1e-12
+    }
+
+
+def validate_brewster_angle(n1: float = 1.0, n2: float = 1.52) -> Dict[str, Any]:
+    """Verify that p-polarized light reflection R_p goes to 0 at Brewster angle."""
+    theta_B_deg = np.rad2deg(np.arctan(n2 / n1))
+    from .education import LayerSpec, multilayer_rt_spectrum
+    res = multilayer_rt_spectrum([550.0], [], n_incident=n1, n_substrate=n2, theta0_deg=theta_B_deg, pol="p")
+    R_p = res["R"][0]
+    return {
+        "brewster_angle_deg": float(theta_B_deg),
+        "R_p_at_brewster": float(R_p),
+        "is_valid": float(R_p) < 1e-12
+    }
+
+
+def validate_quarter_wave_ar(n0: float = 1.0, ns: float = 1.52) -> Dict[str, Any]:
+    """Verify quarter-wave anti-reflection coatings (both matched and unmatched)."""
+    nl_match = np.sqrt(n0 * ns)
+    from .education import LayerSpec, multilayer_rt_spectrum, quarter_wave_thickness_nm
+    
+    # Test matched case (R should be exactly 0)
+    layers_match = [LayerSpec("L", nl_match, quarter_wave_thickness_nm(550.0, nl_match))]
+    res_match = multilayer_rt_spectrum([550.0], layers_match, n_incident=n0, n_substrate=ns, theta0_deg=0.0, pol="p")
+    R_match = res_match["R"][0]
+    
+    # Test unmatched case
+    nl_unmatch = 1.38
+    layers_unmatch = [LayerSpec("L", nl_unmatch, quarter_wave_thickness_nm(550.0, nl_unmatch))]
+    res_unmatch = multilayer_rt_spectrum([550.0], layers_unmatch, n_incident=n0, n_substrate=ns, theta0_deg=0.0, pol="p")
+    R_unmatch_tmm = res_unmatch["R"][0]
+    
+    # Analytic unmatched formula
+    R_unmatch_analytic = ((n0 * ns - nl_unmatch**2) / (n0 * ns + nl_unmatch**2))**2
+    diff = abs(R_unmatch_tmm - R_unmatch_analytic)
+    
+    return {
+        "R_matched": float(R_match),
+        "R_unmatched_tmm": float(R_unmatch_tmm),
+        "R_unmatched_analytic": float(R_unmatch_analytic),
+        "difference": float(diff),
+        "is_valid": float(R_match) < 1e-12 and float(diff) < 1e-12
+    }
+
+
+def validate_bragg_reflector_analytical(
+    n0: float = 1.0,
+    ns: float = 1.52,
+    n_H: float = 2.10,
+    n_L: float = 1.45,
+) -> Dict[str, Any]:
+    """Verify DBR reflectance at normal incidence and design wavelength against closed-form equation."""
+    from .education import LayerSpec, multilayer_rt_spectrum, quarter_wave_thickness_nm
+    
+    differences = []
+    num_pairs = list(range(1, 11))
+    
+    for N in num_pairs:
+        # Build Bragg stack: (H L)^N
+        layers = []
+        for _ in range(N):
+            layers.append(LayerSpec("H", n_H, quarter_wave_thickness_nm(550.0, n_H)))
+            layers.append(LayerSpec("L", n_L, quarter_wave_thickness_nm(550.0, n_L)))
+            
+        res = multilayer_rt_spectrum([550.0], layers, n_incident=n0, n_substrate=ns, theta0_deg=0.0, pol="p")
+        R_tmm = res["R"][0]
+        
+        # Analytic DBR formula: R = [ (1 - (ns/n0)*(n_H/n_L)**(2N)) / (1 + (ns/n0)*(n_H/n_L)**(2N)) ]**2
+        R_analytic = ((1.0 - (ns / n0) * (n_H / n_L)**(2*N)) / (1.0 + (ns / n0) * (n_H / n_L)**(2*N)))**2
+        differences.append(abs(R_tmm - R_analytic))
+        
+    max_diff = np.max(differences)
+    return {
+        "num_pairs": num_pairs,
+        "differences": differences,
+        "max_difference": float(max_diff),
+        "is_valid": float(max_diff) < 1e-12
+    }
+
+
+def validate_single_layer_airy() -> Dict[str, Any]:
+    """Validate TMM against the independent Airy summation formula under non-ideal, general conditions.
+    
+    Tests multiple wavelengths, oblique incidence, s/p polarizations, and lossy media.
+    """
+    from .education import LayerSpec, multilayer_rt_spectrum
+    
+    # Test cases: (n_incident, n_layer, n_substrate, d_nm, theta0_deg, pol)
+    test_cases = [
+        (1.33, 2.0 + 0.1j, 1.8, 123.4, 37.5, "p"),
+        (1.0, 1.45 + 0.01j, 1.52, 90.0, 45.0, "s"),
+        (1.45, 3.5 + 2.0j, 1.0, 50.0, 15.0, "p"),  # high index contrast / highly lossy
+        (1.0, 1.38, 1.52, 137.5, 0.0, "s"),       # simple normal incidence
+        (1.52, 2.3 + 0.5j, 1.45, 200.0, 60.0, "p")  # high incidence angle / lossy
+    ]
+    
+    wavelengths = np.linspace(400.0, 800.0, 5)
+    max_diff_r = 0.0
+    max_diff_t = 0.0
+    max_phase_diff_r = 0.0
+    max_phase_diff_t = 0.0
+    
+    for n0, n1, ns, d, theta, pol in test_cases:
+        for wl in wavelengths:
+            # TMM
+            res = multilayer_rt_spectrum([wl], [LayerSpec("Film", n1, d)], n_incident=n0, n_substrate=ns, theta0_deg=theta, pol=pol)
+            r_tmm = res["r_complex"][0]
+            t_tmm = res["t_complex"][0]
+            
+            # Analytic Airy
+            theta_rad = np.deg2rad(theta)
+            sin_theta = np.sin(theta_rad)
+            cos_theta0 = np.sqrt(1.0 - sin_theta**2 + 0j)
+            cos_theta1 = np.sqrt(1.0 - (n0 * sin_theta / n1)**2 + 0j)
+            cos_thetas = np.sqrt(1.0 - (n0 * sin_theta / ns)**2 + 0j)
+            
+            if pol == "s":
+                q0 = n0 * cos_theta0
+                q1 = n1 * cos_theta1
+                qs = ns * cos_thetas
+            else:
+                q0 = cos_theta0 / n0
+                q1 = cos_theta1 / n1
+                qs = cos_thetas / ns
+                
+            r01 = (q0 - q1) / (q0 + q1)
+            r12 = (q1 - qs) / (q1 + qs)
+            t01 = 2.0 * q0 / (q0 + q1)
+            t12 = 2.0 * q1 / (q1 + qs)
+            
+            delta = (2.0 * np.pi * n1 * (d * 1e-9) * cos_theta1) / (wl * 1e-9)
+            exp_factor = np.exp(2j * delta)
+            
+            r_airy = (r01 + r12 * exp_factor) / (1.0 + r01 * r12 * exp_factor)
+            t_airy = (t01 * t12 * np.exp(1j * delta)) / (1.0 + r01 * r12 * exp_factor)
+            
+            diff_r = abs(r_airy - r_tmm)
+            diff_t = abs(t_airy - t_tmm)
+            
+            phase_diff_r = abs(np.angle(r_airy) - np.angle(r_tmm))
+            # Handle 2pi wrapping in phase diff
+            phase_diff_r = (phase_diff_r + np.pi) % (2.0 * np.pi) - np.pi
+            
+            phase_diff_t = abs(np.angle(t_airy) - np.angle(t_tmm))
+            phase_diff_t = (phase_diff_t + np.pi) % (2.0 * np.pi) - np.pi
+            
+            max_diff_r = max(max_diff_r, diff_r)
+            max_diff_t = max(max_diff_t, diff_t)
+            max_phase_diff_r = max(max_phase_diff_r, abs(phase_diff_r))
+            max_phase_diff_t = max(max_phase_diff_t, abs(phase_diff_t))
+            
+    is_valid = max_diff_r < 1e-12 and max_diff_t < 1e-12
+    return {
+        "max_diff_r": float(max_diff_r),
+        "max_diff_t": float(max_diff_t),
+        "max_phase_diff_r": float(max_phase_diff_r),
+        "max_phase_diff_t": float(max_phase_diff_t),
+        "is_valid": is_valid
+    }
+
+
+def validate_multilayer_recursive_fresnel() -> Dict[str, Any]:
+    """Validate TMM against an independent Rouard recursive Fresnel solver.
+    
+    Tests a 3-layer system (n0 -> absorbing film -> lossless film -> absorbing film -> ns)
+    under oblique incidence, multiple wavelengths, s/p polarizations, and compares complex r, t,
+    R, T, and absorption (1 - R - T).
+    """
+    from .education import LayerSpec, multilayer_rt_spectrum
+    
+    # Setup layers: 100 nm Ag, 50 nm TiO2, 100 nm SiO2
+    layers = [
+        LayerSpec("Ag", 0.05 + 3.13j, 100.0),
+        LayerSpec("TiO2", 2.5 + 0.01j, 50.0),
+        LayerSpec("SiO2", 1.45 + 0.001j, 100.0)
+    ]
+    
+    # Test cases: (n_incident, n_substrate, theta0_deg, pol)
+    test_cases = [
+        (1.33, 1.8, 30.0, "p"),
+        (1.0, 1.52, 45.0, "s"),
+        (1.0, 1.0, 0.0, "p"),
+        (1.52, 1.0, 30.0, "s")
+    ]
+    
+    wavelengths = np.linspace(400.0, 800.0, 10)
+    max_diff_r = 0.0
+    max_diff_t = 0.0
+    max_diff_A = 0.0
+    max_phase_diff_r = 0.0
+    max_phase_diff_t = 0.0
+    
+    for n0, ns, theta, pol in test_cases:
+        for wl in wavelengths:
+            # TMM
+            res = multilayer_rt_spectrum([wl], layers, n_incident=n0, n_substrate=ns, theta0_deg=theta, pol=pol)
+            r_tmm = res["r_complex"][0]
+            t_tmm = res["t_complex"][0]
+            A_tmm = res["A"][0]  # A_balance_raw (1.0 - R - T)
+            
+            # Recursive solver
+            r_rec, t_rec = recursive_fresnel_solver_ref(wl, layers, n0, ns, theta, pol)
+            
+            theta_rad = np.deg2rad(theta)
+            sin_theta = np.sin(theta_rad)
+            cos_theta0 = np.sqrt(1.0 - sin_theta**2 + 0j)
+            cos_thetas = np.sqrt(1.0 - (n0 * sin_theta / ns)**2 + 0j)
+            
+            if pol == "s" or pol == "TE":
+                q0 = n0 * cos_theta0
+                qs = ns * cos_thetas
+            else:
+                q0 = cos_theta0 / n0
+                qs = cos_thetas / ns
+                
+            t_scale = float(np.real(qs / q0))
+            R_rec = float(np.abs(r_rec)**2)
+            T_rec = float(np.abs(t_rec)**2 * t_scale)
+            A_rec = 1.0 - R_rec - T_rec
+            
+            diff_r = abs(r_rec - r_tmm)
+            diff_t = abs(t_rec - t_tmm)
+            diff_A = abs(A_rec - A_tmm)
+            
+            phase_diff_r = abs(np.angle(r_rec) - np.angle(r_tmm))
+            phase_diff_r = (phase_diff_r + np.pi) % (2.0 * np.pi) - np.pi
+            
+            phase_diff_t = abs(np.angle(t_rec) - np.angle(t_tmm))
+            phase_diff_t = (phase_diff_t + np.pi) % (2.0 * np.pi) - np.pi
+            
+            max_diff_r = max(max_diff_r, diff_r)
+            max_diff_t = max(max_diff_t, diff_t)
+            max_diff_A = max(max_diff_A, diff_A)
+            max_phase_diff_r = max(max_phase_diff_r, abs(phase_diff_r))
+            max_phase_diff_t = max(max_phase_diff_t, abs(phase_diff_t))
+            
+    is_valid = max_diff_r < 1e-12 and max_diff_t < 1e-12 and max_diff_A < 1e-12
+    return {
+        "max_diff_r": float(max_diff_r),
+        "max_diff_t": float(max_diff_t),
+        "max_diff_A": float(max_diff_A),
+        "max_phase_diff_r": float(max_phase_diff_r),
+        "max_phase_diff_t": float(max_phase_diff_t),
+        "is_valid": is_valid
+    }
+
+
+def recursive_fresnel_solver_ref(
+    wl_nm: float,
+    layers: list,
+    n_incident: complex,
+    n_substrate: complex,
+    theta0_deg: float,
+    pol: str
+) -> tuple[complex, complex]:
+    """Independent Rouard recursive Fresnel solver reference implementation."""
+    n0 = n_incident
+    ns = n_substrate
+    
+    theta0_rad = np.deg2rad(theta0_deg)
+    sin_theta0 = np.sin(theta0_rad)
+    
+    cos_theta0 = np.sqrt(1.0 - sin_theta0**2 + 0j)
+    cos_thetas = np.sqrt(1.0 - (n0 * sin_theta0 / ns)**2 + 0j)
+    
+    cos_theta_layers = []
+    for layer in layers:
+        ct = np.sqrt(1.0 - (n0 * sin_theta0 / layer.n)**2 + 0j)
+        if np.real(ct) < 0:
+            ct = -ct
+        cos_theta_layers.append(ct)
+        
+    pol_key = pol.strip().lower()
+    if pol_key == "s" or pol_key == "te":
+        q0 = n0 * cos_theta0
+        qs = ns * cos_thetas
+        q_layers = [layer.n * ct for layer, ct in zip(layers, cos_theta_layers)]
+    else:
+        q0 = cos_theta0 / n0
+        qs = cos_thetas / ns
+        q_layers = [ct / layer.n for layer, ct in zip(layers, cos_theta_layers)]
+        
+    all_q = [q0] + q_layers + [qs]
+    all_n = [n0] + [layer.n for layer in layers] + [ns]
+    all_ct = [cos_theta0] + cos_theta_layers + [cos_thetas]
+    
+    num_layers = len(layers)
+    r_j = (all_q[num_layers] - all_q[num_layers+1]) / (all_q[num_layers] + all_q[num_layers+1])
+    R_tilde = r_j
+    
+    t_factors = []
+    for j in range(num_layers, 0, -1):
+        n_j = all_n[j]
+        d_j = layers[j-1].thickness_nm
+        ct_j = all_ct[j]
+        delta_j = 2.0 * np.pi * n_j * d_j * ct_j / wl_nm
+        
+        r_prev_curr = (all_q[j-1] - all_q[j]) / (all_q[j-1] + all_q[j])
+        
+        exp_phase = np.exp(2j * delta_j)
+        new_R_tilde = (r_prev_curr + R_tilde * exp_phase) / (1.0 + r_prev_curr * R_tilde * exp_phase)
+        
+        t_prev_curr = 2.0 * all_q[j-1] / (all_q[j-1] + all_q[j])
+        t_factor = t_prev_curr * np.exp(1j * delta_j) / (1.0 + r_prev_curr * R_tilde * exp_phase)
+        t_factors.append(t_factor)
+        
+        R_tilde = new_R_tilde
+        
+    t_last = 2.0 * all_q[num_layers] / (all_q[num_layers] + all_q[num_layers+1])
+    t_total = np.prod(t_factors[::-1]) * t_last
+    
+    return R_tilde, t_total
+
+
+def run_all_analytical_validations() -> Dict[str, Any]:
+    """Run all analytical validations and compile status report."""
+    fresnel = validate_fresnel_equations()
+    brewster = validate_brewster_angle()
+    ar = validate_quarter_wave_ar()
+    dbr = validate_bragg_reflector_analytical()
+    airy = validate_single_layer_airy()
+    rec_fresnel = validate_multilayer_recursive_fresnel()
+    
+    all_valid = (
+        fresnel["is_valid"] and
+        brewster["is_valid"] and
+        ar["is_valid"] and
+        dbr["is_valid"] and
+        airy["is_valid"] and
+        rec_fresnel["is_valid"]
+    )
+    
+    return {
+        "fresnel": fresnel,
+        "brewster": brewster,
+        "quarter_wave_ar": ar,
+        "dbr_analytical": dbr,
+        "single_layer_airy": airy,
+        "multilayer_recursive_fresnel": rec_fresnel,
+        "all_valid": all_valid
+    }

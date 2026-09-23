@@ -1,0 +1,128 @@
+{
+  "schema_version": "1.0.0",
+  "case_id": "tamm_interface_window_bundle",
+  "title": "Tamm 界面窗口束",
+  "source_commit": "2b7bb0c07489e8bda983a862e7fbfc1bb973fe32",
+  "source_file": "cases/tamm/run_tamm_interface_window_bundle.py",
+  "source_symbol": "analyze_tamm_interface_2d_window_csv",
+  "generated_at": "2026-08-02T15:10:55.867944",
+  "calculation_source": "python_external_csv_analysis",
+  "evidence_status": "DEGRADED_PARTIAL_INPUT",
+  "summary_cards": [
+    {
+      "label": "可用来源",
+      "value": 3,
+      "unit": "份",
+      "note": ""
+    },
+    {
+      "label": "缺失来源",
+      "value": 3,
+      "unit": "份",
+      "note": ""
+    },
+    {
+      "label": "最佳 G_interface",
+      "value": 1.0299888752623,
+      "unit": "",
+      "note": ""
+    },
+    {
+      "label": "最佳 dW",
+      "value": 120,
+      "unit": "nm",
+      "note": ""
+    }
+  ],
+  "series": [],
+  "table": {
+    "columns": [
+      "source",
+      "true_2d",
+      "dW_nm",
+      "lambda_um",
+      "G_if",
+      "eta_if",
+      "wx_um"
+    ],
+    "rows": [
+      [
+        "yplus5",
+        false,
+        120,
+        4.6,
+        1.029830817238271,
+        0.09985054339532194,
+        2.8622331226240125
+      ],
+      [
+        "yplus2",
+        false,
+        120,
+        4.6,
+        1.029939025314991,
+        0.09985150899163867,
+        2.8622937629969516
+      ],
+      [
+        "yplus10",
+        false,
+        120,
+        4.6,
+        1.0299888752623,
+        0.10225997783438336,
+        2.8621338038332795
+      ]
+    ]
+  },
+  "limitations": [
+    "原 Runner 声明的 E3.csv、E4.csv 和 test111 文件缺失；本页只分析三份现存 y+ 线切数据。",
+    "现存文件 unique_y=1，因此不能称为完整二维场热力图。"
+  ],
+  "external_data_provenance": [
+    {
+      "role": "yplus5",
+      "file_name": "tamm_interface_110to120_yplus5nm.csv",
+      "status": "AVAILABLE",
+      "size_bytes": 24438128,
+      "sha256": "f6157ee802350f72b206a4e4e567cd25fc0e58f7ee9c6c89ee4a368ae0d64799"
+    },
+    {
+      "role": "yplus2",
+      "file_name": "tamm_interface_110to120_yplus2nm.csv",
+      "status": "AVAILABLE",
+      "size_bytes": 24589301,
+      "sha256": "df132849865fddc08831f177750f100783283da680e58a704e3e2999dbefdb76"
+    },
+    {
+      "role": "yplus10",
+      "file_name": "tamm_interface_110to120_yplus10nm.csv",
+      "status": "AVAILABLE",
+      "size_bytes": 24376486,
+      "sha256": "b75f5cafbd5cb90957eb19b727e6723b83d26bf0957428c79ab640fa72e3fe12"
+    },
+    {
+      "role": "E3",
+      "file_name": "E3.csv",
+      "status": "MISSING",
+      "size_bytes": 0,
+      "sha256": null
+    },
+    {
+      "role": "E4",
+      "file_name": "E4.csv",
+      "status": "MISSING",
+      "size_bytes": 0,
+      "sha256": null
+    },
+    {
+      "role": "test111",
+      "file_name": "tamm_interface_test_111nm_455um.csv",
+      "status": "MISSING",
+      "size_bytes": 0,
+      "sha256": null
+    }
+  ],
+  "evidence_hash": "fd2e011227a32677",
+  "result_hash": "cac2096817711dc6"
+}

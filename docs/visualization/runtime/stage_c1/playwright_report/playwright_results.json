@@ -1,0 +1,750 @@
+{
+  "config": {
+    "argv": [
+      "C:\\Program Files\\nodejs\\node.exe",
+      "C:\\Users\\L2791\\Downloads\\PyThinFilm\\web3d\\node_modules\\@playwright\\test\\cli.js",
+      "test"
+    ],
+    "configFile": "C:\\Users\\L2791\\Downloads\\PyThinFilm\\web3d\\playwright.config.js",
+    "rootDir": "C:/Users/L2791/Downloads/PyThinFilm/web3d/tests-e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "C:/Users/L2791/Downloads/PyThinFilm/web3d/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "C:/Users/L2791/Downloads/PyThinFilm/web3d/tests-e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "../docs/visualization/runtime/stage_c1/playwright_report/playwright_results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.62.0",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run dev -- --host 127.0.0.1 --port 5173",
+      "url": "http://127.0.0.1:5173",
+      "reuseExistingServer": false,
+      "timeout": 30000,
+      "stdout": "pipe",
+      "stderr": "pipe"
+    }
+  },
+  "suites": [
+    {
+      "title": "stage_c1_dynamic_wave.spec.js",
+      "file": "stage_c1_dynamic_wave.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Stage C.1.4 Dynamic Sine-Wave Propagation Acceptance",
+          "file": "stage_c1_dynamic_wave.spec.js",
+          "line": 30,
+          "column": 6,
+          "specs": [
+            {
+              "title": "single_ar: dynamic sine-wave propagation, pause, polarization toggle, clean teardown",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4921,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-30T01:12:49.375Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e8264c93979fbec8acc7-a4d0660cc7ab50fccc6d",
+              "file": "stage_c1_dynamic_wave.spec.js",
+              "line": 37,
+              "column": 5
+            },
+            {
+              "title": "bragg_reflector: dynamic sine-wave propagation, pause, polarization toggle, clean teardown",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5164,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-30T01:12:55.063Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e8264c93979fbec8acc7-7879c60c024f7c6f49e4",
+              "file": "stage_c1_dynamic_wave.spec.js",
+              "line": 37,
+              "column": 5
+            },
+            {
+              "title": "fp_filter: dynamic sine-wave propagation, pause, polarization toggle, clean teardown",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5716,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-30T01:13:00.235Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e8264c93979fbec8acc7-0b71b021c5ed2c933e44",
+              "file": "stage_c1_dynamic_wave.spec.js",
+              "line": 37,
+              "column": 5
+            },
+            {
+              "title": "narrowband_filter: dynamic sine-wave propagation, pause, polarization toggle, clean teardown",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5428,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-30T01:13:05.965Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e8264c93979fbec8acc7-1277b43aa4c98475d467",
+              "file": "stage_c1_dynamic_wave.spec.js",
+              "line": 37,
+              "column": 5
+            },
+            {
+              "title": "tamm_phase_bundle: dynamic sine-wave propagation, pause, polarization toggle, clean teardown",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5093,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-30T01:13:11.414Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e8264c93979fbec8acc7-ba9778f3a70d7e9a676d",
+              "file": "stage_c1_dynamic_wave.spec.js",
+              "line": 37,
+              "column": 5
+            },
+            {
+              "title": "Sequential case switching without residual waves or context loss",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3120,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[playwright] Console log saved to C:\\Users\\L2791\\Downloads\\PyThinFilm\\docs\\visualization\\runtime\\stage_c1\\playwright_dynamic_wave_console.json\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-30T01:13:16.523Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e8264c93979fbec8acc7-c65e944a785c34b50bae",
+              "file": "stage_c1_dynamic_wave.spec.js",
+              "line": 99,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "stage_c1_runtime.spec.js",
+      "file": "stage_c1_runtime.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Stage C.1.3 Real Browser Runtime Acceptance",
+          "file": "stage_c1_runtime.spec.js",
+          "line": 50,
+          "column": 6,
+          "specs": [
+            {
+              "title": "single_ar: page loads, canvas renders, no errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2919,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[playwright] Saved: C:\\Users\\L2791\\Downloads\\PyThinFilm\\docs\\visualization\\runtime\\stage_c1\\single_ar.png\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-30T01:13:19.786Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a85cf041a6e7ae95a71c-9f55173d419f8eec123d",
+              "file": "stage_c1_runtime.spec.js",
+              "line": 58,
+              "column": 5
+            },
+            {
+              "title": "bragg_reflector: page loads, canvas renders, no errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2732,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[playwright] Saved: C:\\Users\\L2791\\Downloads\\PyThinFilm\\docs\\visualization\\runtime\\stage_c1\\bragg_reflector.png\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-30T01:13:22.717Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a85cf041a6e7ae95a71c-154617472305a3ed3a88",
+              "file": "stage_c1_runtime.spec.js",
+              "line": 58,
+              "column": 5
+            },
+            {
+              "title": "fp_filter: page loads, canvas renders, no errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4019,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[playwright] Saved: C:\\Users\\L2791\\Downloads\\PyThinFilm\\docs\\visualization\\runtime\\stage_c1\\fp_filter_te.png\n"
+                        },
+                        {
+                          "text": "[playwright] Saved: C:\\Users\\L2791\\Downloads\\PyThinFilm\\docs\\visualization\\runtime\\stage_c1\\fp_filter_tm.png\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-30T01:13:25.463Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a85cf041a6e7ae95a71c-824ecb4e3d73cbb07047",
+              "file": "stage_c1_runtime.spec.js",
+              "line": 58,
+              "column": 5
+            },
+            {
+              "title": "tamm_phase_bundle: page loads, canvas renders, no errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2751,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[playwright] Saved: C:\\Users\\L2791\\Downloads\\PyThinFilm\\docs\\visualization\\runtime\\stage_c1\\tamm_phase_bundle.png\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-30T01:13:29.500Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a85cf041a6e7ae95a71c-9a06f2bcdbb6ea73ed46",
+              "file": "stage_c1_runtime.spec.js",
+              "line": 58,
+              "column": 5
+            },
+            {
+              "title": "quarter_wave_single_layer: page loads, canvas renders, no errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2813,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[playwright] Saved: C:\\Users\\L2791\\Downloads\\PyThinFilm\\docs\\visualization\\runtime\\stage_c1\\quarter_wave_single_layer.png\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-30T01:13:32.271Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a85cf041a6e7ae95a71c-c5bed51745f6fa293415",
+              "file": "stage_c1_runtime.spec.js",
+              "line": 58,
+              "column": 5
+            },
+            {
+              "title": "half_wave_single_layer: page loads, canvas renders, no errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2752,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[playwright] Saved: C:\\Users\\L2791\\Downloads\\PyThinFilm\\docs\\visualization\\runtime\\stage_c1\\half_wave_single_layer.png\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-30T01:13:35.101Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a85cf041a6e7ae95a71c-04965894a20eae646a91",
+              "file": "stage_c1_runtime.spec.js",
+              "line": 58,
+              "column": 5
+            },
+            {
+              "title": "high_reflector: page loads, canvas renders, no errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2744,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[playwright] Saved: C:\\Users\\L2791\\Downloads\\PyThinFilm\\docs\\visualization\\runtime\\stage_c1\\high_reflector.png\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-30T01:13:37.868Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a85cf041a6e7ae95a71c-216fc90995cdb195138f",
+              "file": "stage_c1_runtime.spec.js",
+              "line": 58,
+              "column": 5
+            },
+            {
+              "title": "quarter_wave_stack: page loads, canvas renders, no errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2700,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[playwright] Saved: C:\\Users\\L2791\\Downloads\\PyThinFilm\\docs\\visualization\\runtime\\stage_c1\\quarter_wave_stack.png\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-30T01:13:40.625Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a85cf041a6e7ae95a71c-aee250bba73d9fa64666",
+              "file": "stage_c1_runtime.spec.js",
+              "line": 58,
+              "column": 5
+            },
+            {
+              "title": "fp_single_halfwave: page loads, canvas renders, no errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2822,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[playwright] Saved: C:\\Users\\L2791\\Downloads\\PyThinFilm\\docs\\visualization\\runtime\\stage_c1\\fp_single_halfwave.png\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-30T01:13:43.340Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a85cf041a6e7ae95a71c-3e9a86b537f4aad89a09",
+              "file": "stage_c1_runtime.spec.js",
+              "line": 58,
+              "column": 5
+            },
+            {
+              "title": "narrowband_filter: page loads, canvas renders, no errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3942,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[playwright] Saved: C:\\Users\\L2791\\Downloads\\PyThinFilm\\docs\\visualization\\runtime\\stage_c1\\narrowband_filter_te.png\n"
+                        },
+                        {
+                          "text": "[playwright] Saved: C:\\Users\\L2791\\Downloads\\PyThinFilm\\docs\\visualization\\runtime\\stage_c1\\narrowband_filter_tm.png\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-30T01:13:46.175Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a85cf041a6e7ae95a71c-071c69c1fa6731c2d77c",
+              "file": "stage_c1_runtime.spec.js",
+              "line": 58,
+              "column": 5
+            },
+            {
+              "title": "Case switching: 10 cases in sequence without WebGL context loss",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 8287,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[playwright] Console log saved to C:\\Users\\L2791\\Downloads\\PyThinFilm\\docs\\visualization\\runtime\\stage_c1\\playwright_console.json\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-30T01:13:50.134Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a85cf041a6e7ae95a71c-473bd2fb0ccedc71bc36",
+              "file": "stage_c1_runtime.spec.js",
+              "line": 125,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-07-30T01:12:46.980Z",
+    "duration": 71856.392,
+    "expected": 17,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

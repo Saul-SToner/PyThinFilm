@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>PyThinFilm · Phone Lens AR</title></head>
+  <body>
+    <div id="engineering-app" class="solar-app">
+      <header class="solar-header"><div><div id="case-kicker" class="solar-kicker"></div><h1 id="case-title"></h1></div><div class="solar-header-actions"><span class="source-badge"><span id="case-id"></span> · 正式 JSON</span><a href="../../" class="back-link">返回通用案例浏览器</a></div></header>
+      <main class="solar-layout">
+        <section class="solar-stage"><div id="engineering-canvas" class="solar-canvas"></div><div class="scene-note">膜层厚度经过非线性视觉放大 · 波形位移统一放大 <span id="display-scale-note"></span></div><div class="wave-callout wave-callout--incident">入射 I = 100%</div><div class="wave-callout wave-callout--reflected" data-wave-callout="reflected">反射 R</div><div class="wave-callout wave-callout--transmitted" data-wave-callout="transmitted">透射 T</div></section>
+        <aside class="solar-panel">
+          <section class="panel-section verdict-section"><div class="section-label">当前光谱点</div><div id="spectral-verdict" class="spectral-verdict">加载中…</div><div id="semantic-caveat" class="spectral-caveat"></div></section>
+          <section class="panel-section"><div class="readout-row"><span>波长</span><strong id="wavelength-readout">—</strong></div><input id="wavelength-slider" class="wavelength-slider" type="range" /><div class="preset-grid"><button data-preset-index="0"></button><button data-preset-index="1"></button><button data-preset-index="2"></button></div></section>
+          <section class="panel-section power-section"><div class="section-label">功率占比 · 正式光谱插值</div><div class="power-row power-row--r"><span>反射 R</span><div class="power-track"><i id="bar-r"></i></div><strong id="value-r">—</strong></div><div class="power-row power-row--t"><span>透射 T</span><div class="power-track"><i id="bar-t"></i></div><strong id="value-t">—</strong></div><div class="power-row power-row--a"><span>吸收 A</span><div class="power-track"><i id="bar-a"></i></div><strong id="value-a">—</strong></div><div id="amplitude-readout" class="amplitude-readout"></div></section>
+          <section class="panel-section control-section"><div class="section-label">观察与动画</div><div class="button-row"><button id="btn-isometric">等轴剖视</button><button id="btn-side">侧面剖视</button><button id="btn-optical">光路视角</button></div><div class="button-row"><button id="btn-play-pause">暂停</button><button id="btn-polarization">切换为 TM</button><button id="btn-reset">重置</button></div></section>
+          <section class="panel-section"><div class="section-label">正式膜层结构</div><div id="layer-list" class="layer-list"></div><div id="layer-detail" class="layer-detail">悬停或点击膜层查看详情</div></section>
+          <section class="panel-section semantics-section"><strong>语义边界</strong><p>正弦波由当前 R/T 驱动，仅是教学示意，不是定量空间电场。</p></section>
+        </aside>
+      </main><div id="engineering-error" class="solar-error hidden" role="alert"></div>
+    </div><script type="module" src="../../src/apps/phone-lens-ar/main.js"></script>
+  </body>
+</html>

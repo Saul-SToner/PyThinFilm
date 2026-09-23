@@ -1,0 +1,192 @@
+{
+  "schema_version": "1.0.0",
+  "case_id": "absorbing_surface_gain_trend",
+  "title": "吸收表面增益趋势",
+  "source_commit": "2b7bb0c07489e8bda983a862e7fbfc1bb973fe32",
+  "source_file": "cases/absorbing_surface/run_absorbing_surface_gain_trend.py",
+  "source_symbol": "summarize_absorbing_surface_gain_trend",
+  "generated_at": "2026-08-02T15:11:09.342805",
+  "calculation_source": "python_external_csv_analysis",
+  "evidence_status": "READY_EXTERNAL",
+  "summary_cards": [
+    {
+      "label": "扫描点",
+      "value": 6,
+      "unit": "",
+      "note": ""
+    },
+    {
+      "label": "最佳粗糙度因子",
+      "value": 1.15,
+      "unit": "",
+      "note": ""
+    },
+    {
+      "label": "最佳平均增益",
+      "value": 0.09117042686466159,
+      "unit": "",
+      "note": ""
+    },
+    {
+      "label": "严格单调",
+      "value": true,
+      "unit": "",
+      "note": ""
+    }
+  ],
+  "series": [
+    {
+      "label": "ΔA_mean",
+      "x": [
+        0.25,
+        0.5,
+        0.75,
+        1.0,
+        1.1,
+        1.15
+      ],
+      "y": [
+        0.0058311779,
+        0.0217745852,
+        0.0456069362,
+        0.0737884366,
+        0.0853970733,
+        0.0911704269
+      ],
+      "x_label": "粗糙度因子",
+      "y_label": "吸收增益",
+      "color": "#7f927d"
+    },
+    {
+      "label": "ΔA@550",
+      "x": [
+        0.25,
+        0.5,
+        0.75,
+        1.0,
+        1.1,
+        1.15
+      ],
+      "y": [
+        0.0064293366,
+        0.0239498221,
+        0.0502865503,
+        0.081807931,
+        0.0948754621,
+        0.1013611628
+      ],
+      "x_label": "粗糙度因子",
+      "y_label": "吸收增益",
+      "color": "#9b826e"
+    }
+  ],
+  "table": {
+    "columns": [
+      "factor",
+      "A_mean",
+      "A_550",
+      "delta_A_mean",
+      "delta_A_550"
+    ],
+    "rows": [
+      [
+        0.25,
+        0.568769386871209,
+        0.5877145301542931,
+        0.0058311779310147305,
+        0.006429336642176708
+      ],
+      [
+        0.5,
+        0.5847127940905248,
+        0.6052350155698245,
+        0.021774585150330483,
+        0.023949822057708126
+      ],
+      [
+        0.75,
+        0.6085451451190116,
+        0.631571743796861,
+        0.04560693617881728,
+        0.0502865502847446
+      ],
+      [
+        1.0,
+        0.6367266455686991,
+        0.6630931245212396,
+        0.07378843662850476,
+        0.0818079310091232
+      ],
+      [
+        1.1,
+        0.6483352822614622,
+        0.6761606555713799,
+        0.08539707332126789,
+        0.09487546205926356
+      ],
+      [
+        1.15,
+        0.6541086358048559,
+        0.6826463562890238,
+        0.09117042686466159,
+        0.10136116277690743
+      ]
+    ]
+  },
+  "limitations": [
+    "相对于平面基准，在当前可计算范围内，粗糙度增大持续提升吸收增益。"
+  ],
+  "external_data_provenance": [
+    {
+      "role": "planar_baseline",
+      "file_name": "2D periodic quasi-random rough absorbing surface(basic).csv",
+      "status": "AVAILABLE",
+      "size_bytes": 53728,
+      "sha256": "005f2d68b2db0bc26cf204fc1d2a9d414f2900690c57ec4d4945d383ce1481e1"
+    },
+    {
+      "role": "roughness_0.25",
+      "file_name": "2D periodic quasi-random rough absorbing surface(0.25).csv",
+      "status": "AVAILABLE",
+      "size_bytes": 53727,
+      "sha256": "c002a721b15f1679bdacf2b78e8ec08db03f93bfcd91940e192e113344e6679f"
+    },
+    {
+      "role": "roughness_0.5",
+      "file_name": "2D periodic quasi-random rough absorbing surface(0.5).csv",
+      "status": "AVAILABLE",
+      "size_bytes": 53727,
+      "sha256": "2bdacc919b1c7535db5f7679976c777c91e701642d2a8d71b53a42d1d755fb2e"
+    },
+    {
+      "role": "roughness_0.75",
+      "file_name": "2D periodic quasi-random rough absorbing surface(0.75).csv",
+      "status": "AVAILABLE",
+      "size_bytes": 53727,
+      "sha256": "2a9b3a0e1d20cf1cf1502f1c9251dc3842f137598178fc151178f3b578e7b0dd"
+    },
+    {
+      "role": "roughness_1.0",
+      "file_name": "2D periodic quasi-random rough absorbing surface.csv",
+      "status": "AVAILABLE",
+      "size_bytes": 53727,
+      "sha256": "209a5e974d86decf4883e1fce30f460a82c32b0bd641ad4d02f35704e6e11912"
+    },
+    {
+      "role": "roughness_1.1",
+      "file_name": "2D periodic quasi-random rough absorbing surface(1.1).csv",
+      "status": "AVAILABLE",
+      "size_bytes": 53727,
+      "sha256": "1b6667f0f0e2ebb0ae75de4b2aa577c6badcbca1373d796d4be5f89240477208"
+    },
+    {
+      "role": "roughness_1.15",
+      "file_name": "2D periodic quasi-random rough absorbing surface(1.15).csv",
+      "status": "AVAILABLE",
+      "size_bytes": 53727,
+      "sha256": "cc0079d799b88e75a223594966c98df32d4e1923cd4bbedddf73f5896ea1a9c8"
+    }
+  ],
+  "evidence_hash": "ab9a1342c5e7f576",
+  "result_hash": "0e3c6ce43099c116"
+}

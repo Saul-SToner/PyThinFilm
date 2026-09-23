@@ -1,0 +1,87 @@
+{
+  "schema_version": "1.0.0",
+  "case_id": "tamm_interface_priority",
+  "title": "Tamm 界面态优先极化筛选",
+  "source_commit": "2b7bb0c07489e8bda983a862e7fbfc1bb973fe32",
+  "source_file": "cases/tamm/run_tamm_interface_priority.py",
+  "source_symbol": "export_tamm_interface_priority",
+  "generated_at": "2026-08-02T15:10:54.521136",
+  "calculation_source": "python_external_csv_analysis",
+  "evidence_status": "READY_EXTERNAL",
+  "summary_cards": [
+    {
+      "label": "最佳吸收层厚",
+      "value": 119.99999999999999,
+      "unit": "nm",
+      "note": ""
+    },
+    {
+      "label": "峰值吸收",
+      "value": 0.9978613825661722,
+      "unit": "",
+      "note": ""
+    },
+    {
+      "label": "端结构候选",
+      "value": "90/120",
+      "unit": "nm",
+      "note": ""
+    },
+    {
+      "label": "通过严格判据",
+      "value": 0,
+      "unit": "组",
+      "note": ""
+    }
+  ],
+  "series": [],
+  "table": {
+    "columns": [
+      "dW_nm",
+      "A_max",
+      "peak_um",
+      "phase_at_peak_rad"
+    ],
+    "rows": [
+      [
+        90.00000000000001,
+        0.959936690575492,
+        4.55,
+        0.3408694645541951
+      ],
+      [
+        100.0,
+        0.9792441031752578,
+        4.55,
+        0.4055542672842081
+      ],
+      [
+        110.0,
+        0.9913334830934781,
+        4.55,
+        0.5189571350828154
+      ],
+      [
+        119.99999999999999,
+        0.9978613825661722,
+        4.5,
+        0.07812968783890292
+      ]
+    ]
+  },
+  "limitations": [
+    "当前严格高反射与 π 相位差联合判据没有通过项；页面显示候选优先级，不宣称已经发现界面本征态。",
+    "数据来自单个 COMSOL dW 扫描文件，不能外推到未扫描参数。"
+  ],
+  "external_data_provenance": [
+    {
+      "role": "phase_scan",
+      "file_name": "tamm_spectrum_dW_scan(4).csv",
+      "status": "AVAILABLE",
+      "size_bytes": 52696,
+      "sha256": "7bed41441a024f966536d5036f0d2097e2facc75f38e34828cbe042b0fcfe449"
+    }
+  ],
+  "evidence_hash": "fc4cb71e3ac5d29b",
+  "result_hash": "27780d7fe96ee8ca"
+}

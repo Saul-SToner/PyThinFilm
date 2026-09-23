@@ -191,19 +191,66 @@ def material_nk_at(
     wavelength_um: float | Sequence[float],
     *,
     source_contains: str | None = None,
-    allow_extrapolate: bool = False,
+    out_of_range_policy: str = "DEFAULT_SENTINEL",
+    allow_extrapolate: bool | None = None,
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Interpolate real-material n/k values at one or more wavelengths in um."""
+    """Interpolate real-material n/k values at one or more wavelengths in um.
+
+    Parameters
+    ----------
+    material : str
+        Material name.
+    wavelength_um : float or Sequence[float]
+        Wavelengths in micrometers.
+    source_contains : str, optional
+        Filter for source name.
+    out_of_range_policy : str
+        Policy for handling wavelengths outside range:
+        - "clip": clamp wavelengths to min/max range of data.
+        - "error": raise ValueError for out-of-range inputs (default).
+    allow_extrapolate : bool, optional
+        Legacy compatibility parameter. Maps to "clip" if True, "error" if False.
+    """
+    if out_of_range_policy == "DEFAULT_SENTINEL" and allow_extrapolate is None:
+        out_of_range_policy = "error"
+    elif out_of_range_policy != "DEFAULT_SENTINEL" and allow_extrapolate is not None:
+        raise ValueError("Cannot specify both 'out_of_range_policy' and legacy 'allow_extrapolate'.")
+    elif allow_extrapolate is not None:
+        import warnings
+        warnings.warn(
+            "The 'allow_extrapolate' parameter is deprecated; please use 'out_of_range_policy' instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
+        out_of_range_policy = "clip" if allow_extrapolate else "error"
+    elif out_of_range_policy == "DEFAULT_SENTINEL":
+        out_of_range_policy = "error"
+
     dataset = load_real_material(material, source_contains=source_contains)
     wl = np.asarray(wavelength_um, dtype=float)
     wl_min = dataset.lambda_min_um
     wl_max = dataset.lambda_max_um
-    if not allow_extrapolate and (np.any(wl < wl_min) or np.any(wl > wl_max)):
-        raise ValueError(
-            f"{dataset.material} ({dataset.source}) valid range is "
-            f"{wl_min:.4g}-{wl_max:.4g} um, requested "
-            f"{float(np.min(wl)):.4g}-{float(np.max(wl)):.4g} um."
-        )
+    
+    clipped_any = False
+    if np.any(wl < wl_min) or np.any(wl > wl_max):
+        clipped_any = True
+        
+    if out_of_range_policy == "error":
+        if clipped_any:
+            raise ValueError(
+                f"{dataset.material} ({dataset.source}) valid range is "
+                f"{wl_min:.4g}-{wl_max:.4g} um, requested "
+                f"{float(np.min(wl)):.4g}-{float(np.max(wl)):.4g} um."
+            )
+    elif out_of_range_policy == "clip":
+        if clipped_any:
+            dataset.metadata["clipped_occurred"] = True
+            out_of_bounds = wl[(wl < wl_min) | (wl > wl_max)]
+            dataset.metadata["clipped_wavelengths"] = out_of_bounds.tolist()
+        wl = np.clip(wl, wl_min, wl_max)
+    else:
+        raise ValueError(f"Unknown out_of_range_policy: {out_of_range_policy}")
+
     n_vals = np.interp(wl, dataset.lambda_um, dataset.n)
     k_vals = np.interp(wl, dataset.lambda_um, dataset.k)
     return n_vals, k_vals
@@ -214,15 +261,38 @@ def material_complex_index(
     wavelength_nm: float | Sequence[float],
     *,
     source_contains: str | None = None,
-    allow_extrapolate: bool = False,
+    out_of_range_policy: str = "DEFAULT_SENTINEL",
+    allow_extrapolate: bool | None = None,
 ) -> np.ndarray:
-    """Return complex refractive index ``n + i k`` at wavelength(s) in nm."""
+    """Return complex refractive index ``n + i k`` at wavelength(s) in nm.
+
+    Physical sign convention:
+    Under the time-harmonic convention of e^{-i wt}, the complex refractive index is
+    defined as ñ = n + ik.
+    A positive extinction coefficient (k >= 0) corresponds to strict absorption decay
+    of propagating energy in the direction of wave travel.
+    """
+    if out_of_range_policy == "DEFAULT_SENTINEL" and allow_extrapolate is None:
+        out_of_range_policy = "error"
+    elif out_of_range_policy != "DEFAULT_SENTINEL" and allow_extrapolate is not None:
+        raise ValueError("Cannot specify both 'out_of_range_policy' and legacy 'allow_extrapolate'.")
+    elif allow_extrapolate is not None:
+        import warnings
+        warnings.warn(
+            "The 'allow_extrapolate' parameter is deprecated; please use 'out_of_range_policy' instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
+        out_of_range_policy = "clip" if allow_extrapolate else "error"
+    elif out_of_range_policy == "DEFAULT_SENTINEL":
+        out_of_range_policy = "error"
+
     wl_um = np.asarray(wavelength_nm, dtype=float) / 1000.0
     n_vals, k_vals = material_nk_at(
         material,
         wl_um,
         source_contains=source_contains,
-        allow_extrapolate=allow_extrapolate,
+        out_of_range_policy=out_of_range_policy,
     )
     return np.asarray(n_vals, dtype=float) + 1j * np.asarray(k_vals, dtype=float)
 
@@ -244,7 +314,7 @@ def sample_real_materials(
     materials: Sequence[str] | None = None,
     wavelengths_um: Sequence[float] | None = None,
     *,
-    allow_extrapolate: bool = False,
+    out_of_range_policy: str = "clip",
 ) -> list[dict[str, Any]]:
     """Sample the material library into row dictionaries for CSV/JSON export."""
     if materials is None:
@@ -257,7 +327,7 @@ def sample_real_materials(
         dataset = load_real_material(material)
         for wl_um in wavelengths_um:
             try:
-                n_vals, k_vals = material_nk_at(material, float(wl_um), allow_extrapolate=allow_extrapolate)
+                n_vals, k_vals = material_nk_at(material, float(wl_um), out_of_range_policy=out_of_range_policy)
                 in_range = dataset.lambda_min_um <= float(wl_um) <= dataset.lambda_max_um
                 rows.append(
                     {

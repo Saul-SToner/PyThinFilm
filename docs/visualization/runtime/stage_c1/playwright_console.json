@@ -1,0 +1,102 @@
+[
+  {
+    "caseId": "single_ar",
+    "type": "debug",
+    "text": "[vite] connecting..."
+  },
+  {
+    "caseId": "single_ar",
+    "type": "debug",
+    "text": "[vite] connected."
+  },
+  {
+    "caseId": "bragg_reflector",
+    "type": "debug",
+    "text": "[vite] connecting..."
+  },
+  {
+    "caseId": "bragg_reflector",
+    "type": "debug",
+    "text": "[vite] connected."
+  },
+  {
+    "caseId": "fp_filter",
+    "type": "debug",
+    "text": "[vite] connecting..."
+  },
+  {
+    "caseId": "fp_filter",
+    "type": "debug",
+    "text": "[vite] connected."
+  },
+  {
+    "caseId": "tamm_phase_bundle",
+    "type": "debug",
+    "text": "[vite] connecting..."
+  },
+  {
+    "caseId": "tamm_phase_bundle",
+    "type": "debug",
+    "text": "[vite] connected."
+  },
+  {
+    "caseId": "quarter_wave_single_layer",
+    "type": "debug",
+    "text": "[vite] connecting..."
+  },
+  {
+    "caseId": "quarter_wave_single_layer",
+    "type": "debug",
+    "text": "[vite] connected."
+  },
+  {
+    "caseId": "half_wave_single_layer",
+    "type": "debug",
+    "text": "[vite] connecting..."
+  },
+  {
+    "caseId": "half_wave_single_layer",
+    "type": "debug",
+    "text": "[vite] connected."
+  },
+  {
+    "caseId": "high_reflector",
+    "type": "debug",
+    "text": "[vite] connecting..."
+  },
+  {
+    "caseId": "high_reflector",
+    "type": "debug",
+    "text": "[vite] connected."
+  },
+  {
+    "caseId": "quarter_wave_stack",
+    "type": "debug",
+    "text": "[vite] connecting..."
+  },
+  {
+    "caseId": "quarter_wave_stack",
+    "type": "debug",
+    "text": "[vite] connected."
+  },
+  {
+    "caseId": "fp_single_halfwave",
+    "type": "debug",
+    "text": "[vite] connecting..."
+  },
+  {
+    "caseId": "fp_single_halfwave",
+    "type": "debug",
+    "text": "[vite] connected."
+  },
+  {
+    "caseId": "narrowband_filter",
+    "type": "debug",
+    "text": "[vite] connecting..."
+  },
+  {
+    "caseId": "narrowband_filter",
+    "type": "debug",
+    "text": "[vite] connected."
+  }
+]

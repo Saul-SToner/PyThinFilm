@@ -1,0 +1,100 @@
+{
+  "schema_version": "1.0.0",
+  "case_id": "fp_filter",
+  "audience": {"primary": "UNDERGRADUATE", "advanced_content": true},
+  "teaching_modes": ["FREE_EXPLORATION", "GUIDED_LEARNING"],
+  "teaching_title": "F-P 滤光片：缺陷腔谐振",
+  "problem_statement": "两侧 DBR 在阻带内强反射，中间半波缺陷层提供谐振腔。当往返相位满足条件时，阻带中会打开一条窄透射通道。",
+  "focus_labels": ["观察层：第 7 层腔", "TE 峰：484 nm", "观察量：T 与线宽"],
+  "learning_objectives": [
+    "识别 (HL)³ C (LH)³ 的十三层对称结构",
+    "区分阻带内缺陷模与阻带外全局透射最大值",
+    "比较谐振点和阻带点的正式 T/R",
+    "理解斜入射造成 TE/TM 峰位和线宽分裂"
+  ],
+  "context_callout": {
+    "title": "缺陷模必须位于 DBR 阻带中",
+    "text": "正式 TE 缺陷模为 484 nm，TM 为 486 nm。664/644 nm 的全谱最大透射位于阻带外，不能称为腔缺陷模。"
+  },
+  "formal_context": {
+    "incidence_angle_deg": 45,
+    "layer_count": 13,
+    "cavity_layer_index": 6,
+    "cavity_thickness_nm": 199.2754,
+    "te_peak_nm": 484,
+    "te_peak_t": 0.90079,
+    "tm_peak_nm": 486,
+    "tm_peak_t": 0.990813,
+    "te_fwhm_nm": 6.3118,
+    "te_q": 76.72,
+    "tm_fwhm_nm": 14.5475,
+    "tm_q": 33.41
+  },
+  "guided_steps": [
+    {
+      "id": "identify_cavity",
+      "title": "找到中央缺陷腔",
+      "instruction": "选中第 7 层 C，观察它位于两组三周期 DBR 之间。",
+      "action": {"type": "select_layer", "layer_index": 6, "label": "选中第 7 层腔"},
+      "expected_observation": "结构为 (HL)³ C (LH)³，共 13 层。中央 C 层厚 199.2754 nm，是两侧反射镜之间的半波缺陷层。",
+      "evidence_fields": ["layers[6]", "design_specification.periods_param_explanation"]
+    },
+    {
+      "id": "te_defect_mode",
+      "title": "观察 TE 缺陷模",
+      "instruction": "设置 TE、484 nm。",
+      "action": {"type": "set_state", "polarization": "TE", "wavelength_nm": 484, "label": "TE · 484 nm"},
+      "expected_observation": "阻带内出现 T=90.0790% 的窄透射峰，R=9.9210%。这才是正式选择的 TE 腔缺陷模。",
+      "evidence_fields": ["resonance_metrics.TE.selected_peak"]
+    },
+    {
+      "id": "te_stopband",
+      "title": "对照阻带深处",
+      "instruction": "保持 TE，切换到 546 nm。",
+      "action": {"type": "set_state", "polarization": "TE", "wavelength_nm": 546, "label": "TE · 546 nm"},
+      "expected_observation": "546 nm 时正式 R=99.2703%、T=0.7297%，与 484 nm 的谐振透射形成鲜明对照。",
+      "evidence_fields": ["TE.R", "TE.T", "stopband_metrics.TE"]
+    },
+    {
+      "id": "tm_defect_mode",
+      "title": "比较 TM 谐振",
+      "instruction": "切换至 TM、486 nm。",
+      "action": {"type": "set_state", "polarization": "TM", "wavelength_nm": 486, "label": "TM · 486 nm"},
+      "expected_observation": "TM 缺陷峰 T=99.0813%，峰位比 TE 红移约 2 nm；正式精细线宽更宽，Q 值也更低。",
+      "evidence_fields": ["resonance_metrics.TM.selected_peak", "case_specific_metrics.audited_linewidth_TM"]
+    },
+    {
+      "id": "fp_quiz",
+      "title": "小结判断",
+      "instruction": "判断哪个信号能证明是腔缺陷模。",
+      "action": {
+        "type": "quiz",
+        "question": "为什么不能直接把全谱最大 T 当作缺陷模？",
+        "options": [
+          {"id": "largest", "label": "只要 T 最大就一定是缺陷模", "correct": false},
+          {"id": "inside", "label": "缺陷模还必须位于 DBR 阻带通道内，并满足腔相位与局部峰筛选条件", "correct": true},
+          {"id": "animation", "label": "只需看透射正弦线是否移动", "correct": false}
+        ],
+        "correct_feedback": "正确：正式 resonance_metrics 同时使用阻带位置、局部峰和腔相位估计筛选。",
+        "incorrect_feedback": "请区分阻带内局部谐振峰与阻带外普通高透射。"
+      },
+      "expected_observation": "正式全谱最大 T 位于 TE 664 nm、TM 644 nm，属于阻带外振荡；缺陷模分别为 484/486 nm。",
+      "evidence_fields": ["global_transmission_metrics", "resonance_metrics"]
+    }
+  ],
+  "common_misconceptions": [
+    "全谱最大透射不自动等于腔缺陷模。",
+    "透射峰不是因为中央层吸收消失，本案例 A=0。",
+    "外部示意波不能显示腔内定量驻波。",
+    "TE/TM 在 45° 入射下峰位和 Q 值可以不同。"
+  ],
+  "model_boundaries": [
+    "十三层结构、峰位和 R/T 均来自正式 Python TMM。",
+    "FWHM 与 Q 使用精细网格审计结果；粗光谱步长不能替代线宽审计。",
+    "当前页面不绘制膜内定量场分布。"
+  ],
+  "formula_sections": [
+    {"title": "腔谐振条件", "formula": "2k₀ n_C d_C cosθ_C + φ_L + φ_R = 2πm", "explanation": "腔传播相位与两侧反射相位共同决定透射峰位置。"},
+    {"title": "品质因数", "formula": "Q = λ_peak / Δλ_FWHM", "explanation": "正式精细审计给出 TE Q=76.72、TM Q=33.41。"}
+  ]
+}

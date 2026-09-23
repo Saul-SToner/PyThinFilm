@@ -1,0 +1,17 @@
+> pythinfilm-web3d@1.0.0 dev
+> vite
+
+  VITE v5.4.21  ready in 262 ms
+
+  ➜  Local:   http://localhost:3000/
+  ➜  Network: use --host to expose
+
+[vite] hmr update /src/App.vue
+[sync-registry] Successfully synced C:\Users\L2791\Downloads\PyThinFilm\web3d\data\case_registry.json -> C:\Users\L2791\Downloads\PyThinFilm\web3d\public\data\case_registry.json
+[vite] HTTP 200 GET /data/case_registry.json
+[vite] HTTP 200 GET /results/quarter_wave_single_layer.json
+[vite] HTTP 200 GET /results/half_wave_single_layer.json
+[vite] HTTP 200 GET /results/high_reflector.json
+[vite] HTTP 200 GET /results/quarter_wave_stack.json
+[vite] HTTP 200 GET /results/fp_single_halfwave.json
+[vite] HTTP 200 GET /results/narrowband_filter.json

@@ -1,0 +1,135 @@
+{
+  "schema_version": "1.0.0",
+  "case_id": "tamm_phase_candidates",
+  "title": "Tamm 相位匹配候选点搜寻",
+  "source_commit": "2b7bb0c07489e8bda983a862e7fbfc1bb973fe32",
+  "source_file": "cases/tamm/run_tamm_phase_candidates.py",
+  "source_symbol": "analyze_tamm_reflection_phase_screen",
+  "generated_at": "2026-08-02T15:10:54.542019",
+  "calculation_source": "python_external_csv_analysis",
+  "evidence_status": "READY_EXTERNAL",
+  "summary_cards": [
+    {
+      "label": "候选对总数",
+      "value": 6,
+      "unit": "",
+      "note": ""
+    },
+    {
+      "label": "通过数",
+      "value": 0,
+      "unit": "",
+      "note": ""
+    },
+    {
+      "label": "最小反射率",
+      "value": 0.2803998974114426,
+      "unit": "",
+      "note": ""
+    },
+    {
+      "label": "相位误差",
+      "value": 2.9691718134457314,
+      "unit": "rad",
+      "note": ""
+    }
+  ],
+  "series": [
+    {
+      "label": "候选对：相位误差 vs 最小反射率",
+      "x": [
+        2.96917181,
+        3.02155744,
+        3.03149219,
+        3.08387782,
+        3.07927228,
+        3.08920702
+      ],
+      "y": [
+        0.2803998974,
+        0.2803998974,
+        0.3032887738,
+        0.3032887738,
+        0.2803998974,
+        0.3315608257
+      ],
+      "x_label": "|π-Δφ| (rad)",
+      "y_label": "min(R_left,R_right)",
+      "color": "#5f7891"
+    }
+  ],
+  "table": {
+    "columns": [
+      "left_nm",
+      "right_nm",
+      "lambda_um",
+      "min_R",
+      "phase_error",
+      "passes"
+    ],
+    "rows": [
+      [
+        90.00000000000001,
+        119.99999999999999,
+        4.0,
+        0.2803998974114426,
+        2.9691718134457314,
+        false
+      ],
+      [
+        100.0,
+        119.99999999999999,
+        4.0,
+        0.2803998974114426,
+        3.0215574446813274,
+        false
+      ],
+      [
+        90.00000000000001,
+        110.0,
+        4.0,
+        0.3032887737740529,
+        3.0314921859534754,
+        false
+      ],
+      [
+        100.0,
+        110.0,
+        4.0,
+        0.3032887737740529,
+        3.0838778171890713,
+        false
+      ],
+      [
+        110.0,
+        119.99999999999999,
+        4.0,
+        0.2803998974114426,
+        3.079272281082049,
+        false
+      ],
+      [
+        90.00000000000001,
+        100.0,
+        4.0,
+        0.331560825684436,
+        3.089207022354197,
+        false
+      ]
+    ]
+  },
+  "limitations": [
+    "当前未发现同时满足高反射与近 π 相位差的候选端结构对；建议扩大 1D 参数扫描后再做 2D 拼接。"
+  ],
+  "external_data_provenance": [
+    {
+      "role": "phase_scan",
+      "file_name": "tamm_spectrum_dW_scan(4).csv",
+      "status": "AVAILABLE",
+      "size_bytes": 52696,
+      "sha256": "7bed41441a024f966536d5036f0d2097e2facc75f38e34828cbe042b0fcfe449"
+    }
+  ],
+  "evidence_hash": "8eae45398cefed74",
+  "result_hash": "2197fa40b3ff2053"
+}

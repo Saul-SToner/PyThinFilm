@@ -1,0 +1,100 @@
+{
+  "schema_version": "1.0.0",
+  "case_id": "tamm_phase_bundle",
+  "audience": {"primary": "UNDERGRADUATE", "advanced_content": true},
+  "teaching_modes": ["FREE_EXPLORATION", "GUIDED_LEARNING"],
+  "teaching_title": "Tamm 候选态：金属/DBR 相位匹配",
+  "problem_statement": "金属反射面与 DBR 反射面在共同参考面上接近满足相位匹配时，界面附近可能出现增强场和反射谷。当前案例用于识别一个有损、可泄漏的 Tamm 候选态。",
+  "focus_labels": ["观察界面：Ag/H1", "候选点：634.2 nm", "观察量：相位、R/T/A、局域场"],
+  "learning_objectives": [
+    "识别 30 nm Ag 与七层 DBR 的界面结构",
+    "用反射谷、共同参考相位和正式场数据联合判断候选态",
+    "理解有损候选点同时具有 R、T 和 A",
+    "区分相位匹配泄漏候选与严格无损本征态"
+  ],
+  "context_callout": {
+    "title": "这是候选态，不是过度宣称",
+    "text": "正式状态为 PHASE_MATCHED_LEAKY_CANDIDATE。Ag 使用固定复折射率，候选点存在透射和吸收，因此不能称为严格束缚本征态。"
+  },
+  "formal_context": {
+    "incidence_angle_deg": 0,
+    "layer_count": 8,
+    "ag_thickness_nm": 30,
+    "candidate_wavelength_nm": 634.2,
+    "candidate_r": 0.193233,
+    "candidate_t": 0.639234,
+    "candidate_a": 0.167533,
+    "phase_residual_deg": -0.98,
+    "amplitude_product": 0.746864,
+    "field_peak_abs_e2": 6.8258,
+    "field_peak_distance_nm": 47
+  },
+  "guided_steps": [
+    {
+      "id": "identify_interface",
+      "title": "识别 Ag/H1 界面",
+      "instruction": "选中第一层 30 nm Ag，再观察它与第一层 H 的相邻关系。",
+      "action": {"type": "select_layer", "layer_index": 0, "label": "选中 Ag 层"},
+      "expected_observation": "八层结构由 Ag + H/L/H/L/H/L/H 组成，正式相位参考界面位于 Ag/H1，即 z=30 nm。",
+      "evidence_fields": ["layers[0]", "layers[1]", "phase_reference_definition.interface"]
+    },
+    {
+      "id": "candidate_dip",
+      "title": "进入正式候选点",
+      "instruction": "设为 TE、634.2 nm，读取 R/T/A。",
+      "action": {"type": "set_state", "polarization": "TE", "wavelength_nm": 634.2, "label": "TE · 634.2 nm"},
+      "expected_observation": "候选点 R=19.3233%、T=63.9234%、A=16.7533%。它是 DBR 阻带内反射谷，但并非零反射或零泄漏。",
+      "evidence_fields": ["selected_candidate", "dbr_stopband_metrics"]
+    },
+    {
+      "id": "high_reflection_control",
+      "title": "对照高反点",
+      "instruction": "切换到 526 nm。",
+      "action": {"type": "set_state", "polarization": "TE", "wavelength_nm": 526, "label": "TE · 526 nm"},
+      "expected_observation": "526 nm 的正式 R 约为 96.5705%，与 634.2 nm 反射谷不同；仅凭位于阻带内仍不足以判断 Tamm 候选。",
+      "evidence_fields": ["TE.R", "reflectance_dip_candidates"]
+    },
+    {
+      "id": "phase_and_field",
+      "title": "联合相位与场证据",
+      "instruction": "回到 634.2 nm，并检查正式相位和局域场摘要。",
+      "action": {"type": "set_state", "polarization": "TE", "wavelength_nm": 634.2, "label": "返回候选点"},
+      "expected_observation": "共同参考相位残差约 −0.98°；正式场峰值 |E|²=6.8258，位于第一层 H、距 Ag/H1 界面约 47 nm。页面正弦线仍不是这份定量场剖面。",
+      "evidence_fields": ["common_reference_phase_metrics", "interface_localization_metrics", "field_solver_status"]
+    },
+    {
+      "id": "tamm_quiz",
+      "title": "小结判断",
+      "instruction": "选择最严谨的结论。",
+      "action": {
+        "type": "quiz",
+        "question": "当前数据最支持哪一种表述？",
+        "options": [
+          {"id": "eigen", "label": "已经证明存在完全无损、零泄漏的严格本征态", "correct": false},
+          {"id": "candidate", "label": "反射谷、共同参考相位和局域场共同支持一个有损泄漏 Tamm 候选态", "correct": true},
+          {"id": "wave", "label": "只要正弦线振幅变化就证明界面态", "correct": false}
+        ],
+        "correct_feedback": "正确：正式验证状态就是相位匹配的泄漏候选，需要保留材料与参考面限制。",
+        "incorrect_feedback": "请同时检查 R/T/A、共同参考相位、场局域和正式验证状态。"
+      },
+      "expected_observation": "幅度乘积为 0.746864，候选点 A=16.7533%、T=63.9234%，因此不能过度宣称严格束缚态。",
+      "evidence_fields": ["tamm_validation_status", "phase_validation_status", "common_reference_phase_metrics.amplitude_product"]
+    }
+  ],
+  "common_misconceptions": [
+    "反射谷本身不足以证明 Tamm 态，必须结合相位和场证据。",
+    "接近零的相位残差不等于幅度匹配也完全满足。",
+    "当前正弦示意波不是 field_profile_candidate 的定量场剖面。",
+    "固定 Ag 复折射率不能替代 400–800 nm 的真实色散。"
+  ],
+  "model_boundaries": [
+    "当前为 0° 正入射，因此正式 TE/TM 光谱一致。",
+    "Ag 使用常数 0.13+3.98j，材料色散状态受限。",
+    "相位采用 Ag/H1 共同参考面和 exp(−iωt) 约定。",
+    "正式结论限定为 PHASE_MATCHED_LEAKY_CANDIDATE。"
+  ],
+  "formula_sections": [
+    {"title": "共同参考相位条件", "formula": "arg(r_metal · r_DBR) ≈ 0 mod 2π", "explanation": "两个反射系数必须换算到同一界面参考面；当前残差约 −0.98°。"},
+    {"title": "有损能量关系", "formula": "R + T + A = 1", "explanation": "候选点的吸收和透射都不可忽略，因此属于泄漏、有损候选。"}
+  ]
+}

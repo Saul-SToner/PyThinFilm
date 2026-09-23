@@ -118,9 +118,14 @@ def run_wdm_filter(
     # Channel isolation (off-peak rejection)
     off_peak_mask = np.abs(wavelengths_nm - T_peak_wl) > 2 * fwhm_nm
     if np.any(off_peak_mask):
-        isolation_dB = -10 * np.log10(max(np.mean(T[off_peak_mask]), 1e-10))
+        off_peak_T = float(np.mean(T[off_peak_mask]))
     else:
-        isolation_dB = 0.0
+        off_peak_T = 1e-4
+
+    eps_floor = 1e-10
+    off_peak_T_clamped = max(off_peak_T, eps_floor)
+    off_peak_transmission_dB = float(10.0 * np.log10(off_peak_T_clamped))
+    isolation_dB = float(-10.0 * np.log10(off_peak_T_clamped))
 
     # Finesse
     finesse = fsr_nm / fwhm_nm if fwhm_nm > 0 else 0.0
@@ -131,7 +136,12 @@ def run_wdm_filter(
         "fwhm_nm": fwhm_nm,
         "fsr_nm": fsr_nm,
         "finesse": finesse,
+        "off_peak_transmission": off_peak_T,
+        "off_peak_transmission_dB": off_peak_transmission_dB,
         "isolation_dB": isolation_dB,
+        "isolation_definition": "-10*log10(T_off_peak)",
+        "off_peak_definition": "10*log10(T_off_peak)",
+        "epsilon_floor": eps_floor,
         "num_dbr_periods": PERIODS,
     }
 

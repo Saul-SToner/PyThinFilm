@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PyThinFilm 3D 物理可视化平台 (Stage B.0)</title>
+    <link rel="stylesheet" href="./src/app.css" />
+  </head>
+  <body>
+    <div id="app">
+      <header class="app-header">
+        <div class="brand">
+          <span class="logo">PyThinFilm 3D</span>
+          <span class="version">v1.1 National</span>
+        </div>
+        <div class="search-bar">
+          <input type="text" id="case-search" placeholder="搜索案例 ID / 名称 / 模板..." />
+        </div>
+      </header>
+
+      <div class="main-layout">
+        <aside class="sidebar">
+          <h3>案例分类与选择</h3>
+          <div id="category-filters" class="category-filters"></div>
+          <div id="case-list-container" class="case-list-container"></div>
+        </aside>
+
+        <main class="viewport-container">
+          <div id="canvas-container" class="canvas-container"></div>
+          
+          <div id="status-badge-container" class="status-badge-container"></div>
+
+          <div class="physics-disclaimer-banner" style="position: absolute; top: 10px; left: 10px; background: rgba(15,23,42,0.85); color: #94a3b8; padding: 6px 12px; border-radius: 6px; font-size: 12px; border: 1px solid #334155; pointer-events: none; z-index: 10;">
+            <span style="color: #38bdf8;">数值光谱:</span> Python TMM &nbsp;|&nbsp; 
+            <span style="color: #f59e0b;">空间波长:</span> 视觉缩放 &nbsp;|&nbsp; 
+            <span style="color: #34d399;">动画振幅:</span> 教学示意 / 场包络
+          </div>
+
+          <div class="controls-overlay">
+            <button id="btn-play-pause">播放/暂停</button>
+            <button id="btn-reset-view">视角复位</button>
+            <button id="btn-toggle-pol">切换 TE/TM</button>
+            <button id="btn-explode-layers">展开/叠合</button>
+          </div>
+        </main>
+
+        <aside class="info-panel">
+          <div id="parameter-panel"></div>
+          <div id="evidence-panel"></div>
+        </aside>
+      </div>
+
+      <div id="error-boundary-modal" class="error-boundary-modal hidden">
+        <div class="modal-content">
+          <h3 id="error-title">案例加载错误</h3>
+          <p id="error-message"></p>
+          <button id="btn-close-error">返回案例列表</button>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>

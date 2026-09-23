@@ -1,0 +1,108 @@
+{
+  "schema_version": "1.0.0",
+  "case_id": "quarter_wave_single_layer",
+  "audience": {
+    "primary": "UNDERGRADUATE",
+    "advanced_content": true,
+    "engineering_content": true
+  },
+  "teaching_modes": ["FREE_EXPLORATION", "GUIDED_LEARNING"],
+  "problem_statement": "空气与玻璃界面会产生反射损失。加入适当折射率和光学厚度的单层膜，可使上下表面反射光在目标波段接近相消，从而降低反射。",
+  "learning_objectives": [
+    "识别空气、单层膜和玻璃基底的层序",
+    "用正式 R/T/A 判断减反效果，而不是凭示意波猜测数值",
+    "理解减反效果由折射率、膜厚、波长和入射角共同决定",
+    "区分正入射结论与当前 45° 斜入射正式结果"
+  ],
+  "focus_targets": {
+    "layers": [0],
+    "wavelengths_nm": [550, 650],
+    "quantities": ["R", "T", "A"]
+  },
+  "formal_context": {
+    "incidence_angle_deg": 45,
+    "film_index": 1.38,
+    "film_thickness_nm": 99.6377,
+    "design_wavelength_nm": 550,
+    "te_r_550": 0.040048,
+    "te_r_650": 0.04789,
+    "tm_r_550": 0.001356,
+    "tm_r_650": 0.002413,
+    "te_min_r": 0.036972,
+    "te_min_r_wavelength_nm": 472
+  },
+  "guided_steps": [
+    {
+      "id": "identify_layer",
+      "title": "识别单层结构",
+      "instruction": "点击下方按钮选中唯一膜层，再核对材料角色、折射率和真实厚度。",
+      "action": {"type": "select_layer", "layer_index": 0, "label": "选中减反膜层"},
+      "expected_observation": "三维结构只有一层 QW 等效膜，位于空气与玻璃之间。屏幕厚度经过视觉放大，99.6377 nm 才是真实厚度。",
+      "evidence_fields": ["layers[0].thickness_nm", "layers[0].n"]
+    },
+    {
+      "id": "design_wavelength",
+      "title": "观察 550 nm 正式结果",
+      "instruction": "将当前波长设为 550 nm，读取 R、T、A，并比较反射与透射示意波。",
+      "action": {"type": "set_wavelength", "wavelength_nm": 550, "label": "设为 550 nm"},
+      "expected_observation": "当前处于名义设计波长：TE 的 R=4.0048%，TM 的 R=0.1356%，A=0。反射较弱、透射占主导，但正弦线仍不是定量空间电场。",
+      "evidence_fields": ["design_point_550nm.TE.R", "design_point_550nm.TE.T", "design_point_550nm.TM.R", "design_point_550nm.TM.T"]
+    },
+    {
+      "id": "off_design",
+      "title": "偏离到 650 nm",
+      "instruction": "保持当前偏振，将波长改为 650 nm，与 550 nm 的正式反射率比较。",
+      "action": {"type": "set_wavelength", "wavelength_nm": 650, "label": "设为 650 nm"},
+      "expected_observation": "650 nm 时 TE 的 R=4.7890%，TM 的 R=0.2413%，均高于各自在 550 nm 的数值，说明减反具有波长选择性。",
+      "evidence_fields": ["wavelength_nm", "TE.R", "TM.R"]
+    },
+    {
+      "id": "polarization",
+      "title": "检查 45° 下的 TE/TM",
+      "instruction": "切换为 TM，比较当前正式结果。",
+      "action": {"type": "set_polarization", "polarization": "TM", "label": "切换为 TM"},
+      "expected_observation": "当前是 45° 斜入射，TE/TM 光学导纳不同，所以正式 R/T 不相同。只有正入射各向同性平面膜系才具有 TE/TM 一致性。",
+      "evidence_fields": ["incidence_angle_deg", "TE.R", "TM.R"]
+    },
+    {
+      "id": "summary_quiz",
+      "title": "小结判断",
+      "instruction": "选择最符合当前正式数据的结论。",
+      "action": {
+        "type": "quiz",
+        "question": "为什么不能把 550 nm 简单称为当前曲线的绝对最低反射点？",
+        "options": [
+          {"id": "normal", "label": "因为所有四分之一波膜都没有反射谷", "correct": false},
+          {"id": "oblique", "label": "因为当前为 45° 斜入射，光学厚度和导纳条件使反射谷发生偏移并产生 TE/TM 分裂", "correct": true},
+          {"id": "wave", "label": "因为正弦示意波没有动画", "correct": false}
+        ]
+      },
+      "expected_observation": "正式 TE 数据的最低反射率为 3.6972%，位置约 472 nm；550 nm 是名义设计参考点，不应改写正式曲线。",
+      "evidence_fields": ["case_specific_metrics.wavelength_at_min_R_nm", "case_specific_metrics.min_R"]
+    }
+  ],
+  "common_misconceptions": [
+    "视觉上更薄或更厚不代表真实纳米厚度改变。",
+    "示意波振幅不能替代 R/T/A 数字。",
+    "四分之一波设计波长不保证在任意入射角和偏振下都是全局最低点。",
+    "当前正式 JSON 是 45° 入射，不能套用正入射 TE/TM 相同的结论。"
+  ],
+  "model_boundaries": [
+    "膜层为平面、均匀、各向同性的 TMM 模型。",
+    "当前前端不重新计算任意膜厚，因此不提供仅改变方块外观的虚假膜厚实验。",
+    "动态正弦线由正式 R/T 驱动，但不是膜内定量空间电场。",
+    "无损结构的正式 A=0；透射率采用当前 TMM 功率归一化定义。"
+  ],
+  "formula_sections": [
+    {
+      "title": "光学相位厚度",
+      "formula": "δ = (2π/λ) n_f d cosθ_f",
+      "explanation": "相位厚度同时依赖波长、折射率、膜厚和膜内角度；斜入射时不能只看 d=λ/(4n)。"
+    },
+    {
+      "title": "无损能量关系",
+      "formula": "R + T = 1，A = 0",
+      "explanation": "本案例正式 JSON 的能量守恒残差为 0。精确数值必须读取 Python TMM 输出。"
+    }
+  ]
+}

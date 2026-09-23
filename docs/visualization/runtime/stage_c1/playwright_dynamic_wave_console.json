@@ -1,0 +1,72 @@
+[
+  {
+    "caseId": "single_ar",
+    "type": "debug",
+    "text": "[vite] connecting..."
+  },
+  {
+    "caseId": "single_ar",
+    "type": "debug",
+    "text": "[vite] connected."
+  },
+  {
+    "caseId": "single_ar",
+    "type": "warning",
+    "text": "[.WebGL-0x1fc4001c6e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+  },
+  {
+    "caseId": "single_ar",
+    "type": "warning",
+    "text": "[.WebGL-0x1fc4001c6e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+  },
+  {
+    "caseId": "single_ar",
+    "type": "warning",
+    "text": "[.WebGL-0x1fc4001c6e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+  },
+  {
+    "caseId": "single_ar",
+    "type": "warning",
+    "text": "[.WebGL-0x1fc4001c6e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)"
+  },
+  {
+    "caseId": "bragg_reflector",
+    "type": "debug",
+    "text": "[vite] connecting..."
+  },
+  {
+    "caseId": "bragg_reflector",
+    "type": "debug",
+    "text": "[vite] connected."
+  },
+  {
+    "caseId": "fp_filter",
+    "type": "debug",
+    "text": "[vite] connecting..."
+  },
+  {
+    "caseId": "fp_filter",
+    "type": "debug",
+    "text": "[vite] connected."
+  },
+  {
+    "caseId": "narrowband_filter",
+    "type": "debug",
+    "text": "[vite] connecting..."
+  },
+  {
+    "caseId": "narrowband_filter",
+    "type": "debug",
+    "text": "[vite] connected."
+  },
+  {
+    "caseId": "tamm_phase_bundle",
+    "type": "debug",
+    "text": "[vite] connecting..."
+  },
+  {
+    "caseId": "tamm_phase_bundle",
+    "type": "debug",
+    "text": "[vite] connected."
+  }
+]

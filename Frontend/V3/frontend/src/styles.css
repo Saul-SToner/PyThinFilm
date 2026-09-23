@@ -1,0 +1,109 @@
+@import "tailwindcss";
+@config "../tailwind.config.js";
+
+@layer base {
+  :root {
+    --background: 210 25% 98%;
+    --foreground: 222 35% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 35% 12%;
+    --primary: 181 65% 28%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 215 24% 92%;
+    --secondary-foreground: 222 35% 15%;
+    --muted: 210 22% 94%;
+    --muted-foreground: 215 16% 42%;
+    --accent: 42 92% 54%;
+    --accent-foreground: 28 44% 16%;
+    --destructive: 0 72% 45%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 214 24% 86%;
+    --input: 214 24% 86%;
+    --ring: 181 65% 34%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 220 20% 10%;
+    --foreground: 210 20% 96%;
+    --card: 220 18% 13%;
+    --card-foreground: 210 20% 96%;
+    --primary: 176 62% 42%;
+    --primary-foreground: 218 28% 9%;
+    --secondary: 218 18% 19%;
+    --secondary-foreground: 210 20% 96%;
+    --muted: 218 18% 19%;
+    --muted-foreground: 215 15% 68%;
+    --accent: 43 90% 57%;
+    --accent-foreground: 28 44% 14%;
+    --destructive: 0 65% 48%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 218 17% 25%;
+    --input: 218 17% 25%;
+    --ring: 176 62% 45%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    margin: 0;
+    font-family:
+      Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    letter-spacing: 0;
+  }
+}
+
+.resize-handle {
+  width: 8px;
+  background:
+    linear-gradient(to right, transparent 0, transparent 3px, hsl(var(--border)) 3px, hsl(var(--border)) 5px, transparent 5px);
+  transition: background-color 140ms ease;
+}
+
+.resize-handle[data-resize-handle-active],
+.resize-handle:hover {
+  background-color: hsl(var(--muted));
+}
+
+/* 隐藏滚动条 */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari, Opera */
+}
+
+.ai-markdown {
+  color: hsl(var(--foreground));
+  font-size: 0.875rem;
+  line-height: 1.75;
+  overflow-wrap: anywhere;
+}
+
+.ai-markdown > :first-child { margin-top: 0; }
+.ai-markdown > :last-child { margin-bottom: 0; }
+.ai-markdown p, .ai-markdown ul, .ai-markdown ol, .ai-markdown blockquote, .ai-markdown pre, .ai-markdown table { margin: 0.65rem 0; }
+.ai-markdown h1, .ai-markdown h2, .ai-markdown h3, .ai-markdown h4 { margin: 1rem 0 0.4rem; font-weight: 650; line-height: 1.4; }
+.ai-markdown h1 { font-size: 1.2rem; }
+.ai-markdown h2 { font-size: 1.08rem; }
+.ai-markdown h3 { font-size: 0.98rem; }
+.ai-markdown ul { list-style: disc; padding-left: 1.35rem; }
+.ai-markdown ol { list-style: decimal; padding-left: 1.35rem; }
+.ai-markdown li { padding-left: 0.1rem; margin: 0.2rem 0; }
+.ai-markdown li > p { margin: 0.15rem 0; }
+.ai-markdown strong { font-weight: 700; }
+.ai-markdown a { color: hsl(var(--primary)); text-decoration: underline; text-underline-offset: 2px; }
+.ai-markdown blockquote { border-left: 3px solid hsl(var(--primary) / 0.35); padding-left: 0.8rem; color: hsl(var(--muted-foreground)); }
+.ai-markdown code { border-radius: 0.25rem; background: hsl(var(--muted)); padding: 0.1rem 0.3rem; font-size: 0.83em; }
+.ai-markdown pre { overflow-x: auto; border-radius: 0.55rem; background: #17212e; color: #e8edf5; padding: 0.85rem; line-height: 1.55; }
+.ai-markdown pre code { background: transparent; padding: 0; color: inherit; font-size: 0.8rem; }
+.ai-markdown table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; font-size: 0.83rem; }
+.ai-markdown th, .ai-markdown td { border: 1px solid hsl(var(--border)); padding: 0.35rem 0.55rem; text-align: left; }
+.ai-markdown th { background: hsl(var(--muted)); font-weight: 650; }
+.ai-markdown .katex-display { overflow-x: auto; overflow-y: hidden; padding: 0.25rem 0; }
+.ai-markdown-muted { color: hsl(var(--muted-foreground)); font-size: 0.78rem; }

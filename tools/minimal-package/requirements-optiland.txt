@@ -1,0 +1,11 @@
+numpy
+scipy
+pandas
+pyyaml
+matplotlib
+vtk
+tabulate
+numba>=0.60.0
+requests
+seaborn
+typing-extensions>=4.1.0

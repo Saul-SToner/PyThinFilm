@@ -1,0 +1,11 @@
+@import "../solar-ar/solarAr.css";
+
+.layer-list {
+  max-height: 270px;
+  overflow-y: auto;
+  padding-right: 3px;
+}
+
+#case-id {
+  font-variant-numeric: tabular-nums;
+}
