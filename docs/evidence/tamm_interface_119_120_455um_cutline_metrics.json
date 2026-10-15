@@ -1,0 +1,26 @@
+{
+  "source_csv": "C:\\Users\\L2791\\OneDrive\\Desktop\\deg.p\\tamm_interface_119_120_455um_cutline.csv",
+  "num_points": 3367,
+  "x_range_um": [
+    -20.0,
+    20.0
+  ],
+  "y_mean_um": 10.232465214761046,
+  "lambda_um": 4.549999999999999,
+  "d_W_L_nm": 119.0,
+  "d_W_R_nm": 120.00000000000001,
+  "E2_max": 26459671.512676068,
+  "E2_mean": 21428353.324264478,
+  "interface_E2_mean": 21636981.009675466,
+  "left_background_E2_mean": 22600306.25356974,
+  "right_background_E2_mean": 22264024.085810356,
+  "background_E2_mean": 22432165.169690054,
+  "interface_enhancement_mean": 0.9645516090845735,
+  "peak_enhancement_vs_background": 1.1795415784664385,
+  "hotspot_peak_x_um": -16.67348336664345,
+  "hotspot_center_x_um": -0.0007155401780236251,
+  "hotspot_width_fwhm_um": 37.097902750023835,
+  "passes_interface_enhancement_gt2": false,
+  "passes_center_abs_lt0p5um": true,
+  "passes_width_lt3um": false
+}

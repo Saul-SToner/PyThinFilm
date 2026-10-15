@@ -1,0 +1,22 @@
+{
+  "validation_files": {
+    "csv": "C:\\Users\\L2791\\thinfilm_outputs\\porous_double_ar_topic_v1_validation_porous_double_ar_comparison.csv",
+    "json": "C:\\Users\\L2791\\thinfilm_outputs\\porous_double_ar_topic_v1_validation_porous_double_ar_summary.json",
+    "txt": "C:\\Users\\L2791\\thinfilm_outputs\\porous_double_ar_topic_v1_validation_porous_double_ar_summary.txt",
+    "main_png": "C:\\Users\\L2791\\thinfilm_outputs\\porous_double_ar_topic_v1_validation_porous_double_ar_main.png",
+    "analysis_png": "C:\\Users\\L2791\\thinfilm_outputs\\porous_double_ar_topic_v1_validation_porous_double_ar_analysis.png"
+  },
+  "sensitivity_files": {
+    "csv": "C:\\Users\\L2791\\thinfilm_outputs\\porous_double_ar_topic_v1_sensitivity.csv",
+    "json": "C:\\Users\\L2791\\thinfilm_outputs\\porous_double_ar_topic_v1_sensitivity.json",
+    "txt": "C:\\Users\\L2791\\thinfilm_outputs\\porous_double_ar_topic_v1_sensitivity.txt",
+    "png": "C:\\Users\\L2791\\thinfilm_outputs\\porous_double_ar_topic_v1_sensitivity.png"
+  },
+  "theta_files": {
+    "csv": "C:\\Users\\L2791\\thinfilm_outputs\\porous_double_ar_topic_v1_theta.csv",
+    "json": "C:\\Users\\L2791\\thinfilm_outputs\\porous_double_ar_topic_v1_theta.json",
+    "txt": "C:\\Users\\L2791\\thinfilm_outputs\\porous_double_ar_topic_v1_theta.txt",
+    "png": "C:\\Users\\L2791\\thinfilm_outputs\\porous_double_ar_topic_v1_theta.png"
+  },
+  "summary_txt": "C:\\Users\\L2791\\thinfilm_outputs\\porous_double_ar_topic_v1_summary.txt"
+}

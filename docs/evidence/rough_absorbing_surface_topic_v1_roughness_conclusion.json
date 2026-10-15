@@ -1,0 +1,90 @@
+{
+  "lambda0_nm": 550.0,
+  "rows": [
+    {
+      "roughness_factor": 0.25,
+      "reference_csv": "C:\\Users\\L2791\\OneDrive\\Desktop\\deg.p\\2D periodic quasi-random rough absorbing surface(0.25).csv",
+      "R_mean": 0.3028901635997277,
+      "T_mean": 0.12834044952906334,
+      "A_mean": 0.568769386871209,
+      "R_at_lambda0": 0.3006835092270138,
+      "T_at_lambda0": 0.1116019606186931,
+      "A_at_lambda0": 0.5877145301542931
+    },
+    {
+      "roughness_factor": 0.5,
+      "reference_csv": "C:\\Users\\L2791\\OneDrive\\Desktop\\deg.p\\2D periodic quasi-random rough absorbing surface(0.5).csv",
+      "R_mean": 0.2858075946124119,
+      "T_mean": 0.12947961129706326,
+      "A_mean": 0.5847127940905248,
+      "R_at_lambda0": 0.281634488286801,
+      "T_at_lambda0": 0.1131304961433745,
+      "A_at_lambda0": 0.6052350155698245
+    },
+    {
+      "roughness_factor": 0.75,
+      "reference_csv": "C:\\Users\\L2791\\OneDrive\\Desktop\\deg.p\\2D periodic quasi-random rough absorbing surface(0.75).csv",
+      "R_mean": 0.2602279922066261,
+      "T_mean": 0.13122686267436234,
+      "A_mean": 0.6085451451190116,
+      "R_at_lambda0": 0.25301091558026,
+      "T_at_lambda0": 0.115417340622879,
+      "A_at_lambda0": 0.631571743796861
+    },
+    {
+      "roughness_factor": 1.0,
+      "reference_csv": "C:\\Users\\L2791\\OneDrive\\Desktop\\deg.p\\2D periodic quasi-random rough absorbing surface.csv",
+      "R_mean": 0.23020608882223612,
+      "T_mean": 0.1330672656090648,
+      "A_mean": 0.6367266455686991,
+      "R_at_lambda0": 0.2191130944497568,
+      "T_at_lambda0": 0.1177937810290036,
+      "A_at_lambda0": 0.6630931245212396
+    },
+    {
+      "roughness_factor": 1.1,
+      "reference_csv": "C:\\Users\\L2791\\OneDrive\\Desktop\\deg.p\\2D periodic quasi-random rough absorbing surface(1.1).csv",
+      "R_mean": 0.2179479683807768,
+      "T_mean": 0.133716749357761,
+      "A_mean": 0.6483352822614622,
+      "R_at_lambda0": 0.2052308494687067,
+      "T_at_lambda0": 0.1186084949599133,
+      "A_at_lambda0": 0.6761606555713799
+    },
+    {
+      "roughness_factor": 1.15,
+      "reference_csv": "C:\\Users\\L2791\\OneDrive\\Desktop\\deg.p\\2D periodic quasi-random rough absorbing surface(1.15).csv",
+      "R_mean": 0.2118804708563858,
+      "T_mean": 0.1340108933387582,
+      "A_mean": 0.6541086358048559,
+      "R_at_lambda0": 0.1983880434930714,
+      "T_at_lambda0": 0.1189656002179048,
+      "A_at_lambda0": 0.6826463562890238
+    }
+  ],
+  "best_by_a550": {
+    "roughness_factor": 1.15,
+    "reference_csv": "C:\\Users\\L2791\\OneDrive\\Desktop\\deg.p\\2D periodic quasi-random rough absorbing surface(1.15).csv",
+    "R_mean": 0.2118804708563858,
+    "T_mean": 0.1340108933387582,
+    "A_mean": 0.6541086358048559,
+    "R_at_lambda0": 0.1983880434930714,
+    "T_at_lambda0": 0.1189656002179048,
+    "A_at_lambda0": 0.6826463562890238
+  },
+  "best_by_amean": {
+    "roughness_factor": 1.15,
+    "reference_csv": "C:\\Users\\L2791\\OneDrive\\Desktop\\deg.p\\2D periodic quasi-random rough absorbing surface(1.15).csv",
+    "R_mean": 0.2118804708563858,
+    "T_mean": 0.1340108933387582,
+    "A_mean": 0.6541086358048559,
+    "R_at_lambda0": 0.1983880434930714,
+    "T_at_lambda0": 0.1189656002179048,
+    "A_at_lambda0": 0.6826463562890238
+  },
+  "monotonic_a550": true,
+  "monotonic_amean": true,
+  "max_tested_factor": 1.15,
+  "trend_cn": "在当前可计算范围内，粗糙度增大持续提升吸收。",
+  "stability_cn": "当前已验证的最大可计算粗糙度倍率为 1.15。 若更大粗糙度无法求解，可将其视为当前几何/数值稳定边界附近。"
+}

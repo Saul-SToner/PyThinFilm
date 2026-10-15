@@ -1,0 +1,148 @@
+{
+  "case_id": "fp_double_halfwave",
+  "title_cn": "双半波型 F-P 滤光片",
+  "title_en": "Double-Half-Wave F-P Filter",
+  "design_type": "fp_double_halfwave",
+  "theta_deg": 0.0,
+  "pol": "p",
+  "lambda0_nm": 550.0,
+  "layers": [
+    {
+      "name": "H",
+      "n_real": 2.15,
+      "n_imag": 0.0,
+      "thickness_nm": 63.95348837209303
+    },
+    {
+      "name": "L",
+      "n_real": 1.38,
+      "n_imag": 0.0,
+      "thickness_nm": 99.6376811594203
+    },
+    {
+      "name": "H",
+      "n_real": 2.15,
+      "n_imag": 0.0,
+      "thickness_nm": 63.95348837209303
+    },
+    {
+      "name": "L",
+      "n_real": 1.38,
+      "n_imag": 0.0,
+      "thickness_nm": 99.6376811594203
+    },
+    {
+      "name": "H",
+      "n_real": 2.15,
+      "n_imag": 0.0,
+      "thickness_nm": 63.95348837209303
+    },
+    {
+      "name": "2L",
+      "n_real": 1.38,
+      "n_imag": 0.0,
+      "thickness_nm": 199.2753623188406
+    },
+    {
+      "name": "H",
+      "n_real": 2.15,
+      "n_imag": 0.0,
+      "thickness_nm": 63.95348837209303
+    },
+    {
+      "name": "L",
+      "n_real": 1.38,
+      "n_imag": 0.0,
+      "thickness_nm": 99.6376811594203
+    },
+    {
+      "name": "H",
+      "n_real": 2.15,
+      "n_imag": 0.0,
+      "thickness_nm": 63.95348837209303
+    },
+    {
+      "name": "L",
+      "n_real": 1.38,
+      "n_imag": 0.0,
+      "thickness_nm": 99.6376811594203
+    },
+    {
+      "name": "2H",
+      "n_real": 2.15,
+      "n_imag": 0.0,
+      "thickness_nm": 127.90697674418605
+    },
+    {
+      "name": "L",
+      "n_real": 1.38,
+      "n_imag": 0.0,
+      "thickness_nm": 99.6376811594203
+    },
+    {
+      "name": "H",
+      "n_real": 2.15,
+      "n_imag": 0.0,
+      "thickness_nm": 63.95348837209303
+    },
+    {
+      "name": "L",
+      "n_real": 1.38,
+      "n_imag": 0.0,
+      "thickness_nm": 99.6376811594203
+    },
+    {
+      "name": "H",
+      "n_real": 2.15,
+      "n_imag": 0.0,
+      "thickness_nm": 63.95348837209303
+    },
+    {
+      "name": "2L",
+      "n_real": 1.38,
+      "n_imag": 0.0,
+      "thickness_nm": 199.2753623188406
+    },
+    {
+      "name": "H",
+      "n_real": 2.15,
+      "n_imag": 0.0,
+      "thickness_nm": 63.95348837209303
+    },
+    {
+      "name": "L",
+      "n_real": 1.38,
+      "n_imag": 0.0,
+      "thickness_nm": 99.6376811594203
+    },
+    {
+      "name": "H",
+      "n_real": 2.15,
+      "n_imag": 0.0,
+      "thickness_nm": 63.95348837209303
+    },
+    {
+      "name": "L",
+      "n_real": 1.38,
+      "n_imag": 0.0,
+      "thickness_nm": 99.6376811594203
+    },
+    {
+      "name": "H",
+      "n_real": 2.15,
+      "n_imag": 0.0,
+      "thickness_nm": 63.95348837209303
+    }
+  ],
+  "summary": {
+    "R_at_lambda0": 0.042579994960947325,
+    "T_at_lambda0": 0.9574200050390523,
+    "A_at_lambda0": 3.3306690738754696e-16,
+    "R_min": 0.017554625175977445,
+    "R_min_wavelength_nm": 418.0,
+    "R_max": 0.9980766714651802,
+    "R_max_wavelength_nm": 477.0,
+    "T_max": 0.9824453748240224,
+    "T_max_wavelength_nm": 418.0
+  }
+}

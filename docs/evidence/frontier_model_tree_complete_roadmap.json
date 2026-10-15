@@ -1,0 +1,246 @@
+{
+  "summary_cn": "前沿研究模块建议与教学主树分离管理；当前保留 Tamm 热辐射空间调控与 PDRC 被动日间辐射冷却两条应用研究支线。",
+  "principles_cn": [
+    "不把前沿研究模块直接塞进教学主树首页，避免打乱教学案例层级。",
+    "优先做一维或准一维可验证结构，先锁定光谱和参数趋势，再进入二维场分布或微结构增强。",
+    "先保证“固定结构光谱”解释正确，再开展相位、界面结构或 PDRC 参数优化。"
+  ],
+  "recommended_sequence_cn": [
+    "普通 Tamm 吸收器",
+    "反射相位与拓扑分类",
+    "拓扑 Tamm 边界态与热辐射空间调控",
+    "PDRC 平面多层膜宽波段筛选",
+    "PDRC COMSOL 代表点验证"
+  ],
+  "modules": [
+    {
+      "module_id": "topological_tamm_thermal_radiation",
+      "title_cn": "拓扑 Tamm 边界态与热辐射空间调控",
+      "title_en": "Topological Tamm Boundary States for Spatial Thermal Radiation Control",
+      "module_type": "frontier_research",
+      "goal_cn": "从普通 Tamm 吸收器出发，逐步走向反射相位拓扑分类、界面边界态与热辐射空间调控。",
+      "why_cn": "该模块仍建立在一维多层膜与金属薄膜结构之上，能够与现有薄膜平台平滑衔接，同时又具备明显的前沿研究属性。",
+      "status": "in_progress",
+      "stages": [
+        {
+          "stage_id": "tamm_absorber_basic",
+          "title_cn": "普通 Tamm 吸收器",
+          "title_en": "Conventional Tamm Absorber",
+          "priority": 1,
+          "status": "phase_complete",
+          "goal_cn": "建立 Air / 金属薄膜 / 间隔层 / DBR / 基底 结构，并锁定主要高吸收工作波段。",
+          "suitable_backend_cn": [
+            "平面多层膜理论模型",
+            "COMSOL 单谱与参数扫描"
+          ],
+          "core_outputs_cn": [
+            "R(λ)",
+            "A(λ)",
+            "峰值吸收率",
+            "峰位",
+            "平均吸收率"
+          ],
+          "current_progress_cn": [
+            "已修正“结构参数随扫描波长变化”的错误，当前光谱已可按固定结构解释。",
+            "已完成 d_W = 10~120 nm 的主扫描，普通 Tamm 吸收器的主要高吸收工作区已锁定。",
+            "当前峰位稳定在约 4.50~4.80 μm，高吸收工作区已基本成形。"
+          ],
+          "current_best_params_cn": [
+            "当前阶段性最佳点：d_W = 120 nm",
+            "峰值吸收率 A_max ≈ 0.9979",
+            "峰位约为 4.50 μm",
+            "平均吸收率 A_mean ≈ 0.9272"
+          ],
+          "current_findings_cn": [
+            "d_W 从 10 nm 增加到 120 nm 时，峰值吸收率由约 0.241 持续提升到约 0.998。",
+            "峰位随 d_W 增厚呈轻微短波漂移，由约 4.80 μm 移动到约 4.50 μm。",
+            "到 110~120 nm 区间时已进入近完美吸收区，继续增厚的边际收益开始明显减小。"
+          ],
+          "transition_ready_cn": "普通 Tamm 吸收器的主摸底阶段已经足够支撑第 2 阶段的反射相位与拓扑分类。",
+          "next_actions_cn": [
+            "优先转入反射相位与拓扑分类，不再把主精力放在继续大范围增厚 d_W 上。",
+            "如需做数值收尾，可只在 110, 115, 120, 125, 130 nm 附近做小范围细扫。",
+            "后续将以 d_W = 120 nm 及其邻域代表点为基础提取反射相位曲线。"
+          ]
+        },
+        {
+          "stage_id": "reflection_phase_topology",
+          "title_cn": "反射相位与拓扑分类",
+          "title_en": "Reflection Phase and Topological Classification",
+          "priority": 2,
+          "status": "in_progress",
+          "goal_cn": "在普通 Tamm 吸收器参数基础上，引入反射相位、卷绕数或平庸/非平庸反射表面分类。",
+          "suitable_backend_cn": [
+            "平面多层膜理论模型优先",
+            "必要时用 COMSOL 做交叉验证"
+          ],
+          "core_outputs_cn": [
+            "反射相位",
+            "相位跨越",
+            "卷绕数分类",
+            "平庸/非平庸标记"
+          ],
+          "current_progress_cn": [
+            "已建立 d_W 联合扫描的相位分析入口，并已导出第一版相位分析总包。",
+            "当前最适合以 d_W = 100, 110, 120 nm 三个代表点作为第 2 阶段核心样本做相位比较。"
+          ],
+          "current_findings_cn": [
+            "现阶段已能够同步追踪 A_max、峰位、峰处相位和展开相位跨度。",
+            "随着 d_W 增大，吸收峰位轻微向短波移动，相位信息已具备进入拓扑分类的最小分析条件。",
+            "当前整体相位对比最强的候选对为 90 nm 与 120 nm。",
+            "当前峰处相位差最大的高吸收候选对为 110 nm 与 120 nm。",
+            "已建立 cutline 界面态候选判据：interface/background、peak/background、hotspot_peak_x 与 FWHM。",
+            "119/120 nm @ 4.55 μm 三条 y 位置 cutline 均显示 interface/background≈0.965、FWHM≈11.6 μm，不支持强界面局域态。",
+            "100~130 nm 左右厚度 49 组筛选与 130/130 nm 波长扫描均未发现满足界面局域判据的正候选。"
+          ],
+          "next_actions_cn": [
+            "暂停直接拼接相近厚度的 2D 猜测式扫描。",
+            "回到 1D 反射相位筛选，寻找同一波长下 R 较高且 arg(S11) 相差接近 π 的两种端结构。",
+            "只有找到相位差明确的左右端结构后，再做 2D 拼接 cutline 或场图验证。"
+          ]
+        },
+        {
+          "stage_id": "topological_tamm_boundary_state",
+          "title_cn": "拓扑 Tamm 边界态与空间调控",
+          "title_en": "Topological Tamm Boundary State and Spatial Control",
+          "priority": 3,
+          "status": "screening_negative",
+          "goal_cn": "构造两类不同拓扑反射表面的界面，验证边界态局域化与热辐射空间调控潜力。",
+          "suitable_backend_cn": [
+            "二维或更高维 COMSOL 模型",
+            "界面场分布与局域增强分析"
+          ],
+          "core_outputs_cn": [
+            "界面场分布",
+            "局域化强度",
+            "界面热辐射空间分布",
+            "边界态存在性证据"
+          ],
+          "current_progress_cn": [
+            "已完成 119/120 nm @ 4.55 μm 三条 cutline 验证。",
+            "已完成 d_W,L/d_W,R = 100~130 nm 的 49 组 cutline 筛选。",
+            "已完成 130/130 nm 在 4.45~4.75 μm 的波长 cutline 扫描。",
+            "当前所有已测候选均未满足 interface/background > 1.5、|peak_x| < 0.5 μm、FWHM < 5 μm 的正候选判据。"
+          ],
+          "next_actions_cn": [
+            "将当前阶段定位为界面态量化判据建立与反例排除，不作为正界面态结果。",
+            "下一轮若继续追正结果，应先做 1D phase scan：d_W=80~160 nm、λ=4.3~4.9 μm，筛选反射相位差接近 π 的左右端结构。",
+            "找到相位端结构后，再进入 2D 拼接验证，而不是继续围绕 119/120 或 130/130 做局部微调。"
+          ]
+        }
+      ]
+    },
+    {
+      "module_id": "pdrc_multilayer_cooling",
+      "title_cn": "被动日间辐射冷却薄膜光谱调控",
+      "title_en": "Passive Daytime Radiative Cooling Multilayer Spectral Control",
+      "module_type": "frontier_application",
+      "goal_cn": "构建兼具太阳波段高反射与 8-13 μm 大气窗口高发射的薄膜结构，形成由 COMSOL 宽波段扫描与 Python 指标筛选共同支撑的 PDRC 模块。",
+      "why_cn": "该模块以平面多层膜为第一入口，复用现有薄膜理论平台，同时把应用目标从可见光减反/滤光扩展到热辐射冷却。",
+      "status": "first_version_locked",
+      "selected_candidate_cn": {
+        "structure_cn": "Air / SiO2_1 / TiO2_1 / SiO2_2 / TiO2_2 / SiO2_3 / Ag / substrate",
+        "thicknesses_nm": {
+          "d_SiO2_1": 200.0,
+          "d_TiO2_1": 440.0,
+          "d_SiO2_2": 500.0,
+          "d_TiO2_2": 440.0,
+          "d_SiO2_3": 1000.0,
+          "d_Ag": 500.0
+        },
+        "metrics": {
+          "A_solar_avg": 0.0336,
+          "A_solar_weighted_astm_g173_am15_global": 0.0306,
+          "epsilon_8_13_avg": 0.8004,
+          "cooling_score_weighted_astm_g173": 0.7698
+        },
+        "note_cn": "该候选在红外发射率接近最高点的同时保持最低太阳加权吸收，适合作为 PDRC 平面膜第一版主结果。"
+      },
+      "stages": [
+        {
+          "stage_id": "pdrc_tmm_wideband_screening",
+          "title_cn": "宽波段 TMM 光谱筛选",
+          "title_en": "Wideband TMM Spectral Screening",
+          "priority": 1,
+          "status": "implemented",
+          "goal_cn": "先用 Air / SiO2_1 / TiO2_1 / SiO2_2 / TiO2_2 / SiO2_3 / Ag / substrate 平面膜跑通 0.3-13 μm 光谱。",
+          "suitable_backend_cn": [
+            "Python TMM 宽波段扫描"
+          ],
+          "core_outputs_cn": [
+            "R(λ)",
+            "T(λ)",
+            "A(λ)",
+            "emissivity(λ)≈A(λ)",
+            "A_solar_avg",
+            "epsilon_8_13_avg",
+            "cooling_score"
+          ],
+          "current_progress_cn": [
+            "已接入 pdrc_multilayer_cooling 独立模块，不放入教学主树首页。",
+            "第一版结构已对齐 COMSOL 2D 平面层模型，并完成真实材料宽波段 R/T/A 导出。",
+            "已支持导出 spectrum.csv、metrics.csv、summary.json、summary.txt 和宽波段图。",
+            "TMM 快速筛选保留为辅助入口，展示主结果以 COMSOL 真实材料扫描和 Python 指标筛选为准。"
+          ],
+          "next_actions_cn": [
+            "已接入 ASTM G173-03 AM1.5 global tilt 标准太阳光谱权重；blackbody_5778K 仅保留为无外部数据时的快速近似。",
+            "保留当前 TMM 版本作为快速教学演示，不再把它作为最终 PDRC 性能结论。"
+          ]
+        },
+        {
+          "stage_id": "pdrc_comsol_representative_validation",
+          "title_cn": "COMSOL 宽波段参数扫描与候选筛选",
+          "title_en": "COMSOL Wideband Parameter Scan and Candidate Selection",
+          "priority": 2,
+          "status": "first_version_locked",
+          "goal_cn": "通过 COMSOL 导出太阳波段与 8-13 μm 红外窗口 R/T/A，再由 Python 合并多段扫描、计算太阳加权吸收和窗口平均发射率。",
+          "suitable_backend_cn": [
+            "COMSOL 2D 平面多层膜",
+            "Python COMSOL CSV 合并、去重、指标筛选与出图"
+          ],
+          "core_outputs_cn": [
+            "A_solar_avg",
+            "A_solar_weighted",
+            "epsilon_8_13_avg",
+            "cooling_score_weighted",
+            "候选参数表",
+            "二维参数散点图"
+          ],
+          "current_progress_cn": [
+            "已完成 d_TiO2 等厚扫描，并锁定 d_TiO2_1=d_TiO2_2=440 nm 作为后续 SiO2 微调基准。",
+            "已完成 d_SiO2_1 / d_SiO2_2 粗扫与候选太阳波段复核。",
+            "最终主候选为 d_SiO2_1=200 nm、d_SiO2_2=500 nm、d_TiO2_1=d_TiO2_2=440 nm、d_SiO2_3=1000 nm、Ag=500 nm。",
+            "主候选指标：A_solar_avg=0.0336、A_solar_weighted(ASTM G173)=0.0306、epsilon_8_13_avg=0.8004、cooling_score_weighted(ASTM G173)=0.7698。",
+            "红外最高对照候选为 d_SiO2_1=240 nm、d_SiO2_2=600 nm，epsilon_8_13_avg=0.8011。"
+          ],
+          "next_actions_cn": [
+            "停止继续大规模扫参，转入结果整理与汇报图表输出。",
+            "在文档中明确当前标准太阳加权使用 ASTM G173-03 AM1.5 global tilt。",
+            "保留 240/600 nm 作为红外最高对照，不作为主候选。"
+          ]
+        },
+        {
+          "stage_id": "pdrc_advanced_structures",
+          "title_cn": "多孔/粗糙/微结构增强版本",
+          "title_en": "Porous, Rough and Textured PDRC Extensions",
+          "priority": 3,
+          "status": "planned",
+          "goal_cn": "在平面膜跑通之后，引入多孔 SiO2、粗糙发射表面或等效渐变层，提高太阳反射与红外发射的综合表现。",
+          "suitable_backend_cn": [
+            "Python 等效介质模型",
+            "COMSOL 二维或三维结构验证"
+          ],
+          "core_outputs_cn": [
+            "参数敏感性",
+            "结构增强因子",
+            "PDRC 指标提升量"
+          ],
+          "next_actions_cn": [
+            "优先从多孔 SiO2 有效折射率和厚度扫描开始。",
+            "再接入蛾眼/粗糙结构作为高级版本，不和第一版平面膜混在一起。"
+          ]
+        }
+      ]
+    }
+  ]
+}

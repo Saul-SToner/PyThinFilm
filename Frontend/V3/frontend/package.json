@@ -10,8 +10,11 @@
     "dev:electron": "wait-on tcp:8122 http://127.0.0.1:5173 && tsc -p tsconfig.electron.json && cross-env VITE_DEV_SERVER_URL=http://127.0.0.1:5173 electron .",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.electron.json --noEmit",
     "build": "tsc --noEmit && vite build && tsc -p tsconfig.electron.json",
-    "build:backend": "..\\.venv\\Scripts\\python.exe -m PyInstaller pythonfilm-backend.spec --clean --noconfirm --distpath backend-dist --workpath backend-build",
-    "dist": "npm run build:backend && npm run build && electron-builder --win",
+    "release:preflight": "..\\.venv\\Scripts\\python.exe ..\\..\\..\\tools\\release_audit.py preflight",
+    "release:runtime": "powershell -NoProfile -ExecutionPolicy Bypass -File ..\\..\\..\\tools\\build_generaltmm_runtime.ps1",
+    "build:backend": "npm run release:preflight && ..\\.venv\\Scripts\\python.exe -m PyInstaller pythonfilm-backend.spec --clean --noconfirm --distpath backend-dist --workpath backend-build",
+    "dist": "npm run build:backend && npm run release:runtime && npm run build && electron-builder --win",
+    "release:smoke": "..\\.venv\\Scripts\\python.exe ..\\..\\..\\tools\\release_audit.py smoke --unpacked release\\win-unpacked",
     "preview": "vite preview --host 0.0.0.0"
   },
   "build": {
@@ -40,6 +43,10 @@
       {
         "from": "node_modules/tmmcore",
         "to": "tmmcore/node_modules/tmmcore"
+      },
+      {
+        "from": "generaltmm-runtime",
+        "to": "generaltmm-python"
       },
       {
         "from": "tools/port-preflight.ps1",

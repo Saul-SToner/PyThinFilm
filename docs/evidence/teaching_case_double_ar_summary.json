@@ -1,0 +1,34 @@
+{
+  "case_id": "double_ar",
+  "title_cn": "双层减反射膜",
+  "title_en": "Double-Layer Anti-Reflection",
+  "design_type": "double_ar",
+  "theta_deg": 0.0,
+  "pol": "p",
+  "lambda0_nm": 550.0,
+  "layers": [
+    {
+      "name": "L",
+      "n_real": 1.45,
+      "n_imag": 0.0,
+      "thickness_nm": 94.82758620689656
+    },
+    {
+      "name": "H",
+      "n_real": 2.1,
+      "n_imag": 0.0,
+      "thickness_nm": 65.47619047619047
+    }
+  ],
+  "summary": {
+    "R_at_lambda0": 0.02548535308076739,
+    "T_at_lambda0": 0.9745146469192324,
+    "A_at_lambda0": 2.220446049250313e-16,
+    "R_min": 0.02548535308076739,
+    "R_min_wavelength_nm": 550.0,
+    "R_max": 0.12452054929162763,
+    "R_max_wavelength_nm": 400.0,
+    "T_max": 0.9745146469192324,
+    "T_max_wavelength_nm": 550.0
+  }
+}

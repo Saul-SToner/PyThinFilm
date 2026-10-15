@@ -1,4 +1,5 @@
 # -*- mode: python ; coding: utf-8 -*-
+import os
 from pathlib import Path
 
 from PyInstaller.utils.hooks import collect_data_files, collect_submodules
@@ -6,7 +7,7 @@ from PyInstaller.utils.hooks import collect_data_files, collect_submodules
 
 frontend = Path.cwd().resolve()
 project = frontend.parents[2]
-optiland_checkout = project.parent / "optiland"
+optiland_checkout = Path(os.environ.get("THINFILM_OPTILAND_CHECKOUT", project.parent / "optiland")).resolve()
 backend = project / "Frontend" / "V3" / "backend"
 
 datas = [
@@ -23,6 +24,8 @@ for name in (
     datas.append((str(project / "experiments" / name), "experiments"))
 datas += collect_data_files("matplotlib")
 datas += collect_data_files("optiland")
+datas += collect_data_files("rcwa")
+datas += collect_data_files("wptherml")
 
 hiddenimports = [
     "experiments.optiland_draft_render", "experiments.optiland_real_material_ar_comparison",

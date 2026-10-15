@@ -1,0 +1,28 @@
+{
+  "case_id": "quarter_wave_single_layer",
+  "title_cn": "1/4波长单层膜",
+  "title_en": "Quarter-Wave Single Layer",
+  "design_type": "quarter_wave_single_layer",
+  "theta_deg": 0.0,
+  "pol": "p",
+  "lambda0_nm": 550.0,
+  "layers": [
+    {
+      "name": "QW",
+      "n_real": 1.3785,
+      "n_imag": 0.0,
+      "thickness_nm": 99.74610083424011
+    }
+  ],
+  "summary": {
+    "R_at_lambda0": 0.012252753996975733,
+    "T_at_lambda0": 0.9877472460030242,
+    "A_at_lambda0": 0.0,
+    "R_min": 0.012252753996975733,
+    "R_min_wavelength_nm": 550.0,
+    "R_max": 0.021879372656099412,
+    "R_max_wavelength_nm": 400.0,
+    "T_max": 0.9877472460030242,
+    "T_max_wavelength_nm": 550.0
+  }
+}

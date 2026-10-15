@@ -73,3 +73,16 @@ tmp/
 
 # Web3D local test results
 web3d/test-results/
+
+# Historical core copy and generated release runtime
+/Frontend/V3/PyThinFilm/
+/Frontend/V3/frontend/generaltmm-runtime/
+/Frontend/V3/skills-lock.json
+
+# Local presentation, animation and review artifacts
+/video_materials/
+/ppt_review/
+/projects/
+/diagram_drafts/
+/generaltmm-noarchive-probe.spec
+/docs/evidence/*.html

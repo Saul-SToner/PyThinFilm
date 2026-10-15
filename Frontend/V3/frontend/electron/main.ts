@@ -52,6 +52,10 @@ function startBackend(): void {
       THINFILM_PYTHINFILM_ROOT: app.isPackaged ? backendCwd : path.resolve(repoRoot, "..", ".."),
       THINFILM_OPTILAND_ROOT: backendCwd,
       THINFILM_OPTILAND_PYTHON: backendCommand,
+      ...(app.isPackaged ? {
+        THINFILM_GENERALTMM_PYTHON: path.join(process.resourcesPath, "generaltmm-python", "python.exe"),
+        THINFILM_GENERALTMM_WORKER: path.join(process.resourcesPath, "generaltmm-python", "worker.py"),
+      } : {}),
     },
     windowsHide: true,
     stdio: "ignore",

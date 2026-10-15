@@ -1,0 +1,13 @@
+{
+  "ir_summary_csv": "C:\\Users\\L2791\\thinfilm_outputs\\pdrc_pretty_astm_g173_ir_summary.csv",
+  "ir_merged_csv": "C:\\Users\\L2791\\thinfilm_outputs\\pdrc_pretty_astm_g173_ir_merged.csv",
+  "solar_summary_csv": "C:\\Users\\L2791\\thinfilm_outputs\\pdrc_pretty_astm_g173_solar_summary.csv",
+  "final_metrics_csv": "C:\\Users\\L2791\\thinfilm_outputs\\pdrc_pretty_astm_g173_final_metrics.csv",
+  "summary_json": "C:\\Users\\L2791\\thinfilm_outputs\\pdrc_pretty_astm_g173_summary.json",
+  "summary_txt": "C:\\Users\\L2791\\thinfilm_outputs\\pdrc_pretty_astm_g173_summary.txt",
+  "ir_summary_scatter_png": "C:\\Users\\L2791\\thinfilm_outputs\\pdrc_pretty_astm_g173_ir_summary_scatter.png",
+  "ir_summary_png": "C:\\Users\\L2791\\thinfilm_outputs\\pdrc_pretty_astm_g173_ir_summary.png",
+  "final_metrics_scatter_png": "C:\\Users\\L2791\\thinfilm_outputs\\pdrc_pretty_astm_g173_final_metrics_scatter.png",
+  "final_dashboard_png": "C:\\Users\\L2791\\thinfilm_outputs\\pdrc_pretty_astm_g173_final_dashboard.png",
+  "final_metrics_png": "C:\\Users\\L2791\\thinfilm_outputs\\pdrc_pretty_astm_g173_final_metrics.png"
+}

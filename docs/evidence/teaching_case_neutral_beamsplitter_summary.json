@@ -1,0 +1,46 @@
+{
+  "case_id": "neutral_beamsplitter",
+  "title_cn": "中性分束膜",
+  "title_en": "Neutral Beam Splitter",
+  "design_type": "neutral_beamsplitter",
+  "theta_deg": 0.0,
+  "pol": "p",
+  "lambda0_nm": 550.0,
+  "layers": [
+    {
+      "name": "L",
+      "n_real": 1.38,
+      "n_imag": 0.0,
+      "thickness_nm": 99.6376811594203
+    },
+    {
+      "name": "H",
+      "n_real": 2.35,
+      "n_imag": 0.0,
+      "thickness_nm": 58.51063829787234
+    },
+    {
+      "name": "L",
+      "n_real": 1.38,
+      "n_imag": 0.0,
+      "thickness_nm": 99.6376811594203
+    },
+    {
+      "name": "H",
+      "n_real": 2.35,
+      "n_imag": 0.0,
+      "thickness_nm": 58.51063829787234
+    }
+  ],
+  "summary": {
+    "R_at_lambda0": 0.4814036557074371,
+    "T_at_lambda0": 0.518596344292563,
+    "A_at_lambda0": 0.0,
+    "R_min": 0.271068472505034,
+    "R_min_wavelength_nm": 400.0,
+    "R_max": 0.4815306166169156,
+    "R_max_wavelength_nm": 524.0,
+    "T_max": 0.7289315274949663,
+    "T_max_wavelength_nm": 400.0
+  }
+}

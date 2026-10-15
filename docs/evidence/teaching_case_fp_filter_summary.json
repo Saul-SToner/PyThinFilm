@@ -1,0 +1,124 @@
+{
+  "case_id": "fp_filter",
+  "title_cn": "F-P滤光片",
+  "title_en": "Fabry-Perot Filter",
+  "design_type": "fp_filter",
+  "theta_deg": 0.0,
+  "pol": "p",
+  "lambda0_nm": 550.0,
+  "layers": [
+    {
+      "name": "H",
+      "n_real": 2.1,
+      "n_imag": 0.0,
+      "thickness_nm": 65.47619047619047
+    },
+    {
+      "name": "L",
+      "n_real": 1.45,
+      "n_imag": 0.0,
+      "thickness_nm": 94.82758620689656
+    },
+    {
+      "name": "H",
+      "n_real": 2.1,
+      "n_imag": 0.0,
+      "thickness_nm": 65.47619047619047
+    },
+    {
+      "name": "L",
+      "n_real": 1.45,
+      "n_imag": 0.0,
+      "thickness_nm": 94.82758620689656
+    },
+    {
+      "name": "H",
+      "n_real": 2.1,
+      "n_imag": 0.0,
+      "thickness_nm": 65.47619047619047
+    },
+    {
+      "name": "L",
+      "n_real": 1.45,
+      "n_imag": 0.0,
+      "thickness_nm": 94.82758620689656
+    },
+    {
+      "name": "H",
+      "n_real": 2.1,
+      "n_imag": 0.0,
+      "thickness_nm": 65.47619047619047
+    },
+    {
+      "name": "L",
+      "n_real": 1.45,
+      "n_imag": 0.0,
+      "thickness_nm": 94.82758620689656
+    },
+    {
+      "name": "C",
+      "n_real": 1.45,
+      "n_imag": 0.0,
+      "thickness_nm": 189.6551724137931
+    },
+    {
+      "name": "L",
+      "n_real": 1.45,
+      "n_imag": 0.0,
+      "thickness_nm": 94.82758620689656
+    },
+    {
+      "name": "H",
+      "n_real": 2.1,
+      "n_imag": 0.0,
+      "thickness_nm": 65.47619047619047
+    },
+    {
+      "name": "L",
+      "n_real": 1.45,
+      "n_imag": 0.0,
+      "thickness_nm": 94.82758620689656
+    },
+    {
+      "name": "H",
+      "n_real": 2.1,
+      "n_imag": 0.0,
+      "thickness_nm": 65.47619047619047
+    },
+    {
+      "name": "L",
+      "n_real": 1.45,
+      "n_imag": 0.0,
+      "thickness_nm": 94.82758620689656
+    },
+    {
+      "name": "H",
+      "n_real": 2.1,
+      "n_imag": 0.0,
+      "thickness_nm": 65.47619047619047
+    },
+    {
+      "name": "L",
+      "n_real": 1.45,
+      "n_imag": 0.0,
+      "thickness_nm": 94.82758620689656
+    },
+    {
+      "name": "H",
+      "n_real": 2.1,
+      "n_imag": 0.0,
+      "thickness_nm": 65.47619047619047
+    }
+  ],
+  "summary": {
+    "R_at_lambda0": 8.334243069650082e-30,
+    "T_at_lambda0": 0.9999999999999996,
+    "A_at_lambda0": 4.440892098500626e-16,
+    "R_min": 8.334243069650082e-30,
+    "R_min_wavelength_nm": 550.0,
+    "R_max": 0.9875205315510385,
+    "R_max_wavelength_nm": 509.0,
+    "T_max": 0.9999999999999996,
+    "T_max_wavelength_nm": 550.0
+  }
+}

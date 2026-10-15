@@ -1,10 +1,55 @@
 from __future__ import annotations
 
 from typing import Any
+import json
+import os
+from pathlib import Path
+import subprocess
 
 import numpy as np
 
 from .registry import solver_status
+
+
+def _encode(value: Any) -> Any:
+    if isinstance(value, complex):
+        return {"__complex__": [value.real, value.imag]}
+    if isinstance(value, np.ndarray):
+        return _encode(value.tolist())
+    if isinstance(value, np.generic):
+        return _encode(value.item())
+    if isinstance(value, dict):
+        return {key: _encode(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_encode(item) for item in value]
+    return value
+
+
+def _external_call(operation: str, arguments: dict[str, Any]) -> dict[str, Any] | None:
+    executable = os.environ.get("THINFILM_GENERALTMM_PYTHON")
+    if not executable or os.environ.get("THINFILM_GENERALTMM_WORKER_PROCESS"):
+        return None
+    worker = Path(os.environ["THINFILM_GENERALTMM_WORKER"])
+    if not Path(executable).is_file() or not worker.is_file():
+        raise RuntimeError("Bundled GeneralTmm runtime is incomplete")
+    env = os.environ.copy()
+    env["THINFILM_GENERALTMM_WORKER_PROCESS"] = "1"
+    completed = subprocess.run(
+        [executable, str(worker)],
+        input=json.dumps({"operation": operation, "arguments": _encode(arguments)}),
+        text=True,
+        capture_output=True,
+        cwd=worker.parent,
+        env=env,
+        timeout=180,
+        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+    )
+    if completed.returncode:
+        raise RuntimeError(f"GeneralTmm worker exited {completed.returncode}: {completed.stderr[-1200:]}")
+    response = json.loads(completed.stdout)
+    if not response.get("ok"):
+        raise RuntimeError(f"GeneralTmm worker failed: {response.get('error')}")
+    return response["result"]
 
 
 def status() -> dict[str, Any]:
@@ -13,6 +58,9 @@ def status() -> dict[str, Any]:
 
 def solve_interface(*, wavelength_nm: float, n_incident: complex, n_layer: complex, n_substrate: complex, thickness_nm: float, beta: float = 0.0) -> dict[str, Any]:
     """Evaluate a planar interface/film with GeneralTmm when installed."""
+    external = _external_call("solve_interface", locals())
+    if external is not None:
+        return external
     if not status()["available"]:
         raise RuntimeError("GeneralTmm is not installed; install the optional interface backend")
     from GeneralTmm import Material, Tmm
@@ -34,6 +82,9 @@ def solve_interface(*, wavelength_nm: float, n_incident: complex, n_layer: compl
 
 
 def sweep_interface(*, wavelengths_nm: list[float], n_incident: complex = 1.5, n_layer: complex = 2.0, n_substrate: complex = 1.0, thickness_nm: float = 100.0, beta: float = 0.0) -> dict[str, Any]:
+    external = _external_call("sweep_interface", locals())
+    if external is not None:
+        return external
     rows = [solve_interface(wavelength_nm=float(wavelength), n_incident=n_incident, n_layer=n_layer, n_substrate=n_substrate, thickness_nm=thickness_nm, beta=beta) for wavelength in wavelengths_nm]
     return {
         "solver": "generaltmm",
@@ -48,6 +99,9 @@ def sweep_interface(*, wavelengths_nm: list[float], n_incident: complex = 1.5, n
 
 def sweep_multilayer(*, wavelengths_nm: list[float], n_incident: complex, layer_indices: list[complex], layer_thickness_nm: list[float], n_substrate: complex, beta: float = 0.0) -> dict[str, Any]:
     """Compute a material-resolved isotropic multilayer spectrum."""
+    external = _external_call("sweep_multilayer", locals())
+    if external is not None:
+        return external
     if len(layer_indices) != len(layer_thickness_nm):
         raise ValueError("layer_indices and layer_thickness_nm must have equal length")
     if not status()["available"]:
@@ -102,6 +156,9 @@ def multilayer_field_comparison(
     points: int = 601,
 ) -> dict[str, Any]:
     """Compare the real p-polarized electric-field profile on and off resonance."""
+    external = _external_call("multilayer_field_comparison", locals())
+    if external is not None:
+        return external
     if len(layer_indices) != len(layer_thickness_nm) or not layer_indices:
         raise ValueError("A non-empty, length-matched multilayer is required")
     if points < 101:

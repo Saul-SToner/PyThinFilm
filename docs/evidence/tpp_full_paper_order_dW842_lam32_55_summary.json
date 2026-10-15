@@ -1,0 +1,23 @@
+{
+  "source": "C:\\Users\\L2791\\OneDrive\\Desktop\\deg.p\\tpp_full_paper_order_dW842_lam32_55.csv",
+  "structure": "Air / W(8.42 nm) / Si spacer(180 nm) / (Si/SiO2)^4 / Si substrate",
+  "lambda_min_um": 3.1999999999999997,
+  "lambda_max_um": 5.5,
+  "R_at_4p14": 0.9459974864191526,
+  "T_at_4p14": 0.0007736677346930281,
+  "A_at_4p14": 0.05322884584615437,
+  "energy_balance_max_error": 0.0,
+  "A_max": 0.5097874581601733,
+  "A_max_lambda_um": 5.24,
+  "R_at_Amax": 0.239367321468552,
+  "T_at_Amax": 0.2508452203712747,
+  "R_min": 0.239367321468552,
+  "R_min_lambda_um": 5.24,
+  "A_at_Rmin": 0.5097874581601733,
+  "T_at_Rmin": 0.2508452203712747,
+  "local_3p8_4p6_Amax": 0.07777738175814093,
+  "local_3p8_4p6_Amax_lambda_um": 3.8,
+  "local_3p8_4p6_R_at_Amax": 0.921446098881433,
+  "local_3p8_4p6_T_at_Amax": 0.0007765193604260374,
+  "conclusion": "修正DBR层序后，完整TPP在4.14um附近A约0.053，未形成目标吸收峰；全局最高A约0.510出现在5.24um。下一步应优先检查W材料模型、spacer相位定义和论文入射/层序是否完全一致，再做小范围d_W或d_spacer扫描。"
+}

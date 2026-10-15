@@ -1,0 +1,20 @@
+{
+  "x_window_um": [
+    -5.8,
+    5.8
+  ],
+  "num_points": 977,
+  "E2_max": 24057268.29003165,
+  "hotspot_peak_x_um": -2.310358502585887,
+  "interface_E2_mean": 21636981.009675466,
+  "left_background_E2_mean": 22600306.25356974,
+  "right_background_E2_mean": 22264024.085810356,
+  "background_E2_mean": 22432165.169690054,
+  "interface_enhancement_mean": 0.9645516090845735,
+  "peak_enhancement_vs_background": 1.0724452190882316,
+  "hotspot_center_x_um": -0.0007155401780236251,
+  "hotspot_width_fwhm_um": 11.598761215156673,
+  "passes_interface_enhancement_gt2": false,
+  "passes_center_abs_lt0p5um": true,
+  "passes_width_lt3um": false
+}

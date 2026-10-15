@@ -1,0 +1,100 @@
+{
+  "case_id": "fp_single_halfwave",
+  "title_cn": "单半波型 F-P 滤光片",
+  "title_en": "Single-Half-Wave F-P Filter",
+  "design_type": "fp_single_halfwave",
+  "theta_deg": 0.0,
+  "pol": "p",
+  "lambda0_nm": 550.0,
+  "layers": [
+    {
+      "name": "H",
+      "n_real": 2.15,
+      "n_imag": 0.0,
+      "thickness_nm": 63.95348837209303
+    },
+    {
+      "name": "L",
+      "n_real": 1.38,
+      "n_imag": 0.0,
+      "thickness_nm": 99.6376811594203
+    },
+    {
+      "name": "H",
+      "n_real": 2.15,
+      "n_imag": 0.0,
+      "thickness_nm": 63.95348837209303
+    },
+    {
+      "name": "L",
+      "n_real": 1.38,
+      "n_imag": 0.0,
+      "thickness_nm": 99.6376811594203
+    },
+    {
+      "name": "H",
+      "n_real": 2.15,
+      "n_imag": 0.0,
+      "thickness_nm": 63.95348837209303
+    },
+    {
+      "name": "L",
+      "n_real": 1.38,
+      "n_imag": 0.0,
+      "thickness_nm": 99.6376811594203
+    },
+    {
+      "name": "C",
+      "n_real": 1.38,
+      "n_imag": 0.0,
+      "thickness_nm": 199.2753623188406
+    },
+    {
+      "name": "L",
+      "n_real": 1.38,
+      "n_imag": 0.0,
+      "thickness_nm": 99.6376811594203
+    },
+    {
+      "name": "H",
+      "n_real": 2.15,
+      "n_imag": 0.0,
+      "thickness_nm": 63.95348837209303
+    },
+    {
+      "name": "L",
+      "n_real": 1.38,
+      "n_imag": 0.0,
+      "thickness_nm": 99.6376811594203
+    },
+    {
+      "name": "H",
+      "n_real": 2.15,
+      "n_imag": 0.0,
+      "thickness_nm": 63.95348837209303
+    },
+    {
+      "name": "L",
+      "n_real": 1.38,
+      "n_imag": 0.0,
+      "thickness_nm": 99.6376811594203
+    },
+    {
+      "name": "H",
+      "n_real": 2.15,
+      "n_imag": 0.0,
+      "thickness_nm": 63.95348837209303
+    }
+  ],
+  "summary": {
+    "R_at_lambda0": 0.042579994960947394,
+    "T_at_lambda0": 0.9574200050390523,
+    "A_at_lambda0": 2.220446049250313e-16,
+    "R_min": 0.0016030667695985349,
+    "R_min_wavelength_nm": 733.0,
+    "R_max": 0.9696976465580617,
+    "R_max_wavelength_nm": 614.0,
+    "T_max": 0.9983969332304017,
+    "T_max_wavelength_nm": 733.0
+  }
+}

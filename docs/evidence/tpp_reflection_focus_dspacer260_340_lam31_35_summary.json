@@ -1,0 +1,29 @@
+{
+  "source": "C:\\Users\\L2791\\OneDrive\\Desktop\\deg.p\\tpp_reflection_focus_dspacer260_340_lam31_35.csv",
+  "rows": 357,
+  "lambda_range_um": [
+    3.1,
+    3.5
+  ],
+  "d_spacer_range_nm": [
+    260.0,
+    340.0
+  ],
+  "global_best": {
+    "lambda_um": 3.34,
+    "d_spacer_nm": 320.0,
+    "R": 0.0005899602945302362,
+    "A_reflection": 0.9994100397054697,
+    "energy_check": 1.0
+  },
+  "best_spacer_width_A_ge_0p5_um": 0.16000000000000014,
+  "best_spacer_width_A_ge_0p9_um": 0.040000000000000036,
+  "outputs": {
+    "clean_csv": "C:\\Users\\L2791\\thinfilm_outputs\\tpp_reflection_focus_dspacer260_340_lam31_35_clean.csv",
+    "per_spacer_summary_csv": "C:\\Users\\L2791\\thinfilm_outputs\\tpp_reflection_focus_dspacer260_340_lam31_35_per_spacer_summary.csv",
+    "top20_csv": "C:\\Users\\L2791\\thinfilm_outputs\\tpp_reflection_focus_dspacer260_340_lam31_35_top20.csv",
+    "heatmap_png": "C:\\Users\\L2791\\thinfilm_outputs\\tpp_reflection_focus_dspacer260_340_lam31_35_heatmap_cn.png",
+    "curves_png": "C:\\Users\\L2791\\thinfilm_outputs\\tpp_reflection_focus_dspacer260_340_lam31_35_curves_cn.png",
+    "trend_png": "C:\\Users\\L2791\\thinfilm_outputs\\tpp_reflection_focus_dspacer260_340_lam31_35_trend_cn.png"
+  }
+}

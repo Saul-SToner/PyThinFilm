@@ -1,0 +1,36 @@
+{
+  "sample_id": "minimal_branch_case",
+  "model_type": "guided_grating_placeholder_surrogate",
+  "warning": "This branch currently uses a placeholder resonance surrogate, not RCWA/COMSOL.",
+  "spec": {
+    "sample_id": "minimal_branch_case",
+    "period_nm": 780.0,
+    "waveguide_thickness_nm": 180.0,
+    "grating_thickness_nm": 85.0,
+    "fill_factor": 0.52,
+    "n_incident": 1.0,
+    "n_waveguide": 2.0,
+    "n_grating": 2.0,
+    "n_substrate": 1.45,
+    "theta_deg": 0.0,
+    "pol": "TE",
+    "lambda0_nm": 1550.0,
+    "k_waveguide": 0.0,
+    "k_grating": 0.0,
+    "notes": "Branch scaffold only. Replace placeholder solver with COMSOL/RCWA later."
+  },
+  "summary": {
+    "peak_reflectance": 0.8585040336856096,
+    "peak_wavelength_nm": 1551.5,
+    "fwhm_nm": 11.0,
+    "min_reflectance": 0.03819892111716244,
+    "min_reflectance_wavelength_nm": 1467.0,
+    "max_transmittance": 0.9617211177323072,
+    "max_absorptance": 0.01999304096090413,
+    "wavelength_start_nm": 1450.0,
+    "wavelength_stop_nm": 1650.0,
+    "num_points": 401,
+    "backend": "placeholder",
+    "is_placeholder": true
+  }
+}

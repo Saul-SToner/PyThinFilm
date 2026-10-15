@@ -1,0 +1,42 @@
+{
+  "case_id": "porous_sio2_layer",
+  "title_cn": "多孔二氧化硅膜层",
+  "title_en": "Porous Silica Layer",
+  "quantity": "R",
+  "reference_label": "COMSOL",
+  "reference_csv": "C:\\Users\\L2791\\OneDrive\\Desktop\\deg.p\\porous.csv",
+  "summary": {
+    "lambda_min_nm": 400.0,
+    "lambda_max_nm": 750.0,
+    "num_points": 600,
+    "theory_at_lambda0": 0.004647393940582103,
+    "reference_at_lambda0": 0.004146105184260221,
+    "mae": 0.000459917103212156,
+    "rmse": 0.00046149110234427993,
+    "max_abs_error": 0.0005015308909898479,
+    "mean_bias": 0.000459917103212156,
+    "lambda0_error": 0.0005012887563218818
+  },
+  "core_metrics": {
+    "quantity": "R",
+    "lambda0_nm": 550.0,
+    "theory_at_lambda0": 0.004647393940582103,
+    "reference_at_lambda0": 0.004146105184260221,
+    "mae": 0.000459917103212156,
+    "rmse": 0.00046149110234427993,
+    "max_abs_error": 0.0005015308909898479,
+    "mean_bias": 0.000459917103212156,
+    "lambda0_error": 0.0005012887563218818
+  },
+  "core_metrics_cn": {
+    "主比较量": "R",
+    "中心波长_nm": 550.0,
+    "理论R@中心波长": 0.004647393940582103,
+    "参考R@中心波长": 0.004146105184260221,
+    "平均绝对误差_MAE": 0.000459917103212156,
+    "均方根误差_RMSE": 0.00046149110234427993,
+    "最大绝对误差": 0.0005015308909898479,
+    "平均偏差": 0.000459917103212156,
+    "中心点误差": 0.0005012887563218818
+  }
+}

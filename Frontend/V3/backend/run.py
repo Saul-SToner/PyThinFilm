@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sys
+import os
 
 import uvicorn
 
@@ -19,4 +20,4 @@ if __name__ == "__main__":
 
     from app.main import app
 
-    uvicorn.run(app, host="127.0.0.1", port=8122, reload=False)
+    uvicorn.run(app, host="127.0.0.1", port=int(os.environ.get("THINFILM_PORT", "8122")), reload=False)

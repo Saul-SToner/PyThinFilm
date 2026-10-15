@@ -1,0 +1,208 @@
+{
+  "lambda0_nm": 550.0,
+  "sweeps": {
+    "n_porous": {
+      "reference_csv": "C:\\Users\\L2791\\OneDrive\\Desktop\\deg.p\\n_porous.csv",
+      "sweep_key": "n_porous",
+      "lambda0_nm": 550.0,
+      "rows": [
+        {
+          "param_value": 1.1,
+          "R_mean": 0.006614200414494058,
+          "R_at_lambda0": 0.00439611691178661,
+          "R_min": 0.00439611691178661,
+          "lambda_at_R_min": 550.0,
+          "num_points": 401
+        },
+        {
+          "param_value": 1.14,
+          "R_mean": 0.00295871381636907,
+          "R_at_lambda0": 0.000940828948082489,
+          "R_min": 0.000940828948082489,
+          "lambda_at_R_min": 550.0,
+          "num_points": 401
+        },
+        {
+          "param_value": 1.18,
+          "R_mean": 0.001607044611396929,
+          "R_at_lambda0": 1.44634311724426e-05,
+          "R_min": 1.44634311724426e-05,
+          "lambda_at_R_min": 550.0,
+          "num_points": 401
+        },
+        {
+          "param_value": 1.22,
+          "R_mean": 0.002345452903326901,
+          "R_at_lambda0": 0.001378084184211921,
+          "R_min": 0.001378084184211921,
+          "lambda_at_R_min": 550.0,
+          "num_points": 401
+        },
+        {
+          "param_value": 1.26,
+          "R_mean": 0.0049694590421748746,
+          "R_at_lambda0": 0.004801239217078299,
+          "R_min": 0.004648430940477358,
+          "lambda_at_R_min": 650.9999999999999,
+          "num_points": 401
+        },
+        {
+          "param_value": 1.3,
+          "R_mean": 0.009284707582693758,
+          "R_at_lambda0": 0.01006333515687483,
+          "R_min": 0.008720385843398909,
+          "lambda_at_R_min": 748.0,
+          "num_points": 401
+        }
+      ],
+      "best_by_center": {
+        "param_value": 1.18,
+        "R_mean": 0.001607044611396929,
+        "R_at_lambda0": 1.44634311724426e-05,
+        "R_min": 1.44634311724426e-05,
+        "lambda_at_R_min": 550.0,
+        "num_points": 401
+      },
+      "best_by_mean": {
+        "param_value": 1.18,
+        "R_mean": 0.001607044611396929,
+        "R_at_lambda0": 1.44634311724426e-05,
+        "R_min": 1.44634311724426e-05,
+        "lambda_at_R_min": 550.0,
+        "num_points": 401
+      },
+      "trend_cn": "多孔层折射率存在明显最优点，不是越低越好。",
+      "sensitivity_cn": "当前扫描表明，多孔层折射率在 1.18 附近形成最佳匹配。"
+    },
+    "err_d_porous": {
+      "reference_csv": "C:\\Users\\L2791\\OneDrive\\Desktop\\deg.p\\err_d_porous.csv",
+      "sweep_key": "err_d_porous",
+      "lambda0_nm": 550.0,
+      "rows": [
+        {
+          "param_value": -0.1,
+          "R_mean": 0.0022740748612754547,
+          "R_at_lambda0": 0.0006592768771396518,
+          "R_min": 2.719056270541881e-07,
+          "lambda_at_R_min": 474.9999999999999,
+          "num_points": 81
+        },
+        {
+          "param_value": -0.05,
+          "R_mean": 0.001814326262843722,
+          "R_at_lambda0": 0.0001767538797232281,
+          "R_min": 8.222373401159804e-06,
+          "lambda_at_R_min": 509.9999999999999,
+          "num_points": 81
+        },
+        {
+          "param_value": 0.0,
+          "R_mean": 0.0016472943463430813,
+          "R_at_lambda0": 1.446343117239559e-05,
+          "R_min": 1.446343117239559e-05,
+          "lambda_at_R_min": 550.0,
+          "num_points": 81
+        },
+        {
+          "param_value": 0.05,
+          "R_mean": 0.0017672011479519527,
+          "R_at_lambda0": 0.0001767078350635775,
+          "R_min": 9.598306712774648e-06,
+          "lambda_at_R_min": 590.0,
+          "num_points": 81
+        },
+        {
+          "param_value": 0.1,
+          "R_mean": 0.0021602798427261013,
+          "R_at_lambda0": 0.0006591684438580846,
+          "R_min": 2.545622220375491e-06,
+          "lambda_at_R_min": 629.9999999999999,
+          "num_points": 81
+        }
+      ],
+      "best_by_center": {
+        "param_value": 0.0,
+        "R_mean": 0.0016472943463430813,
+        "R_at_lambda0": 1.446343117239559e-05,
+        "R_min": 1.446343117239559e-05,
+        "lambda_at_R_min": 550.0,
+        "num_points": 81
+      },
+      "best_by_mean": {
+        "param_value": 0.0,
+        "R_mean": 0.0016472943463430813,
+        "R_at_lambda0": 1.446343117239559e-05,
+        "R_min": 1.446343117239559e-05,
+        "lambda_at_R_min": 550.0,
+        "num_points": 81
+      },
+      "trend_cn": "多孔层厚度偏离设计值后，低反谷会明显偏离 550 nm。",
+      "sensitivity_cn": "多孔层厚度对中心波长减反更敏感，是优先控制对象。"
+    },
+    "err_d_high": {
+      "reference_csv": "C:\\Users\\L2791\\OneDrive\\Desktop\\deg.p\\err_d_high.csv",
+      "sweep_key": "err_d_high",
+      "lambda0_nm": 550.0,
+      "rows": [
+        {
+          "param_value": -0.1,
+          "R_mean": 0.0017186816280278633,
+          "R_at_lambda0": 6.222568155592714e-05,
+          "R_min": 1.826002228363291e-06,
+          "lambda_at_R_min": 574.9999999999999,
+          "num_points": 81
+        },
+        {
+          "param_value": -0.05,
+          "R_mean": 0.001653417595717711,
+          "R_at_lambda0": 2.645900136864076e-05,
+          "R_min": 9.702084106271037e-06,
+          "lambda_at_R_min": 565.0,
+          "num_points": 81
+        },
+        {
+          "param_value": 0.0,
+          "R_mean": 0.0016472943463437368,
+          "R_at_lambda0": 1.446343117245876e-05,
+          "R_min": 1.446343117245876e-05,
+          "lambda_at_R_min": 550.0,
+          "num_points": 81
+        },
+        {
+          "param_value": 0.05,
+          "R_mean": 0.0017011758205883335,
+          "R_at_lambda0": 2.648987081656809e-05,
+          "R_min": 9.295867415197987e-06,
+          "lambda_at_R_min": 535.0,
+          "num_points": 81
+        },
+        {
+          "param_value": 0.1,
+          "R_mean": 0.0018137018122256654,
+          "R_at_lambda0": 6.225487727162556e-05,
+          "R_min": 1.024277173693464e-06,
+          "lambda_at_R_min": 530.0,
+          "num_points": 81
+        }
+      ],
+      "best_by_center": {
+        "param_value": 0.0,
+        "R_mean": 0.0016472943463437368,
+        "R_at_lambda0": 1.446343117245876e-05,
+        "R_min": 1.446343117245876e-05,
+        "lambda_at_R_min": 550.0,
+        "num_points": 81
+      },
+      "best_by_mean": {
+        "param_value": 0.0,
+        "R_mean": 0.0016472943463437368,
+        "R_at_lambda0": 1.446343117245876e-05,
+        "R_min": 1.446343117245876e-05,
+        "lambda_at_R_min": 550.0,
+        "num_points": 81
+      },
+      "trend_cn": "高折匹配层厚度变化也会引起低反谷漂移，但整体敏感性较多孔层更弱。",
+      "sensitivity_cn": "高折匹配层厚度应控制在设计值附近，但相对容差更宽。"
+    }
+  }
+}

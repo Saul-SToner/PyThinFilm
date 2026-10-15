@@ -1,0 +1,34 @@
+{
+  "case_id": "porous_double_ar",
+  "title_cn": "多孔二氧化硅双层减反结构",
+  "title_en": "Porous Silica Double-Layer AR",
+  "design_type": "porous_double_ar",
+  "theta_deg": 0.0,
+  "pol": "p",
+  "lambda0_nm": 550.0,
+  "layers": [
+    {
+      "name": "Porous",
+      "n_real": 1.18,
+      "n_imag": 0.0,
+      "thickness_nm": 116.52542372881356
+    },
+    {
+      "name": "H",
+      "n_real": 1.45,
+      "n_imag": 0.0,
+      "thickness_nm": 94.82758620689656
+    }
+  ],
+  "summary": {
+    "R_at_lambda0": 1.4433988593560564e-05,
+    "T_at_lambda0": 0.9999855660114064,
+    "A_at_lambda0": 0.0,
+    "R_min": 1.4433988593560564e-05,
+    "R_min_wavelength_nm": 550.0,
+    "R_max": 0.006849067297872036,
+    "R_max_wavelength_nm": 400.0,
+    "T_max": 0.9999855660114064,
+    "T_max_wavelength_nm": 550.0
+  }
+}

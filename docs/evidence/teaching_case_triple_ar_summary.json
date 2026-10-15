@@ -1,0 +1,40 @@
+{
+  "case_id": "triple_ar",
+  "title_cn": "三层减反射膜",
+  "title_en": "Triple-Layer Anti-Reflection",
+  "design_type": "triple_ar",
+  "theta_deg": 0.0,
+  "pol": "p",
+  "lambda0_nm": 550.0,
+  "layers": [
+    {
+      "name": "L",
+      "n_real": 1.38,
+      "n_imag": 0.0,
+      "thickness_nm": 99.6376811594203
+    },
+    {
+      "name": "2H",
+      "n_real": 1.88,
+      "n_imag": 0.0,
+      "thickness_nm": 146.27659574468086
+    },
+    {
+      "name": "M",
+      "n_real": 1.6,
+      "n_imag": 0.0,
+      "thickness_nm": 85.9375
+    }
+  ],
+  "summary": {
+    "R_at_lambda0": 0.0037647873741598337,
+    "T_at_lambda0": 0.9962352126258402,
+    "A_at_lambda0": 0.0,
+    "R_min": 0.0018767038784485927,
+    "R_min_wavelength_nm": 676.0,
+    "R_max": 0.02356875048400967,
+    "R_max_wavelength_nm": 400.0,
+    "T_max": 0.9981232961215515,
+    "T_max_wavelength_nm": 676.0
+  }
+}

@@ -1,0 +1,6 @@
+﻿topic_cn,case_id,reference_csv,mae,rmse,max_abs_error,lambda0_error,theory_at_lambda0,reference_at_lambda0
+单层减反膜,single_ar,C:\Users\L2791\OneDrive\Desktop\deg.p\AR_MgF2_BK7G18_550nm_theta0.csv,0.000220647360498,0.000221378863778,0.000240788643086,0.000240600856725,0.0126009105081,0.0123603096513
+多孔二氧化硅膜层,porous_sio2_layer,C:\Users\L2791\OneDrive\Desktop\deg.p\porous.csv,0.000459917103212,0.000461491102344,0.00050153089099,0.000501288756322,0.00464739394058,0.00414610518426
+多孔二氧化硅双层减反结构,porous_double_ar,C:\Users\L2791\OneDrive\Desktop\deg.p\New.csv,3.02251397911e-07,7.04422650867e-07,3.80515321192e-06,-5.44302994822e-09,1.44818707469e-05,1.44873137768e-05
+蛾眼结构（等效渐变层）,moth_eye_effective_gradient,C:\Users\L2791\OneDrive\Desktop\deg.p\Rugate2.csv,0.00106037671531,0.00127380903957,0.00217160366,0.00216372336225,0.00254742016445,0.000383696802209
+2D 蛾眼梯形结构（COMSOL）,moth_eye_effective_gradient,C:\Users\L2791\OneDrive\Desktop\deg.p\moth_eye_2D_trapezoid_P200_H300_Wtop40_Wbottom180_Glass_550nm_theta0_comsol.csv,0.00425861649671,0.00478536583892,0.00692392069609,-0.00225700158301,0.00254742016445,0.00480442174747

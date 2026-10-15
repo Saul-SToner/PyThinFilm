@@ -1,0 +1,28 @@
+{
+  "case_id": "single_ar",
+  "title_cn": "单层减反射膜",
+  "title_en": "Single-Layer Anti-Reflection",
+  "design_type": "single_ar",
+  "theta_deg": 0.0,
+  "pol": "p",
+  "lambda0_nm": 550.0,
+  "layers": [
+    {
+      "name": "L",
+      "n_real": 1.2329,
+      "n_imag": 0.0,
+      "thickness_nm": 111.52567118176655
+    }
+  ],
+  "summary": {
+    "R_at_lambda0": 1.946154256323216e-10,
+    "T_at_lambda0": 0.9999999998053845,
+    "A_at_lambda0": 1.1102230246251565e-16,
+    "R_min": 1.946154256323216e-10,
+    "R_min_wavelength_nm": 550.0,
+    "R_max": 0.013541287605080688,
+    "R_max_wavelength_nm": 400.0,
+    "T_max": 0.9999999998053845,
+    "T_max_wavelength_nm": 550.0
+  }
+}

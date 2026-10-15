@@ -3,7 +3,7 @@
 V3 同时保留两种工作区：
 
 - **自由膜系设计**：编辑任意膜层、选择真实色散材料、查看 R/T/A 与 Three.js 三维结构。
-- **40 例案例库**：18 个薄膜教学案例保留实时参数计算；另接入 1 个 EMT 虚拟实验、5 个工程应用和 16 个研究拓展案例的正式结果或证据数据。
+- **案例库**：完整目录包含 40 例；当前默认公开 22 例（18 个薄膜教学、1 个光栅实验、3 个 Ag/DBR 教学实验），其余 18 例归档。发布范围以 `backend/app/case_release.py` 为准。
 
 案例库不会把研究证据案例伪装成可调参数教学仿真。实时案例显示参数与“开始仿真”；正式结果/证据案例显示已有曲线、膜层、指标、表格和适用范围。非教学 Runner 不计入 40 个物理案例。
 
@@ -61,7 +61,7 @@ npm run dev
 
 案例库接口：
 
-- `GET /api/case-library`：返回 40 例目录、分类和接入模式；
+- `GET /api/case-library`：默认返回 22 例公开目录、分类和接入模式；`include_archived=true` 可查询完整 40 例目录；
 - `GET /api/case-library/{case_id}`：返回统一后的正式结果或证据详情；
 - `POST /api/simulations`：供 18 个实时教学案例重新计算，现全部经过 tmmcore 光谱路径；其中 `moth_eye_effective_gradient` 与 `rugate_filter` 使用 PyThinFilm 生成离散切片，再交由 tmmcore 逐层计算，并在 `solver.discretization` 中标记近似方式。
 
@@ -89,3 +89,12 @@ npm run typecheck
 npm run build
 npm run build:backend
 ```
+
+
+## Windows 发布
+
+在 `frontend/` 执行 `npm run dist`，依次完成依赖预检、后端冻结、GeneralTmm 独立运行时构建和 Electron 打包，输出安装版与便携版。随后执行 `npm run release:smoke` 验证 `release/win-unpacked` 中的实际计算路径。
+
+依赖固定在根目录 `tools/release-dependencies.json`。外部 Optiland checkout 默认位于仓库同级 `optiland/`，构建时可通过 `THINFILM_OPTILAND_CHECKOUT` 指定；必须匹配清单的来源、提交和版本。GeneralTmm 使用校验 SHA256 的嵌入式 CPython，避免原生扩展在冻结环境中的访问冲突。后端端口默认 8122，可通过 `THINFILM_PORT` 配置独立后端进程。
+
+详细验收范围见 [打包审计](../../docs/PACKAGING_AUDIT_20260923.md)。历史副本、虚拟环境、独立运行时和安装包不纳入源码提交。

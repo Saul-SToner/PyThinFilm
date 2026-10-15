@@ -1,0 +1,15 @@
+{
+  "title": "薄膜光学教学与前沿研究平台总模型树",
+  "version": "tpp_optimized_clean",
+  "notes": [
+    "去除跨列斜箭头，降低视觉干扰",
+    "加入TPP近完美吸收正结果",
+    "保留Tamm界面态为筛选分支",
+    "强调材料库贯穿所有模块"
+  ],
+  "outputs": {
+    "versioned_png": "C:\\Users\\L2791\\thinfilm_outputs\\project_total_model_tree_cn_tpp_optimized.png",
+    "current_clean_png": "C:\\Users\\L2791\\thinfilm_outputs\\project_total_model_tree_cn_clean.png",
+    "package_png": "C:\\Users\\L2791\\thinfilm_outputs\\导师优化说明包_20260520\\project_total_model_tree_cn_tpp_optimized.png"
+  }
+}

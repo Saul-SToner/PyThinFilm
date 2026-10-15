@@ -1,0 +1,91 @@
+{
+  "reference_csv": "C:\\Users\\L2791\\OneDrive\\Desktop\\deg.p\\tamm_spectrum_dW_scan(4).csv",
+  "candidate_dws_nm": [
+    90.00000000000001,
+    100.0,
+    110.0,
+    119.99999999999999
+  ],
+  "best_overall_pair": {
+    "dW_a_nm": 90.00000000000001,
+    "dW_b_nm": 119.99999999999999,
+    "mean_phase_diff_rad": 0.42880197630220496,
+    "max_phase_diff_rad": 0.780845819944111,
+    "peak_phase_diff_rad": 0.26273977671529214,
+    "peak_wavelength_delta_um": 0.04999999999999982,
+    "avg_A_max": 0.9788990365708321,
+    "balanced_score": 0.4197538414818972
+  },
+  "best_peak_phase_pair": {
+    "dW_a_nm": 110.0,
+    "dW_b_nm": 119.99999999999999,
+    "mean_phase_diff_rad": 0.1822795481546471,
+    "max_phase_diff_rad": 0.40787634095047975,
+    "peak_phase_diff_rad": 0.44082744724391243,
+    "peak_wavelength_delta_um": 0.04999999999999982,
+    "avg_A_max": 0.9945974328298252,
+    "balanced_score": 0.18129477065199248
+  },
+  "pairs": [
+    {
+      "dW_a_nm": 90.00000000000001,
+      "dW_b_nm": 119.99999999999999,
+      "mean_phase_diff_rad": 0.42880197630220496,
+      "max_phase_diff_rad": 0.780845819944111,
+      "peak_phase_diff_rad": 0.26273977671529214,
+      "peak_wavelength_delta_um": 0.04999999999999982,
+      "avg_A_max": 0.9788990365708321,
+      "balanced_score": 0.4197538414818972
+    },
+    {
+      "dW_a_nm": 100.0,
+      "dW_b_nm": 119.99999999999999,
+      "mean_phase_diff_rad": 0.3194711142389502,
+      "max_phase_diff_rad": 0.6319778075056324,
+      "peak_phase_diff_rad": 0.32742457944530523,
+      "peak_wavelength_delta_um": 0.04999999999999982,
+      "avg_A_max": 0.988552742870715,
+      "balanced_score": 0.31581404624887777
+    },
+    {
+      "dW_a_nm": 90.00000000000001,
+      "dW_b_nm": 110.0,
+      "mean_phase_diff_rad": 0.24780573554130114,
+      "max_phase_diff_rad": 0.41613560967443153,
+      "peak_phase_diff_rad": 0.1780876705286203,
+      "peak_wavelength_delta_um": 0.0,
+      "avg_A_max": 0.9756350868344851,
+      "balanced_score": 0.24176797031292077
+    },
+    {
+      "dW_a_nm": 110.0,
+      "dW_b_nm": 119.99999999999999,
+      "mean_phase_diff_rad": 0.1822795481546471,
+      "max_phase_diff_rad": 0.40787634095047975,
+      "peak_phase_diff_rad": 0.44082744724391243,
+      "peak_wavelength_delta_um": 0.04999999999999982,
+      "avg_A_max": 0.9945974328298252,
+      "balanced_score": 0.18129477065199248
+    },
+    {
+      "dW_a_nm": 100.0,
+      "dW_b_nm": 110.0,
+      "mean_phase_diff_rad": 0.13842586600845463,
+      "max_phase_diff_rad": 0.2468100186240798,
+      "peak_phase_diff_rad": 0.11340286779860725,
+      "peak_wavelength_delta_um": 0.0,
+      "avg_A_max": 0.9852887931343679,
+      "balanced_score": 0.13638945445804998
+    },
+    {
+      "dW_a_nm": 90.00000000000001,
+      "dW_b_nm": 100.0,
+      "mean_phase_diff_rad": 0.10937986953284648,
+      "max_phase_diff_rad": 0.17713731198240956,
+      "peak_phase_diff_rad": 0.06468480273001304,
+      "peak_wavelength_delta_um": 0.0,
+      "avg_A_max": 0.969590396875375,
+      "balanced_score": 0.10605367111052935
+    }
+  ]
+}

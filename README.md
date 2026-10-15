@@ -1,6 +1,6 @@
 # PyThinFilm：基于 Python 的薄膜光学计算实验与教学平台
 
-基于传输矩阵法（TMM）的平面多层膜光谱计算、真实材料 nk 数据导入、亚波长 EMT 零阶近似分析与教学复验平台。
+基于传输矩阵法（TMM）的薄膜光学教学与研究平台，包含 Python 计算库、Windows 桌面端、真实材料数据库、案例证据和可复算的动画生成工具。
 
 ---
 
@@ -23,7 +23,7 @@
    - `guided_grating/emt.py`：实现针对亚波长光栅的零阶极化等效介质近似（EMT）模型。
    - `guided_grating/comsol_io.py`：提供外部全波电磁散射仿真数据的读取与半高全宽（FWHM）、品质因子 $Q$ 等指标提取器。
 3. **可视化渲染**：调用 Plotly 导出高清晰度交互式 HTML 页面及静态 PNG 图表。
-4. **物理自检层**：包含由 310 个测试用例构成的 pytest 自动化测试套件与 `smoke_test.py` 自检脚本。
+4. **物理自检层**：包含由 多模块测试用例构成的 pytest 自动化测试套件与 `smoke_test.py` 自检脚本。
 
 ---
 
@@ -64,11 +64,11 @@
 ![平台底层物理方程与模块实现映射图](docs/figures/fig_2_3_physics_mapping.png)
 
 ### 4. 明确的技术物理边界声明
-- **关于光栅等效介质近似 (EMT) 限制**：`guided_grating/emt.py` 实现了针对一维周期性亚波长光栅的**零阶极化等效介质近似（EMT）**，用于快速计算 TE/TM 偏振的零阶等效折射率并简化为各向异性等效单层膜。**本平台在计算层目前不做高阶衍射波的全波散射或严格傅里叶特征值求解。未完成的高阶特征值求解代码已移入 `archive/experimental_rcwa/` 以供将来拓展研究**。
+- **关于光栅等效介质近似 (EMT) 限制**：`guided_grating/emt.py` 实现了针对一维周期性亚波长光栅的**零阶极化等效介质近似（EMT）**，用于快速计算 TE/TM 偏振的零阶等效折射率并简化为各向异性等效单层膜。**EMT 路径不求解高阶衍射；真实 RCWA 试算由可选外部 rcwa 后端承担。旧实验求解器保留在 `archive/experimental_rcwa/`，不作为已验证的生产后端。**
 
 - **专用求解器适配层**：`thinfilm/solvers/` 提供可选的 `rcwa`、`GeneralTmm`、`WPTherml` 后端探测与适配。当前 V3 后端环境已安装 `rcwa==1.0.48`，可用于光栅真实 RCWA 试算；其余后端保持可选，不会影响默认 `tmmcore` 路径。
 - **关于外部数据比对**：`comsol_io.py` 仅作为外部 COMSOL 仿真结果（CSV 格式）的特征提取（FWHM、品质因子 $Q$ 等指标）与复验比对接口。**平台本身不是全波数值求解器，不提供且不替代 COMSOL 内部的网格离散与空间偏微分方程求解机制**。
-- **关于软件状态声明**：平台定位为轻量级计算物理展示与教学工具。**仓库中不包含且不提供独立运行的 GUI 或 App 桌面客户端，亦不代表 App 已经完成。当前不依赖任何 GitHub Actions 持续集成自动化部署工具**。
+- **关于软件状态声明**：平台定位为轻量级计算物理展示与教学工具。Windows 桌面端位于 `Frontend/V3/`，采用 Electron + React + FastAPI。当前已具备自由膜系设计、教学案例和本地打包流程；外部设备上的交互安装与 GUI 验收仍需单独完成。详见 [桌面端说明](Frontend/V3/README.md)。
 
 ---
 
@@ -135,7 +135,7 @@ python run_teaching_demo.py --list
 ![测试与证据材料生成流程图](docs/figures/fig_3_5_test_flow.png)
 
 1. **物理一致性测试**：
-   在 tests/ 目录下包含 **270 个单元用例**。强制断言验证了在斜入射、强吸收介质插值下反射率、透射率和吸收率之和恒等于 1.0 的物理守恒律 ($R + T + A \equiv 1.0$)，防止发生数值越界与物理退化：
+   在 tests/ 目录下包含 **覆盖核心物理与数据流程的单元测试**。强制断言验证了在斜入射、强吸收介质插值下反射率、透射率和吸收率之和恒等于 1.0 的物理守恒律 ($R + T + A \equiv 1.0$)，防止发生数值越界与物理退化：
    ```bash
    python -m pytest tests/ -v
    ```
@@ -159,7 +159,7 @@ PyThinFilm/
 │   └── comsol_io.py             # 外部 COMSOL 扫描 CSV 解析与指标提取
 ├── cases/                       # Tamm/PDRC等专题及高级脚本运行文件夹
 ├── examples/                    # 经典教学及5个工程应用示范案例
-├── tests/                       # 由 310 个测试用例构成的测试套件
+├── tests/                       # 由 多模块测试用例构成的测试套件
 ├── docs/                        # 文档、流程图与测试日志存放目录
 │   ├── figures/                 # 5 张流程图及案例输出图
 │   └── evidence/                # 冒烟自检与 pytest 运行证据日志
@@ -170,8 +170,58 @@ PyThinFilm/
 
 ## 十、版本状态与限制
 
-- **当前版本**：v0.2.1 竞赛展示功能冻结版。
+- **版本口径**：Python 核心保留 v0.2.1 教学基线；桌面端 package 版本为 0.1.0。功能与发布范围以当前源码和发布审计为准。
 - **物理与计算局限**：
   - 核心求解器限于平面一维多层薄膜层叠结构（各向同性介质）。
   - EMT 模块在周期尺寸与波长可比拟（如 $P/\lambda \ge 0.5$）的共振发射区会因高阶衍射失效，计算时应严格评估物理近似边界。
   - 内存缓存为单进程生命周期，暂不支持外部持久化存储。
+
+
+## 十一、Windows 桌面端与当前工作重点
+
+桌面端采用 Electron、React、TypeScript、Three.js 与 FastAPI。物理计算使用仓库根目录的 `thinfilm/`；`Frontend/V3/PyThinFilm/` 为本地历史副本，不参与运行或打包。
+
+- **自由膜系设计**：编辑层结构和真实色散材料，查看 R/T/A、三维结构、相位与一维场强，并进行引导实验与历史曲线比较。
+- **案例发布范围**：完整目录保留 40 例，默认公开 22 例（18 个薄膜教学案例、1 个光栅实验、3 个 Ag/DBR 教学实验），其余 18 例归档。具体范围由 `Frontend/V3/backend/app/case_release.py` 定义。
+- **求解器分工**：平面膜光谱主要使用 tmmcore，PyThinFilm 提供教学洞察与独立对照；RCWA、GeneralTmm、WPTherml 为专用后端。Optiland 用于独立的系统级追迹与分析，不替代薄膜电磁求解。
+- **平台边界**：教学界面不提供厚度反演入口，仓库不保留旧反演样本 CSV。研究证据与实时教学模型需保留来源和适用范围。
+
+开发环境启动：
+
+```powershell
+cd Frontend/V3
+py -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r backend/requirements.txt
+cd frontend
+npm ci
+npm run dev
+```
+
+专用后端与 Optiland 的安装配置见 [V3 说明](Frontend/V3/README.md) 和 [依赖清单](tools/release-dependencies.json)。打包前需准备清单固定提交的外部 Optiland checkout；该 checkout 不包含在本仓库中。
+
+```powershell
+# 在 Frontend/V3/frontend 下执行
+npm run typecheck
+npm run dist
+npm run release:smoke
+```
+
+发布流程包含依赖预检、PyInstaller 后端、独立嵌入式 GeneralTmm 运行时、Electron 安装版与便携版。发布验收和已知限制见 [Windows 打包审计](docs/PACKAGING_AUDIT_20260923.md)。修改依赖后应重新验收，不应将历史通过记录视为当前构建保证。
+
+## 十二、动画资料与复现
+
+动画工具保留数值来源、参数和模型边界。生成的视频和审阅材料留在本地，源码与说明纳入版本管理。
+
+- [薄膜机制与参数扫描动画](docs/VIDEO_SIMULATION_STORYBOARD.md)：`tools/video/render_simulation_clips.py`。
+- [40 例结果复核素材](docs/CASE_VIDEO_LIBRARY.md)：`tools/video/render_case_library.py`，包括公开与归档标记。
+- [Optiland 系统应用动画](docs/OPTILAND_VIDEO_STORYBOARD.md)：`tools/video/render_optiland_system_clips.py`。
+
+上述无配音素材与串联预览用于审阅和后期制作，正式参赛视频仍需解释、配音与教学节奏编排。
+
+
+## 十三、本次同步验证（2026-10-15）
+
+- Python 核心测试：438 通过、1 失败。失败项为外部证据来源哈希核验，原因是当前机器缺少历史 COMSOL 原始输入 `tamm_spectrum_dW_scan(4).csv`；保存的证据结果不能代替原始输入核验。
+- V3 后端测试：45 通过。
+- 前端类型检查与生产构建：通过；构建提示主 JavaScript 包超过 500 kB，后续可按需拆包。
+- 发布依赖预检：通过；这不等同于重新构建及全新 Windows 设备验收。

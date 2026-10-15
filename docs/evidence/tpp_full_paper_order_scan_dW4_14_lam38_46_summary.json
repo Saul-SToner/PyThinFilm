@@ -1,0 +1,42 @@
+{
+  "source": "C:\\Users\\L2791\\OneDrive\\Desktop\\deg.p\\tpp_full_paper_order_scan_dW4_14_lam38_46.csv",
+  "structure": "Air/W/Si spacer/(Si/SiO2)^4/Si substrate",
+  "lambda_min_um": 3.1999999999999997,
+  "lambda_max_um": 4.6,
+  "dW_values_nm": [
+    4.0,
+    5.0,
+    6.0,
+    7.0,
+    8.0,
+    9.0,
+    10.0,
+    11.0,
+    12.0,
+    13.0,
+    14.0
+  ],
+  "energy_balance_max_error": 0.0,
+  "global_best": {
+    "lambda_um": 3.1999999999999997,
+    "d_W_nm": 4.0,
+    "R": 0.2633075045888835,
+    "T": 0.2064428400493148,
+    "A": 0.5302496553618017
+  },
+  "best_near_4p14": {
+    "nearest_lambda_um": 4.140000000000001,
+    "d_W_nm": 8.0,
+    "R": 0.9458735572514186,
+    "T": 0.0008192122984158638,
+    "A": 0.0533072304501655
+  },
+  "local_3p8_4p6_best": {
+    "lambda_um": 3.8,
+    "d_W_nm": 5.0,
+    "R": 0.9155247871812856,
+    "T": 0.001434020234050264,
+    "A": 0.08304119258466414
+  },
+  "conclusion": "小范围d_W扫描未在4.14um附近形成强吸收；目标处最佳A约0.053，出现在d_W=8nm附近。全局最高A约0.530出现在3.2um,d_W=4nm。下一步不应继续单扫d_W，应固定W厚度并扫描spacer相位，或检查W材料模型。"
+}

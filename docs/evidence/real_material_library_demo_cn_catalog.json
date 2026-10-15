@@ -1,0 +1,72 @@
+[
+  {
+    "file": "C:\\Users\\L2791\\Downloads\\Vscode\\data\\real_nk\\SiO2_Malitson.csv",
+    "material": "SiO2",
+    "source": "Malitson 1965; Tan 1998",
+    "url": "https://raw.githubusercontent.com/polyanskiy/refractiveindex.info-database/main/database/data/main/SiO2/nk/Malitson.yml",
+    "rows": 650,
+    "lambda_min_um": 0.21,
+    "lambda_max_um": 6.7,
+    "type": "formula 1"
+  },
+  {
+    "file": "C:\\Users\\L2791\\Downloads\\Vscode\\data\\real_nk\\TiO2_Devore_o.csv",
+    "material": "TiO2",
+    "source": "Devore 1951 ordinary ray",
+    "url": "https://raw.githubusercontent.com/polyanskiy/refractiveindex.info-database/main/database/data/main/TiO2/nk/Devore-o.yml",
+    "rows": 111,
+    "lambda_min_um": 0.43,
+    "lambda_max_um": 1.53,
+    "type": "formula 4"
+  },
+  {
+    "file": "C:\\Users\\L2791\\Downloads\\Vscode\\data\\real_nk\\MgF2_Dodge_o.csv",
+    "material": "MgF2",
+    "source": "Dodge 1984 ordinary ray",
+    "url": "https://raw.githubusercontent.com/polyanskiy/refractiveindex.info-database/main/database/data/main/MgF2/nk/Dodge-o.yml",
+    "rows": 681,
+    "lambda_min_um": 0.2,
+    "lambda_max_um": 7.0,
+    "type": "formula 1"
+  },
+  {
+    "file": "C:\\Users\\L2791\\Downloads\\Vscode\\data\\real_nk\\Al2O3_Malitson_o.csv",
+    "material": "Al2O3",
+    "source": "Malitson 1962 ordinary ray",
+    "url": "https://raw.githubusercontent.com/polyanskiy/refractiveindex.info-database/main/database/data/main/Al2O3/nk/Malitson-o.yml",
+    "rows": 481,
+    "lambda_min_um": 0.2,
+    "lambda_max_um": 5.0,
+    "type": "formula 1"
+  },
+  {
+    "file": "C:\\Users\\L2791\\Downloads\\Vscode\\data\\real_nk\\Au_Johnson_Christy.csv",
+    "material": "Au",
+    "source": "Johnson and Christy 1972",
+    "url": "https://raw.githubusercontent.com/polyanskiy/refractiveindex.info-database/main/database/data/main/Au/nk/Johnson.yml",
+    "rows": 49,
+    "lambda_min_um": 0.1879,
+    "lambda_max_um": 1.937,
+    "type": "tabulated nk"
+  },
+  {
+    "file": "C:\\Users\\L2791\\Downloads\\Vscode\\data\\real_nk\\Ag_Johnson_Christy.csv",
+    "material": "Ag",
+    "source": "Johnson and Christy 1972",
+    "url": "https://raw.githubusercontent.com/polyanskiy/refractiveindex.info-database/main/database/data/main/Ag/nk/Johnson.yml",
+    "rows": 49,
+    "lambda_min_um": 0.1879,
+    "lambda_max_um": 1.937,
+    "type": "tabulated nk"
+  },
+  {
+    "file": "C:\\Users\\L2791\\Downloads\\Vscode\\data\\real_nk\\Si_Aspnes.csv",
+    "material": "Si",
+    "source": "Aspnes and Studna 1983",
+    "url": "https://raw.githubusercontent.com/polyanskiy/refractiveindex.info-database/main/database/data/main/Si/nk/Aspnes.yml",
+    "rows": 46,
+    "lambda_min_um": 0.2066,
+    "lambda_max_um": 0.8266,
+    "type": "tabulated nk"
+  }
+]

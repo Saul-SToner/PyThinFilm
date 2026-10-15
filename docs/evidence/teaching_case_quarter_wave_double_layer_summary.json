@@ -1,0 +1,34 @@
+{
+  "case_id": "quarter_wave_double_layer",
+  "title_cn": "1/4波长双层膜系",
+  "title_en": "Quarter-Wave Double Layer",
+  "design_type": "quarter_wave_double_layer",
+  "theta_deg": 0.0,
+  "pol": "p",
+  "lambda0_nm": 550.0,
+  "layers": [
+    {
+      "name": "L",
+      "n_real": 1.38,
+      "n_imag": 0.0,
+      "thickness_nm": 99.6376811594203
+    },
+    {
+      "name": "H",
+      "n_real": 2.0,
+      "n_imag": 0.0,
+      "thickness_nm": 68.75
+    }
+  ],
+  "summary": {
+    "R_at_lambda0": 0.025700438525777837,
+    "T_at_lambda0": 0.9742995614742221,
+    "A_at_lambda0": 0.0,
+    "R_min": 0.025700438525777837,
+    "R_min_wavelength_nm": 550.0,
+    "R_max": 0.10103896056213613,
+    "R_max_wavelength_nm": 400.0,
+    "T_max": 0.9742995614742221,
+    "T_max_wavelength_nm": 550.0
+  }
+}

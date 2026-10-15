@@ -1,0 +1,75 @@
+{
+  "case_id": "tamm_dw_phase_scan",
+  "title_cn": "Tamm 吸收器 d_W-相位联合扫描",
+  "reference_csv": "C:\\Users\\L2791\\OneDrive\\Desktop\\deg.p\\tamm_spectrum_dW_scan(4).csv",
+  "summary": {
+    "reference_csv": "C:\\Users\\L2791\\OneDrive\\Desktop\\deg.p\\tamm_spectrum_dW_scan(4).csv",
+    "num_groups": 4,
+    "lambda_min_um": 4.0,
+    "lambda_max_um": 5.5,
+    "best_dW_nm": 119.99999999999999,
+    "best_A_max": 0.9978613825661722,
+    "best_peak_wavelength_um": 4.5,
+    "best_A_mean": 0.9272261236389229
+  },
+  "phase_ready": true,
+  "interpretation_cn": "普通 Tamm 吸收器已进入近完美吸收区，可正式转入反射相位与拓扑分类。",
+  "groups": [
+    {
+      "dW_nm": 90.00000000000001,
+      "summary": {
+        "num_points": 31,
+        "A_max": 0.959936690575492,
+        "A_mean": 0.8804582167980967,
+        "R_mean": 0.11900346196706776,
+        "T_mean": 0.0005383212348355502,
+        "peak_wavelength_um": 4.55,
+        "phase_at_peak_rad": 0.3408694645541951,
+        "phase_unwrapped_span_rad": 2.8905634489551906,
+        "energy_balance_max_error": 2.220446049250313e-16
+      }
+    },
+    {
+      "dW_nm": 100.0,
+      "summary": {
+        "num_points": 31,
+        "A_max": 0.9792441031752578,
+        "A_mean": 0.9022187102315838,
+        "R_mean": 0.09726488705982288,
+        "T_mean": 0.0005164027085933526,
+        "peak_wavelength_um": 4.55,
+        "phase_at_peak_rad": 0.4055542672842081,
+        "phase_unwrapped_span_rad": 2.9600496801525686,
+        "energy_balance_max_error": 1.1102230246251565e-16
+      }
+    },
+    {
+      "dW_nm": 110.0,
+      "summary": {
+        "num_points": 31,
+        "A_max": 0.9913334830934781,
+        "A_mean": 0.9174137811563184,
+        "R_mean": 0.08209115841512843,
+        "T_mean": 0.0004950604285532118,
+        "peak_wavelength_um": 4.55,
+        "phase_at_peak_rad": 0.5189571350828154,
+        "phase_unwrapped_span_rad": 3.0375548241345567,
+        "energy_balance_max_error": 2.220446049250313e-16
+      }
+    },
+    {
+      "dW_nm": 119.99999999999999,
+      "summary": {
+        "num_points": 31,
+        "A_max": 0.9978613825661722,
+        "A_mean": 0.9272261236389229,
+        "R_mean": 0.07229952372782467,
+        "T_mean": 0.0004743526332523162,
+        "peak_wavelength_um": 4.5,
+        "phase_at_peak_rad": 0.07812968783890292,
+        "phase_unwrapped_span_rad": 3.055364878950434,
+        "energy_balance_max_error": 1.1102230246251565e-16
+      }
+    }
+  ]
+}

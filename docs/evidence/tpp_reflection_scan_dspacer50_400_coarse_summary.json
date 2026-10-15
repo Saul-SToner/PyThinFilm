@@ -1,0 +1,35 @@
+{
+  "source": "C:\\Users\\L2791\\OneDrive\\Desktop\\deg.p\\tpp_reflection_scan_dspacer50_400_coarse.csv",
+  "rows": 360,
+  "lambda_range_um": [
+    3.2,
+    5.5
+  ],
+  "d_spacer_range_nm": [
+    50.0,
+    400.0
+  ],
+  "global_best": {
+    "lambda_um": 3.3,
+    "d_spacer_nm": 300.0,
+    "R": 0.003468026147458466,
+    "A_reflection": 0.9965319738525416,
+    "energy_check": 1.0
+  },
+  "target_lambda_nearest_um": 4.1,
+  "best_at_target_nearest": {
+    "lambda_um": 4.1,
+    "d_spacer_nm": 400.0,
+    "R": 0.8605004227102986,
+    "A_reflection": 0.1394995772897014,
+    "energy_check": 1.0
+  },
+  "outputs": {
+    "clean_csv": "C:\\Users\\L2791\\thinfilm_outputs\\tpp_reflection_scan_dspacer50_400_coarse_clean.csv",
+    "per_spacer_summary_csv": "C:\\Users\\L2791\\thinfilm_outputs\\tpp_reflection_scan_dspacer50_400_coarse_per_spacer_summary.csv",
+    "top10_csv": "C:\\Users\\L2791\\thinfilm_outputs\\tpp_reflection_scan_dspacer50_400_coarse_top10.csv",
+    "heatmap_png": "C:\\Users\\L2791\\thinfilm_outputs\\tpp_reflection_scan_dspacer50_400_coarse_heatmap_cn.png",
+    "curves_png": "C:\\Users\\L2791\\thinfilm_outputs\\tpp_reflection_scan_dspacer50_400_coarse_curves_cn.png",
+    "summary_png": "C:\\Users\\L2791\\thinfilm_outputs\\tpp_reflection_scan_dspacer50_400_coarse_summary_cn.png"
+  }
+}

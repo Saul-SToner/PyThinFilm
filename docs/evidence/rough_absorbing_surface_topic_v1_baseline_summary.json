@@ -1,0 +1,30 @@
+{
+  "case_id": "quasi_random_absorbing_surface",
+  "title_cn": "准随机粗糙吸收表面",
+  "title_en": "Periodic Quasi-Random Rough Absorbing Surface",
+  "reference_csv": "C:\\Users\\L2791\\OneDrive\\Desktop\\deg.p\\2D periodic quasi-random rough absorbing surface(basic).csv",
+  "lambda0_nm": 550.0,
+  "summary": {
+    "lambda_min_nm": 400.0,
+    "lambda_max_nm": 800.0,
+    "num_points": 201,
+    "R_min": 0.3060022815527936,
+    "R_max": 0.3117160229381981,
+    "R_mean": 0.3088726145099561,
+    "T_min": 0.05606266871023462,
+    "T_max": 0.1965001195100825,
+    "T_mean": 0.12818917654984965,
+    "A_min": 0.4943932395294083,
+    "A_max": 0.6348608405198033,
+    "A_mean": 0.5629382089401943,
+    "R_at_lambda0": 0.3074200114030092,
+    "T_at_lambda0": 0.1112947950848744,
+    "A_at_lambda0": 0.5812851935121164,
+    "A_peak_wavelength_nm": 400.0,
+    "R_peak_wavelength_nm": 722.0,
+    "T_peak_wavelength_nm": 800.0,
+    "energy_balance_mean": 1.0,
+    "energy_balance_max_error": 2.220446049250313e-16
+  },
+  "interpretation_cn": "该结构具有中等吸收增强效果，反射与吸收共同决定能量分配。"
+}

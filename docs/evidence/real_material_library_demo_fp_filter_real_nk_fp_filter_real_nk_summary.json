@@ -1,0 +1,100 @@
+{
+  "case_id": "fp_filter_real_nk",
+  "title_cn": null,
+  "title_en": null,
+  "design_type": "fp_filter",
+  "theta_deg": 0.0,
+  "pol": "p",
+  "lambda0_nm": 550.0,
+  "layers": [
+    {
+      "name": "H",
+      "n_real": 2.64793502,
+      "n_imag": 0.0,
+      "thickness_nm": 51.92725613032604
+    },
+    {
+      "name": "L",
+      "n_real": 1.45991089,
+      "n_imag": 0.0,
+      "thickness_nm": 94.18383063092297
+    },
+    {
+      "name": "H",
+      "n_real": 2.64793502,
+      "n_imag": 0.0,
+      "thickness_nm": 51.92725613032604
+    },
+    {
+      "name": "L",
+      "n_real": 1.45991089,
+      "n_imag": 0.0,
+      "thickness_nm": 94.18383063092297
+    },
+    {
+      "name": "H",
+      "n_real": 2.64793502,
+      "n_imag": 0.0,
+      "thickness_nm": 51.92725613032604
+    },
+    {
+      "name": "L",
+      "n_real": 1.45991089,
+      "n_imag": 0.0,
+      "thickness_nm": 94.18383063092297
+    },
+    {
+      "name": "C",
+      "n_real": 1.45991089,
+      "n_imag": 0.0,
+      "thickness_nm": 188.36766126184594
+    },
+    {
+      "name": "L",
+      "n_real": 1.45991089,
+      "n_imag": 0.0,
+      "thickness_nm": 94.18383063092297
+    },
+    {
+      "name": "H",
+      "n_real": 2.64793502,
+      "n_imag": 0.0,
+      "thickness_nm": 51.92725613032604
+    },
+    {
+      "name": "L",
+      "n_real": 1.45991089,
+      "n_imag": 0.0,
+      "thickness_nm": 94.18383063092297
+    },
+    {
+      "name": "H",
+      "n_real": 2.64793502,
+      "n_imag": 0.0,
+      "thickness_nm": 51.92725613032604
+    },
+    {
+      "name": "L",
+      "n_real": 1.45991089,
+      "n_imag": 0.0,
+      "thickness_nm": 94.18383063092297
+    },
+    {
+      "name": "H",
+      "n_real": 2.64793502,
+      "n_imag": 0.0,
+      "thickness_nm": 51.92725613032604
+    }
+  ],
+  "summary": {
+    "R_at_lambda0": 0.034954946039463565,
+    "T_at_lambda0": 0.9650450539605367,
+    "A_at_lambda0": 0.0,
+    "R_min": 0.003076726166657111,
+    "R_min_wavelength_nm": 736.0,
+    "R_max": 0.9958366138611592,
+    "R_max_wavelength_nm": 498.0,
+    "T_max": 0.9969232738333419,
+    "T_max_wavelength_nm": 736.0
+  }
+}

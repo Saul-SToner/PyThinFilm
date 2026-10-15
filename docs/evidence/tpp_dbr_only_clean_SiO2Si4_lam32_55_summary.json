@@ -1,0 +1,20 @@
+{
+  "source": "C:\\Users\\L2791\\OneDrive\\Desktop\\deg.p\\tpp_dbr_only_clean_SiO2Si4_lam32_55.csv",
+  "structure": "Air / (SiO2 / Si)^4 / Si substrate",
+  "lambda_min_um": 3.1999999999999997,
+  "lambda_max_um": 5.5,
+  "R_at_4p14": 0.3011208215807236,
+  "T_at_4p14": 0.6988791784192758,
+  "loss_at_4p14": 5.551115123125783e-16,
+  "R_max": 0.8610154767076967,
+  "R_max_lambda_um": 5.5,
+  "T_min": 0.1389845232923045,
+  "loss_abs_max": 1.454392162258955e-14,
+  "bands_R_gt_0p8": [
+    [
+      5.1000000000000005,
+      5.5
+    ]
+  ],
+  "conclusion": "能量守恒正确，但4.14um附近R≈0.30，不在强高反区；该层序不适合作为论文TPP完整结构的最终DBR对照。建议继续跑反向层序 Air/(Si/SiO2)^4/Si substrate。"
+}

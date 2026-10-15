@@ -1,0 +1,18 @@
+{
+  "source_csv": "C:\\Users\\L2791\\OneDrive\\Desktop\\deg.p\\pdrc_real_materials_ir_valid.csv",
+  "num_points": 51,
+  "lambda_min_um": 8.0,
+  "lambda_max_um": 13.0,
+  "lambda_step_um_median": 0.09999999999999964,
+  "R_avg_8_13": 0.19556311582678976,
+  "T_avg_8_13": 3.32816434788367e-19,
+  "epsilon_8_13_avg": 0.8044368841732105,
+  "A_min_8_13": 0.4532999150645003,
+  "A_min_lambda_um": 8.0,
+  "A_max_8_13": 0.9921314074392867,
+  "A_max_lambda_um": 12.2,
+  "A_at_8p9um": 0.6622603488089395,
+  "A_at_10um": 0.665464479148066,
+  "A_at_12um": 0.9889151763522666,
+  "energy_balance_max_error": 1.1102230246251565e-16
+}

@@ -1,0 +1,28 @@
+{
+  "case_id": "porous_sio2_layer",
+  "title_cn": "多孔二氧化硅膜层",
+  "title_en": "Porous Silica Layer",
+  "design_type": "single_ar",
+  "theta_deg": 0.0,
+  "pol": "p",
+  "lambda0_nm": 550.0,
+  "layers": [
+    {
+      "name": "L",
+      "n_real": 1.32,
+      "n_imag": 0.0,
+      "thickness_nm": 104.16666666666666
+    }
+  ],
+  "summary": {
+    "R_at_lambda0": 0.004647240507023304,
+    "T_at_lambda0": 0.9953527594929767,
+    "A_at_lambda0": 0.0,
+    "R_min": 0.004647240507023304,
+    "R_min_wavelength_nm": 550.0,
+    "R_max": 0.01667232349034897,
+    "R_max_wavelength_nm": 400.0,
+    "T_max": 0.9953527594929767,
+    "T_max_wavelength_nm": 550.0
+  }
+}

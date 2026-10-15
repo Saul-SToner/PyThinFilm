@@ -1,0 +1,11 @@
+{
+  "module_ids": [
+    "topological_tamm_thermal_radiation",
+    "pdrc_multilayer_cooling"
+  ],
+  "roadmap_files": {
+    "json": "C:\\Users\\L2791\\thinfilm_outputs\\frontier_model_tree_tamm_phase_screen_roadmap.json",
+    "txt": "C:\\Users\\L2791\\thinfilm_outputs\\frontier_model_tree_tamm_phase_screen_roadmap.txt",
+    "png": "C:\\Users\\L2791\\thinfilm_outputs\\frontier_model_tree_tamm_phase_screen_roadmap.png"
+  }
+}

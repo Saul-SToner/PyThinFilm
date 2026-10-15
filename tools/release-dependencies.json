@@ -1,0 +1,18 @@
+{
+  "optiland": {
+    "repository": "https://github.com/optiland/optiland.git",
+    "commit": "176108056d541a011f51d133a8938ae44478b5b2",
+    "version": "0.6.2.post89+g17610805"
+  },
+  "tmmcore": "0.4.0",
+  "embedded_python": {
+    "version": "3.13.1",
+    "url": "https://www.python.org/ftp/python/3.13.1/python-3.13.1-embed-amd64.zip",
+    "sha256": "7B7923FF0183A8B8FCA90F6047184B419B108CB437F75FC1C002F9D2F8BCEC16"
+  },
+  "numpy": "2.5.3",
+  "eigency": "3.4.0.7",
+  "rcwa": "1.0.48",
+  "GeneralTmm": "1.3.1",
+  "wptherml": "1.1.1"
+}

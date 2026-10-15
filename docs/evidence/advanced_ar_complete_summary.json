@@ -1,0 +1,131 @@
+{
+  "reference_label": "COMSOL",
+  "topics": [
+    {
+      "topic_cn": "单层减反膜",
+      "case_id": "single_ar",
+      "reference_csv": "C:\\Users\\L2791\\OneDrive\\Desktop\\deg.p\\AR_MgF2_BK7G18_550nm_theta0.csv",
+      "summary": {
+        "lambda_min_nm": 400.0,
+        "lambda_max_nm": 750.0,
+        "num_points": 600,
+        "theory_at_lambda0": 0.012600910508073219,
+        "reference_at_lambda0": 0.012360309651348498,
+        "mae": 0.0002206473604976089,
+        "rmse": 0.0002213788637783994,
+        "max_abs_error": 0.00024078864308625658,
+        "mean_bias": 0.0002206473604976089,
+        "lambda0_error": 0.00024060085672472122
+      },
+      "files": {
+        "csv": "C:\\Users\\L2791\\thinfilm_outputs\\advanced_ar_complete_01_single_ar_comparison.csv",
+        "json": "C:\\Users\\L2791\\thinfilm_outputs\\advanced_ar_complete_01_single_ar_summary.json",
+        "txt": "C:\\Users\\L2791\\thinfilm_outputs\\advanced_ar_complete_01_single_ar_summary.txt",
+        "main_png": "C:\\Users\\L2791\\thinfilm_outputs\\advanced_ar_complete_01_single_ar_main.png",
+        "analysis_png": "C:\\Users\\L2791\\thinfilm_outputs\\advanced_ar_complete_01_single_ar_analysis.png"
+      }
+    },
+    {
+      "topic_cn": "多孔二氧化硅膜层",
+      "case_id": "porous_sio2_layer",
+      "reference_csv": "C:\\Users\\L2791\\OneDrive\\Desktop\\deg.p\\porous.csv",
+      "summary": {
+        "lambda_min_nm": 400.0,
+        "lambda_max_nm": 750.0,
+        "num_points": 600,
+        "theory_at_lambda0": 0.004647393940582103,
+        "reference_at_lambda0": 0.004146105184260221,
+        "mae": 0.000459917103212156,
+        "rmse": 0.00046149110234427993,
+        "max_abs_error": 0.0005015308909898479,
+        "mean_bias": 0.000459917103212156,
+        "lambda0_error": 0.0005012887563218818
+      },
+      "files": {
+        "csv": "C:\\Users\\L2791\\thinfilm_outputs\\advanced_ar_complete_02_porous_sio2_layer_comparison.csv",
+        "json": "C:\\Users\\L2791\\thinfilm_outputs\\advanced_ar_complete_02_porous_sio2_layer_summary.json",
+        "txt": "C:\\Users\\L2791\\thinfilm_outputs\\advanced_ar_complete_02_porous_sio2_layer_summary.txt",
+        "main_png": "C:\\Users\\L2791\\thinfilm_outputs\\advanced_ar_complete_02_porous_sio2_layer_main.png",
+        "analysis_png": "C:\\Users\\L2791\\thinfilm_outputs\\advanced_ar_complete_02_porous_sio2_layer_analysis.png"
+      }
+    },
+    {
+      "topic_cn": "多孔二氧化硅双层减反结构",
+      "case_id": "porous_double_ar",
+      "reference_csv": "C:\\Users\\L2791\\OneDrive\\Desktop\\deg.p\\New.csv",
+      "summary": {
+        "lambda_min_nm": 400.0,
+        "lambda_max_nm": 750.0,
+        "num_points": 600,
+        "theory_at_lambda0": 1.4481870746889266e-05,
+        "reference_at_lambda0": 1.448731377683749e-05,
+        "mae": 3.022513979106676e-07,
+        "rmse": 7.04422650867085e-07,
+        "max_abs_error": 3.8051532119161985e-06,
+        "mean_bias": 2.870709006858747e-07,
+        "lambda0_error": -5.443029948224695e-09
+      },
+      "files": {
+        "csv": "C:\\Users\\L2791\\thinfilm_outputs\\advanced_ar_complete_03_porous_double_ar_comparison.csv",
+        "json": "C:\\Users\\L2791\\thinfilm_outputs\\advanced_ar_complete_03_porous_double_ar_summary.json",
+        "txt": "C:\\Users\\L2791\\thinfilm_outputs\\advanced_ar_complete_03_porous_double_ar_summary.txt",
+        "main_png": "C:\\Users\\L2791\\thinfilm_outputs\\advanced_ar_complete_03_porous_double_ar_main.png",
+        "analysis_png": "C:\\Users\\L2791\\thinfilm_outputs\\advanced_ar_complete_03_porous_double_ar_analysis.png"
+      }
+    },
+    {
+      "topic_cn": "蛾眼结构（等效渐变层）",
+      "case_id": "moth_eye_effective_gradient",
+      "reference_csv": "C:\\Users\\L2791\\OneDrive\\Desktop\\deg.p\\Rugate2.csv",
+      "summary": {
+        "lambda_min_nm": 400.0,
+        "lambda_max_nm": 750.0,
+        "num_points": 600,
+        "theory_at_lambda0": 0.0025474201644549634,
+        "reference_at_lambda0": 0.00038369680220851207,
+        "mae": 0.0010603767153102342,
+        "rmse": 0.0012738090395674766,
+        "max_abs_error": 0.002171603660003383,
+        "mean_bias": 0.0006957378373198827,
+        "lambda0_error": 0.0021637233622464514
+      },
+      "files": {
+        "csv": "C:\\Users\\L2791\\thinfilm_outputs\\advanced_ar_complete_04_moth_eye_effective_gradient_comparison.csv",
+        "json": "C:\\Users\\L2791\\thinfilm_outputs\\advanced_ar_complete_04_moth_eye_effective_gradient_summary.json",
+        "txt": "C:\\Users\\L2791\\thinfilm_outputs\\advanced_ar_complete_04_moth_eye_effective_gradient_summary.txt",
+        "main_png": "C:\\Users\\L2791\\thinfilm_outputs\\advanced_ar_complete_04_moth_eye_effective_gradient_main.png",
+        "analysis_png": "C:\\Users\\L2791\\thinfilm_outputs\\advanced_ar_complete_04_moth_eye_effective_gradient_analysis.png"
+      }
+    },
+    {
+      "topic_cn": "2D 蛾眼梯形结构（COMSOL）",
+      "case_id": "moth_eye_effective_gradient",
+      "reference_csv": "C:\\Users\\L2791\\OneDrive\\Desktop\\deg.p\\moth_eye_2D_trapezoid_P200_H300_Wtop40_Wbottom180_Glass_550nm_theta0_comsol.csv",
+      "summary": {
+        "lambda_min_nm": 400.0,
+        "lambda_max_nm": 750.0,
+        "num_points": 600,
+        "theory_at_lambda0": 0.0025474201644549634,
+        "reference_at_lambda0": 0.004804421747468745,
+        "mae": 0.00425861649670855,
+        "rmse": 0.004785365838920869,
+        "max_abs_error": 0.00692392069609293,
+        "mean_bias": -0.00425861649670855,
+        "lambda0_error": -0.002257001583013781
+      },
+      "files": {
+        "csv": "C:\\Users\\L2791\\thinfilm_outputs\\advanced_ar_complete_05_moth_eye_effective_gradient_comparison.csv",
+        "json": "C:\\Users\\L2791\\thinfilm_outputs\\advanced_ar_complete_05_moth_eye_effective_gradient_summary.json",
+        "txt": "C:\\Users\\L2791\\thinfilm_outputs\\advanced_ar_complete_05_moth_eye_effective_gradient_summary.txt",
+        "main_png": "C:\\Users\\L2791\\thinfilm_outputs\\advanced_ar_complete_05_moth_eye_effective_gradient_main.png",
+        "analysis_png": "C:\\Users\\L2791\\thinfilm_outputs\\advanced_ar_complete_05_moth_eye_effective_gradient_analysis.png"
+      }
+    }
+  ],
+  "suite_files": {
+    "csv": "C:\\Users\\L2791\\thinfilm_outputs\\advanced_ar_complete_validation_suite_summary.csv",
+    "json": "C:\\Users\\L2791\\thinfilm_outputs\\advanced_ar_complete_validation_suite_summary.json",
+    "txt": "C:\\Users\\L2791\\thinfilm_outputs\\advanced_ar_complete_validation_suite_summary.txt",
+    "overview_png": "C:\\Users\\L2791\\thinfilm_outputs\\advanced_ar_complete_validation_suite_overview.png"
+  }
+}

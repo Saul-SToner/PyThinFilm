@@ -1,0 +1,52 @@
+{
+  "case_id": "moth_eye_effective_gradient",
+  "title_cn": "蛾眼结构（等效渐变层）",
+  "title_en": "Moth-Eye Effective Gradient",
+  "design_type": "moth_eye_effective_gradient",
+  "theta_deg": 0.0,
+  "pol": "p",
+  "lambda0_nm": 550.0,
+  "layers": [
+    {
+      "name": "ME1",
+      "n_real": 1.1,
+      "n_imag": 0.0,
+      "thickness_nm": 60.0
+    },
+    {
+      "name": "ME2",
+      "n_real": 1.2,
+      "n_imag": 0.0,
+      "thickness_nm": 60.0
+    },
+    {
+      "name": "ME3",
+      "n_real": 1.3,
+      "n_imag": 0.0,
+      "thickness_nm": 60.0
+    },
+    {
+      "name": "ME4",
+      "n_real": 1.4,
+      "n_imag": 0.0,
+      "thickness_nm": 60.0
+    },
+    {
+      "name": "ME5",
+      "n_real": 1.5,
+      "n_imag": 0.0,
+      "thickness_nm": 60.0
+    }
+  ],
+  "summary": {
+    "R_at_lambda0": 0.00254747211240004,
+    "T_at_lambda0": 0.9974525278876004,
+    "A_at_lambda0": 0.0,
+    "R_min": 0.0005551295472046048,
+    "R_min_wavelength_nm": 400.0,
+    "R_max": 0.00254747211240004,
+    "R_max_wavelength_nm": 550.0,
+    "T_max": 0.9994448704527954,
+    "T_max_wavelength_nm": 400.0
+  }
+}

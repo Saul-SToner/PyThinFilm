@@ -1,0 +1,40 @@
+{
+  "baseline_csv": "C:\\Users\\L2791\\OneDrive\\Desktop\\deg.p\\2D periodic quasi-random rough absorbing surface(basic).csv",
+  "best_rough_csv": "C:\\Users\\L2791\\OneDrive\\Desktop\\deg.p\\2D periodic quasi-random rough absorbing surface(1.15).csv",
+  "best_rough_label": "粗糙表面 1.15x",
+  "lambda0_nm": 550.0,
+  "baseline_files": {
+    "csv": "C:\\Users\\L2791\\thinfilm_outputs\\rough_absorbing_surface_topic_v1_baseline_spectrum.csv",
+    "json": "C:\\Users\\L2791\\thinfilm_outputs\\rough_absorbing_surface_topic_v1_baseline_summary.json",
+    "txt": "C:\\Users\\L2791\\thinfilm_outputs\\rough_absorbing_surface_topic_v1_baseline_summary.txt",
+    "overview_png": "C:\\Users\\L2791\\thinfilm_outputs\\rough_absorbing_surface_topic_v1_baseline_overview.png"
+  },
+  "best_files": {
+    "csv": "C:\\Users\\L2791\\thinfilm_outputs\\rough_absorbing_surface_topic_v1_best_spectrum.csv",
+    "json": "C:\\Users\\L2791\\thinfilm_outputs\\rough_absorbing_surface_topic_v1_best_summary.json",
+    "txt": "C:\\Users\\L2791\\thinfilm_outputs\\rough_absorbing_surface_topic_v1_best_summary.txt",
+    "overview_png": "C:\\Users\\L2791\\thinfilm_outputs\\rough_absorbing_surface_topic_v1_best_overview.png"
+  },
+  "gain_files": {
+    "csv": "C:\\Users\\L2791\\thinfilm_outputs\\rough_absorbing_surface_topic_v1_gain.csv",
+    "json": "C:\\Users\\L2791\\thinfilm_outputs\\rough_absorbing_surface_topic_v1_gain.json",
+    "txt": "C:\\Users\\L2791\\thinfilm_outputs\\rough_absorbing_surface_topic_v1_gain.txt",
+    "png": "C:\\Users\\L2791\\thinfilm_outputs\\rough_absorbing_surface_topic_v1_gain.png"
+  },
+  "roughness_bundle": {
+    "csv": "C:\\Users\\L2791\\thinfilm_outputs\\rough_absorbing_surface_topic_v1_roughness.csv",
+    "json": "C:\\Users\\L2791\\thinfilm_outputs\\rough_absorbing_surface_topic_v1_roughness.json",
+    "txt": "C:\\Users\\L2791\\thinfilm_outputs\\rough_absorbing_surface_topic_v1_roughness.txt",
+    "png": "C:\\Users\\L2791\\thinfilm_outputs\\rough_absorbing_surface_topic_v1_roughness.png",
+    "conclusion_json": "C:\\Users\\L2791\\thinfilm_outputs\\rough_absorbing_surface_topic_v1_roughness_conclusion.json",
+    "conclusion_txt": "C:\\Users\\L2791\\thinfilm_outputs\\rough_absorbing_surface_topic_v1_roughness_conclusion.txt"
+  },
+  "gain_trend_bundle": {
+    "csv": "C:\\Users\\L2791\\thinfilm_outputs\\rough_absorbing_surface_topic_v1_gain_trend.csv",
+    "json": "C:\\Users\\L2791\\thinfilm_outputs\\rough_absorbing_surface_topic_v1_gain_trend.json",
+    "txt": "C:\\Users\\L2791\\thinfilm_outputs\\rough_absorbing_surface_topic_v1_gain_trend.txt",
+    "png": "C:\\Users\\L2791\\thinfilm_outputs\\rough_absorbing_surface_topic_v1_gain_trend.png"
+  },
+  "summary_json": "C:\\Users\\L2791\\thinfilm_outputs\\rough_absorbing_surface_topic_v1_summary.json",
+  "summary_txt": "C:\\Users\\L2791\\thinfilm_outputs\\rough_absorbing_surface_topic_v1_summary.txt"
+}

@@ -1,0 +1,83 @@
+[
+  {
+    "label": "base",
+    "source_csv": "C:\\Users\\L2791\\OneDrive\\Desktop\\deg.p\\tamm_interface_119_120_455um_cutline.csv",
+    "num_points_all": 3367,
+    "num_points_zoom": 977,
+    "x_range_um": [
+      -20.0,
+      20.0
+    ],
+    "y_mean_um": 10.232465214761046,
+    "lambda_um": 4.549999999999999,
+    "d_W_L_nm": 119.0,
+    "d_W_R_nm": 120.00000000000001,
+    "E2_max_zoom": 24057268.29003165,
+    "hotspot_peak_x_um": -2.310358502585887,
+    "interface_E2_mean": 21636981.009675466,
+    "left_background_E2_mean": 22600306.25356974,
+    "right_background_E2_mean": 22264024.085810356,
+    "background_E2_mean": 22432165.169690054,
+    "interface_enhancement_mean": 0.9645516090845735,
+    "peak_enhancement_vs_background": 1.0724452190882316,
+    "hotspot_center_x_um": -0.0007155401780236251,
+    "hotspot_width_fwhm_um": 11.598761215156673,
+    "passes_interface_enhancement_gt2": false,
+    "passes_center_abs_lt0p5um": true,
+    "passes_width_lt3um": false
+  },
+  {
+    "label": "yplus2nm",
+    "source_csv": "C:\\Users\\L2791\\OneDrive\\Desktop\\deg.p\\tamm_interface_119_120_455um_cutline_yplus2nm.csv",
+    "num_points_all": 3367,
+    "num_points_zoom": 975,
+    "x_range_um": [
+      -20.0,
+      20.0
+    ],
+    "y_mean_um": 10.22946521476104,
+    "lambda_um": 4.549999999999999,
+    "d_W_L_nm": 119.0,
+    "d_W_R_nm": 120.00000000000001,
+    "E2_max_zoom": 24128172.522464257,
+    "hotspot_peak_x_um": -2.3082099884303204,
+    "interface_E2_mean": 21707277.677196234,
+    "left_background_E2_mean": 22666143.488121677,
+    "right_background_E2_mean": 22327903.55325966,
+    "background_E2_mean": 22497023.52069067,
+    "interface_enhancement_mean": 0.9648955408359644,
+    "peak_enhancement_vs_background": 1.0725051027427432,
+    "hotspot_center_x_um": -0.0006179259572003762,
+    "hotspot_width_fwhm_um": 11.560595772482557,
+    "passes_interface_enhancement_gt2": false,
+    "passes_center_abs_lt0p5um": true,
+    "passes_width_lt3um": false
+  },
+  {
+    "label": "yplus10nm",
+    "source_csv": "C:\\Users\\L2791\\OneDrive\\Desktop\\deg.p\\tamm_interface_119_120_455um_cutline_yplus10nm.csv",
+    "num_points_all": 3367,
+    "num_points_zoom": 977,
+    "x_range_um": [
+      -20.0,
+      20.0
+    ],
+    "y_mean_um": 10.237465214761043,
+    "lambda_um": 4.549999999999999,
+    "d_W_L_nm": 119.0,
+    "d_W_R_nm": 120.00000000000001,
+    "E2_max_zoom": 23939094.569310725,
+    "hotspot_peak_x_um": -2.313939359511829,
+    "interface_E2_mean": 21519819.897140928,
+    "left_background_E2_mean": 22485777.67651509,
+    "right_background_E2_mean": 22152559.597658366,
+    "background_E2_mean": 22319168.637086727,
+    "interface_enhancement_mean": 0.9641855504143843,
+    "peak_enhancement_vs_background": 1.0725800301330328,
+    "hotspot_center_x_um": -0.000878368087925064,
+    "hotspot_width_fwhm_um": 11.592290563488103,
+    "passes_interface_enhancement_gt2": false,
+    "passes_center_abs_lt0p5um": true,
+    "passes_width_lt3um": false
+  }
+]

@@ -1,0 +1,13 @@
+{
+  "baseline_csv": "C:\\Users\\L2791\\OneDrive\\Desktop\\deg.p\\2D periodic quasi-random rough absorbing surface(basic).csv",
+  "best_rough_csv": "C:\\Users\\L2791\\OneDrive\\Desktop\\deg.p\\2D periodic quasi-random rough absorbing surface(1.15).csv",
+  "best_rough_label": "粗糙表面 1.15x",
+  "lambda0_nm": 550.0,
+  "baseline_A_mean": 0.5629382089401943,
+  "best_A_mean": 0.6541086358048559,
+  "delta_A_mean": 0.09117042686466159,
+  "baseline_A_at_lambda0": 0.5812851935121164,
+  "best_A_at_lambda0": 0.6826463562890238,
+  "delta_A_at_lambda0": 0.10136116277690743,
+  "conclusion_cn": "相对于平面基准，粗糙吸收表面在平均吸收率和 550 nm 吸收率上均获得正增益。"
+}

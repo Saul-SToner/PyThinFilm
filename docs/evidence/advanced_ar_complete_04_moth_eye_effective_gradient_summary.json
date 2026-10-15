@@ -1,0 +1,42 @@
+{
+  "case_id": "moth_eye_effective_gradient",
+  "title_cn": "蛾眼结构（等效渐变层）",
+  "title_en": "Moth-Eye Effective Gradient",
+  "quantity": "R",
+  "reference_label": "COMSOL",
+  "reference_csv": "C:\\Users\\L2791\\OneDrive\\Desktop\\deg.p\\Rugate2.csv",
+  "summary": {
+    "lambda_min_nm": 400.0,
+    "lambda_max_nm": 750.0,
+    "num_points": 600,
+    "theory_at_lambda0": 0.0025474201644549634,
+    "reference_at_lambda0": 0.00038369680220851207,
+    "mae": 0.0010603767153102342,
+    "rmse": 0.0012738090395674766,
+    "max_abs_error": 0.002171603660003383,
+    "mean_bias": 0.0006957378373198827,
+    "lambda0_error": 0.0021637233622464514
+  },
+  "core_metrics": {
+    "quantity": "R",
+    "lambda0_nm": 550.0,
+    "theory_at_lambda0": 0.0025474201644549634,
+    "reference_at_lambda0": 0.00038369680220851207,
+    "mae": 0.0010603767153102342,
+    "rmse": 0.0012738090395674766,
+    "max_abs_error": 0.002171603660003383,
+    "mean_bias": 0.0006957378373198827,
+    "lambda0_error": 0.0021637233622464514
+  },
+  "core_metrics_cn": {
+    "主比较量": "R",
+    "中心波长_nm": 550.0,
+    "理论R@中心波长": 0.0025474201644549634,
+    "参考R@中心波长": 0.00038369680220851207,
+    "平均绝对误差_MAE": 0.0010603767153102342,
+    "均方根误差_RMSE": 0.0012738090395674766,
+    "最大绝对误差": 0.002171603660003383,
+    "平均偏差": 0.0006957378373198827,
+    "中心点误差": 0.0021637233622464514
+  }
+}

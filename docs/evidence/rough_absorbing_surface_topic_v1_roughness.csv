@@ -1,0 +1,7 @@
+﻿roughness_factor,R_mean,T_mean,A_mean,R_at_lambda0,T_at_lambda0,A_at_lambda0,reference_csv
+0.25,0.3028901636,0.128340449529,0.568769386871,0.300683509227,0.111601960619,0.587714530154,C:\Users\L2791\OneDrive\Desktop\deg.p\2D periodic quasi-random rough absorbing surface(0.25).csv
+0.5,0.285807594612,0.129479611297,0.584712794091,0.281634488287,0.113130496143,0.60523501557,C:\Users\L2791\OneDrive\Desktop\deg.p\2D periodic quasi-random rough absorbing surface(0.5).csv
+0.75,0.260227992207,0.131226862674,0.608545145119,0.25301091558,0.115417340623,0.631571743797,C:\Users\L2791\OneDrive\Desktop\deg.p\2D periodic quasi-random rough absorbing surface(0.75).csv
+1,0.230206088822,0.133067265609,0.636726645569,0.21911309445,0.117793781029,0.663093124521,C:\Users\L2791\OneDrive\Desktop\deg.p\2D periodic quasi-random rough absorbing surface.csv
+1.1,0.217947968381,0.133716749358,0.648335282261,0.205230849469,0.11860849496,0.676160655571,C:\Users\L2791\OneDrive\Desktop\deg.p\2D periodic quasi-random rough absorbing surface(1.1).csv
+1.15,0.211880470856,0.134010893339,0.654108635805,0.198388043493,0.118965600218,0.682646356289,C:\Users\L2791\OneDrive\Desktop\deg.p\2D periodic quasi-random rough absorbing surface(1.15).csv

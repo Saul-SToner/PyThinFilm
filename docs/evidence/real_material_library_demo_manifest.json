@@ -1,0 +1,45 @@
+{
+  "material_library": {
+    "catalog_json": "C:\\Users\\L2791\\thinfilm_outputs\\real_material_library_demo_catalog.json",
+    "sampled_csv": "C:\\Users\\L2791\\thinfilm_outputs\\real_material_library_demo_sampled_nk.csv",
+    "summary_txt": "C:\\Users\\L2791\\thinfilm_outputs\\real_material_library_demo_summary.txt",
+    "overview_png": "C:\\Users\\L2791\\thinfilm_outputs\\real_material_library_demo_overview.png"
+  },
+  "cases": {
+    "single_ar": {
+      "constant_files": {
+        "csv": "C:\\Users\\L2791\\thinfilm_outputs\\real_material_library_demo_single_ar_constant_single_ar_constant_spectrum.csv",
+        "json": "C:\\Users\\L2791\\thinfilm_outputs\\real_material_library_demo_single_ar_constant_single_ar_constant_summary.json",
+        "txt": "C:\\Users\\L2791\\thinfilm_outputs\\real_material_library_demo_single_ar_constant_single_ar_constant_summary.txt",
+        "png": "C:\\Users\\L2791\\thinfilm_outputs\\real_material_library_demo_single_ar_constant_single_ar_constant_RTA.png",
+        "main_png": "C:\\Users\\L2791\\thinfilm_outputs\\real_material_library_demo_single_ar_constant_single_ar_constant_main.png",
+        "analysis_png": "C:\\Users\\L2791\\thinfilm_outputs\\real_material_library_demo_single_ar_constant_single_ar_constant_analysis.png"
+      },
+      "real_nk_files": {
+        "csv": "C:\\Users\\L2791\\thinfilm_outputs\\real_material_library_demo_single_ar_real_nk_single_ar_real_nk_spectrum.csv",
+        "json": "C:\\Users\\L2791\\thinfilm_outputs\\real_material_library_demo_single_ar_real_nk_single_ar_real_nk_summary.json",
+        "txt": "C:\\Users\\L2791\\thinfilm_outputs\\real_material_library_demo_single_ar_real_nk_single_ar_real_nk_summary.txt",
+        "png": "C:\\Users\\L2791\\thinfilm_outputs\\real_material_library_demo_single_ar_real_nk_single_ar_real_nk_RTA.png",
+        "main_png": "C:\\Users\\L2791\\thinfilm_outputs\\real_material_library_demo_single_ar_real_nk_single_ar_real_nk_main.png",
+        "analysis_png": "C:\\Users\\L2791\\thinfilm_outputs\\real_material_library_demo_single_ar_real_nk_single_ar_real_nk_analysis.png"
+      },
+      "comparison_csv": "C:\\Users\\L2791\\thinfilm_outputs\\real_material_library_demo_single_ar_constant_vs_real_nk.csv",
+      "material_map": {
+        "n_incident": "Air",
+        "n_low": "MgF2",
+        "n_substrate": "SiO2"
+      },
+      "real_summary": {
+        "R_at_lambda0": 0.017175221797879375,
+        "T_at_lambda0": 0.9828247782021207,
+        "A_at_lambda0": 0.0,
+        "R_min": 0.017174981297003792,
+        "R_min_wavelength_nm": 552.0,
+        "R_max": 0.0207356992164191,
+        "R_max_wavelength_nm": 430.0,
+        "T_max": 0.9828250187029959,
+        "T_max_wavelength_nm": 552.0
+      }
+    }
+  }
+}

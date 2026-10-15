@@ -1,0 +1,42 @@
+{
+  "case_id": "single_ar",
+  "title_cn": "单层减反射膜",
+  "title_en": "Single-Layer Anti-Reflection",
+  "quantity": "R",
+  "reference_label": "COMSOL",
+  "reference_csv": "C:\\Users\\L2791\\OneDrive\\Desktop\\deg.p\\AR_MgF2_BK7G18_550nm_theta0.csv",
+  "summary": {
+    "lambda_min_nm": 400.0,
+    "lambda_max_nm": 750.0,
+    "num_points": 600,
+    "theory_at_lambda0": 0.012600910508073219,
+    "reference_at_lambda0": 0.012360309651348498,
+    "mae": 0.0002206473604976089,
+    "rmse": 0.0002213788637783994,
+    "max_abs_error": 0.00024078864308625658,
+    "mean_bias": 0.0002206473604976089,
+    "lambda0_error": 0.00024060085672472122
+  },
+  "core_metrics": {
+    "quantity": "R",
+    "lambda0_nm": 550.0,
+    "theory_at_lambda0": 0.012600910508073219,
+    "reference_at_lambda0": 0.012360309651348498,
+    "mae": 0.0002206473604976089,
+    "rmse": 0.0002213788637783994,
+    "max_abs_error": 0.00024078864308625658,
+    "mean_bias": 0.0002206473604976089,
+    "lambda0_error": 0.00024060085672472122
+  },
+  "core_metrics_cn": {
+    "主比较量": "R",
+    "中心波长_nm": 550.0,
+    "理论R@中心波长": 0.012600910508073219,
+    "参考R@中心波长": 0.012360309651348498,
+    "平均绝对误差_MAE": 0.0002206473604976089,
+    "均方根误差_RMSE": 0.0002213788637783994,
+    "最大绝对误差": 0.00024078864308625658,
+    "平均偏差": 0.0002206473604976089,
+    "中心点误差": 0.00024060085672472122
+  }
+}

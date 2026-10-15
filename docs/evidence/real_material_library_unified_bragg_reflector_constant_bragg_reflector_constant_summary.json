@@ -1,0 +1,100 @@
+{
+  "case_id": "bragg_reflector_constant",
+  "title_cn": null,
+  "title_en": null,
+  "design_type": "bragg_reflector",
+  "theta_deg": 0.0,
+  "pol": "p",
+  "lambda0_nm": 550.0,
+  "layers": [
+    {
+      "name": "H",
+      "n_real": 2.15,
+      "n_imag": 0.0,
+      "thickness_nm": 63.95348837209303
+    },
+    {
+      "name": "L",
+      "n_real": 1.38,
+      "n_imag": 0.0,
+      "thickness_nm": 99.6376811594203
+    },
+    {
+      "name": "H",
+      "n_real": 2.15,
+      "n_imag": 0.0,
+      "thickness_nm": 63.95348837209303
+    },
+    {
+      "name": "L",
+      "n_real": 1.38,
+      "n_imag": 0.0,
+      "thickness_nm": 99.6376811594203
+    },
+    {
+      "name": "H",
+      "n_real": 2.15,
+      "n_imag": 0.0,
+      "thickness_nm": 63.95348837209303
+    },
+    {
+      "name": "L",
+      "n_real": 1.38,
+      "n_imag": 0.0,
+      "thickness_nm": 99.6376811594203
+    },
+    {
+      "name": "H",
+      "n_real": 2.15,
+      "n_imag": 0.0,
+      "thickness_nm": 63.95348837209303
+    },
+    {
+      "name": "L",
+      "n_real": 1.38,
+      "n_imag": 0.0,
+      "thickness_nm": 99.6376811594203
+    },
+    {
+      "name": "H",
+      "n_real": 2.15,
+      "n_imag": 0.0,
+      "thickness_nm": 63.95348837209303
+    },
+    {
+      "name": "L",
+      "n_real": 1.38,
+      "n_imag": 0.0,
+      "thickness_nm": 99.6376811594203
+    },
+    {
+      "name": "H",
+      "n_real": 2.15,
+      "n_imag": 0.0,
+      "thickness_nm": 63.95348837209303
+    },
+    {
+      "name": "L",
+      "n_real": 1.38,
+      "n_imag": 0.0,
+      "thickness_nm": 99.6376811594203
+    },
+    {
+      "name": "H",
+      "n_real": 2.15,
+      "n_imag": 0.0,
+      "thickness_nm": 63.95348837209303
+    }
+  ],
+  "summary": {
+    "R_at_lambda0": 0.9935891043160313,
+    "T_at_lambda0": 0.006410895683968512,
+    "A_at_lambda0": 1.7520707107365752e-16,
+    "R_min": 0.008664927993432464,
+    "R_min_wavelength_nm": 684.0,
+    "R_max": 0.9935891043160313,
+    "R_max_wavelength_nm": 550.0,
+    "T_max": 0.9913350720065675,
+    "T_max_wavelength_nm": 684.0
+  }
+}
